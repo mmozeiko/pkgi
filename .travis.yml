@@ -1,0 +1,18 @@
+git:
+  depth: 1
+
+os: linux
+language: c
+dist: trusty
+sudo: false
+
+install:
+  - cd ${TRAVIS_BUILD_DIR}
+  - curl -L "https://drive.google.com/uc?export=download&id=0B6NdBDx_PciXd0NTSDRZVFZ1Tlk" | tar xj
+  - curl -L "http://dl.vitasdk.org/libvita2d.tar.xz" | tar -C vitasdk/arm-vita-eabi -Jxvf -
+
+script:
+  - export VITASDK=${TRAVIS_BUILD_DIR}/vitasdk
+  - export PATH=${VITASDK}/bin:${PATH}
+  - cmake -DCMAKE_BUILD_TYPE=Release .
+  - cmake --build .

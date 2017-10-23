@@ -1,5 +1,7 @@
 # pkgi
 
+[![Travis CI Build Status][img_travis]][pkgi_travis] [![Downloads][img_downloads]][pkgi_downloads] [![Release][img_latest]][pkgi_latest] [![License][img_license]][pkgi_license]
+
 pkgi allows to install original pkg files on your Vita.
 
 This homebrew allows to download & unpack pkg file directly on Vita together with your [NoNpDrm][] fake license.
@@ -19,7 +21,7 @@ Current limitations:
 
 # Download
 
-Get latest version as [vpk file here][pkg_releases].
+Get latest version as [vpk file here][pkgi_latest].
 
 # Setup instructions
 
@@ -107,3 +109,11 @@ puff.h and puff.c files are under [zlib][] license.
 [PSDLE]: https://repod.github.io/psdle/
 [socat]: http://www.dest-unreach.org/socat/
 [zlib]: https://www.zlib.net/zlib_license.html
+[pkgi_travis]: https://travis-ci.org/mmozeiko/pkgi/
+[pkgi_downloads]: https://github.com/mmozeiko/pkgi/releases
+[pkgi_latest]: https://github.com/mmozeiko/pkgi/releases/latest
+[pkgi_license]: https://github.com/mmozeiko/pkgi/blob/master/LICENSE
+[img_travis]: https://api.travis-ci.org/mmozeiko/pkgi.svg?branch=master
+[img_downloads]: https://img.shields.io/github/downloads/mmozeiko/pkgi/total.svg?maxAge=3600
+[img_latest]: https://img.shields.io/github/release/mmozeiko/pkgi.svg?maxAge=3600
+[img_license]: https://img.shields.io/github/license/mmozeiko/pkgi.svg?maxAge=2592000
