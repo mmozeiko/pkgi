@@ -151,7 +151,7 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
     }
     else
     {
-        pkgi_snprintf(error, error_size, "pkgi.txt file is missing?");
+        pkgi_snprintf(error, error_size, "ERROR: pkgi.txt file missing or bad config.txt file?");
         return 0;
     }
 
