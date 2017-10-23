@@ -117,12 +117,14 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
     char path[256];
     pkgi_snprintf(path, sizeof(path), "%s/config.txt", pkgi_get_pkgi_folder());
 
-    int loaded = pkgi_load(path, data, sizeof(data));
+    int loaded = pkgi_load(path, data, sizeof(data) - 1);
     if (loaded > 0)
     {
+        data[loaded] = '\n';
+
         LOG("config.txt loaded, parsing");
         char* text = data;
-        char* end = data + loaded;
+        char* end = data + loaded + 1;
         while (text < end)
         {
             char* key = text;
