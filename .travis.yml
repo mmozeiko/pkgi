@@ -8,8 +8,8 @@ sudo: false
 
 install:
   - cd ${TRAVIS_BUILD_DIR}
-  - curl -L "https://drive.google.com/uc?export=download&id=0B6NdBDx_PciXd0NTSDRZVFZ1Tlk" | tar xj
-  - curl -L "http://dl.vitasdk.org/libvita2d.tar.xz" | tar -C vitasdk/arm-vita-eabi -Jxvf -
+  - curl -L "https://github.com/vitasdk/autobuilds/releases/download/master-linux-v521/vitasdk-x86_64-linux-gnu-2017-10-09_17-29-30.tar.bz2" | tar xj
+  - curl -L "http://dl.vitasdk.org/libvita2d.tar.xz" | tar -xJC vitasdk/arm-vita-eabi
 
 script:
   - export VITASDK=${TRAVIS_BUILD_DIR}/vitasdk
