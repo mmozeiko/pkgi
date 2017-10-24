@@ -14,7 +14,7 @@ include("${VITASDK}/share/vita.cmake" REQUIRED)
 
 set(VITA_APP_NAME "PKGi")
 set(VITA_TITLEID  "PKGI00000")
-set(VITA_VERSION  "00.04")
+set(VITA_VERSION  "00.05")
 
 option(PKGI_ENABLE_LOGGING "enables debug logging over udp multicast" OFF)
 
