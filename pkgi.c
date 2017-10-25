@@ -36,6 +36,16 @@ static int bottom_y;
 static char search_text[256];
 static char error_state[256];
 
+static const char* pkgi_get_ok_str(void)
+{
+    return pkgi_ok_button() == PKGI_BUTTON_X ? PKGI_UTF8_X : PKGI_UTF8_O;
+}
+
+static const char* pkgi_get_cancel_str(void)
+{
+    return pkgi_cancel_button() == PKGI_BUTTON_O ? PKGI_UTF8_O : PKGI_UTF8_X;
+}
+
 static void pkgi_refresh_thread(void)
 {
     LOG("starting update");
@@ -452,11 +462,11 @@ static void pkgi_do_tail(void)
 
     if (pkgi_menu_is_open())
     {
-        pkgi_strncpy(text, sizeof(text), PKGI_UTF8_X " select  " PKGI_UTF8_T " close  " PKGI_UTF8_O " cancel");
+        pkgi_snprintf(text, sizeof(text), "%s select  " PKGI_UTF8_T " close  %s cancel", pkgi_get_ok_str(), pkgi_get_cancel_str());
     }
     else
     {
-        pkgi_strncpy(text, sizeof(text), PKGI_UTF8_X " install  " PKGI_UTF8_T " menu");
+        pkgi_snprintf(text, sizeof(text), "%s install  " PKGI_UTF8_T " menu", pkgi_get_ok_str());
     }
 
     pkgi_clip_set(left, bottom_y, VITA_WIDTH - right - left, VITA_HEIGHT - bottom_y);
