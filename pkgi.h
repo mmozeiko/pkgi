@@ -42,6 +42,7 @@ void pkgi_log(const char* msg, ...);
 
 int pkgi_snprintf(char* buffer, uint32_t size, const char* msg, ...);
 void pkgi_vsnprintf(char* buffer, uint32_t size, const char* msg, va_list args);
+char* pkgi_strstr(const char* str, const char* sub);
 int pkgi_stricontains(const char* str, const char* sub);
 int pkgi_stricmp(const char* a, const char* b);
 void pkgi_strncpy(char* dst, uint32_t size, const char* src);

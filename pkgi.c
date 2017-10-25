@@ -10,9 +10,11 @@
 
 #include <stddef.h>
 
+#define PKGI_UPDATE_URL "https://api.github.com/repos/mmozeiko/pkgi/releases/latest"
+
 typedef enum  {
     StateError,
-    StateUpdating,
+    StateRefreshing,
     StateUpdateDone,
     StateMain,
 } State;
@@ -357,7 +359,7 @@ static void pkgi_do_main(pkgi_input* input)
     }
 }
 
-static void pkgi_do_updating(void)
+static void pkgi_do_refresh(void)
 {
     char text[256];
 
@@ -367,11 +369,11 @@ static void pkgi_do_updating(void)
 
     if (total == 0)
     {
-        pkgi_snprintf(text, sizeof(text), "Updating... %.2f KB", (uint32_t)updated / 1024.f);
+        pkgi_snprintf(text, sizeof(text), "Refreshing... %.2f KB", (uint32_t)updated / 1024.f);
     }
     else
     {
-        pkgi_snprintf(text, sizeof(text), "Updating... %u%%", updated * 100U / total);
+        pkgi_snprintf(text, sizeof(text), "Refreshing... %u%%", updated * 100U / total);
     }
 
     int w = pkgi_text_width(text);
@@ -501,6 +503,83 @@ static void reposition(void)
     }
 }
 
+static void pkgi_check_for_update(void)
+{
+    LOG("checking latest pkgi version at %s", PKGI_UPDATE_URL);
+
+    pkgi_http* http = pkgi_http_get(PKGI_UPDATE_URL, NULL, 0);
+    if (http)
+    {
+        char buffer[8 << 10];
+        uint32_t size = 0;
+
+        while (size < sizeof(buffer) - 1)
+        {
+            int read = pkgi_http_read(http, buffer + size, sizeof(buffer) - 1 - size);
+            if (read < 0)
+            {
+                size = 0;
+                break;
+            }
+            else if (read == 0)
+            {
+                break;
+            }
+            size += read;
+        }
+
+        if (size != 0)
+        {
+            LOG("received %u bytes", size);
+        }
+        buffer[size] = 0;
+
+        static const char find[] = "\"name\":\"pkgi v";
+        const char* start = pkgi_strstr(buffer, find);
+        if (start != NULL)
+        {
+            LOG("found name");
+            start += sizeof(find) - 1;
+
+            char* end = pkgi_strstr(start, "\"");
+            if (end != NULL)
+            {
+                *end = 0;
+                LOG("latest version is %s", start);
+
+                const char* current = PKGI_VERSION;
+                if (current[0] == '0')
+                {
+                    current++;
+                }
+
+                if (pkgi_stricmp(current, start) != 0)
+                {
+                    LOG("new version available");
+
+                    char text[256];
+                    pkgi_snprintf(text, sizeof(text), "New pkgi version v%s available!", start);
+                    pkgi_dialog_message(text);
+                }
+            }
+            else
+            {
+                LOG("no end of name found");
+            }
+        }
+        else
+        {
+            LOG("no name found");
+        }
+
+        pkgi_http_close(http);
+    }
+    else
+    {
+        LOG("http request to %s failed", PKGI_UPDATE_URL);
+    }
+}
+
 int main()
 {
     pkgi_start();
@@ -515,7 +594,7 @@ int main()
 
     if (pkgi_is_unsafe_mode())
     {
-        state = StateUpdating;
+        state = StateRefreshing;
         pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
     }
     else
@@ -529,6 +608,11 @@ int main()
     {
         if (state == StateUpdateDone)
         {
+            if (!config.no_version_check)
+            {
+                pkgi_start_thread("update_thread", &pkgi_check_for_update);
+            }
+
             pkgi_db_configure(NULL, &config);
             state = StateMain;
         }
@@ -540,8 +624,8 @@ int main()
             pkgi_do_error();
             break;
 
-        case StateUpdating:
-            pkgi_do_updating();
+        case StateRefreshing:
+            pkgi_do_refresh();
             break;
 
         case StateMain:
@@ -611,7 +695,7 @@ int main()
                 }
                 else if (mres == MenuResultRefresh)
                 {
-                    state = StateUpdating;
+                    state = StateRefreshing;
                     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
                 }
             }

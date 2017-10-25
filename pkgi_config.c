@@ -112,6 +112,7 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
     config->sort = SortByName;
     config->order = SortAscending;
     config->filter = DbFilterAll;
+    config->no_version_check = 0;
 
     char data[4096];
     char path[256];
@@ -161,6 +162,10 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
             else if (pkgi_stricmp(key, "filter") == 0)
             {
                 config->filter = parse_filter(value, DbFilterAll);
+            }
+            else if (pkgi_stricmp(key, "no_version_check") == 0)
+            {
+                config->no_version_check = 1;
             }
         }
     }
@@ -225,6 +230,11 @@ void pkgi_save_config(const Config* config, const char* update_url)
         sep = ",";
     }
     len += pkgi_snprintf(data + len, sizeof(data) - len, "\n");
+
+    if (config->no_version_check)
+    {
+        len += pkgi_snprintf(data + len, sizeof(data) - len, "no_version_check 1\n");
+    }
 
     char path[256];
     pkgi_snprintf(path, sizeof(path), "%s/config.txt", pkgi_get_pkgi_folder());

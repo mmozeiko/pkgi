@@ -100,6 +100,11 @@ void pkgi_vsnprintf(char* buffer, uint32_t size, const char* msg, va_list args)
     buffer[len] = 0;
 }
 
+char* pkgi_strstr(const char* str, const char* sub)
+{
+    return StrStrA(str, sub);
+}
+
 int pkgi_stricontains(const char* str, const char* sub)
 {
     return StrStrIA(str, sub) != NULL;
