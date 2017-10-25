@@ -83,7 +83,7 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
     pkgi_snprintf(path, sizeof(path), "%s/pkgi.txt", pkgi_get_pkgi_folder());
 
     LOG("loading update from %s", path);
-    int loaded = pkgi_load(path, db_data, sizeof(db_data));
+    int loaded = pkgi_load(path, db_data, sizeof(db_data) - 1);
     if (loaded > 0)
     {
         db_size = loaded;
@@ -107,7 +107,7 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
             }
             else
             {
-                if (length > (int64_t)sizeof(db_data))
+                if (length > (int64_t)sizeof(db_data) - 1)
                 {
                     pkgi_snprintf(error, sizeof(error_size), "list is too large... check for newer pkgi version!");
                 }
@@ -120,7 +120,7 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
 
                 for (;;)
                 {
-                    uint32_t want = (uint32_t)min64(1 << 16, sizeof(db_data) - db_size);
+                    uint32_t want = (uint32_t)min64(1 << 16, sizeof(db_data) - 1 - db_size);
                     int read = pkgi_http_read(http, db_data + db_size, want);
                     if (read == 0)
                     {
@@ -157,8 +157,9 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
 
     LOG("parsing items");
 
+    db_data[db_size] = '\n';
     char* ptr = db_data;
-    char* end = db_data + db_size;
+    char* end = db_data + db_size + 1;
     while (ptr < end && *ptr)
     {
         const char* content = ptr;
