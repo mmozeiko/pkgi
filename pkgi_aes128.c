@@ -1,6 +1,4 @@
 #include "pkgi_aes128.h"
-#include "pkgi_utils.h"
-#include "pkgi.h"
 
 #if __ARM_NEON__
 

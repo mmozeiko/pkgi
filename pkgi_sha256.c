@@ -1,6 +1,5 @@
 #include "pkgi_sha256.h"
-#include "pkgi_utils.h"
-#include "pkgi.h"
+#include "pkgi.h" // just for memcpy
 
 #if __ARM_NEON__
 
