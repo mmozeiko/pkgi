@@ -77,6 +77,7 @@ uint32_t pkgi_time_msec();
 
 typedef void pkgi_thread_entry(void);
 void pkgi_start_thread(const char* name, pkgi_thread_entry* start);
+void pkgi_sleep(uint32_t msec);
 
 int pkgi_load(const char* name, void* data, uint32_t max);
 int pkgi_save(const char* name, const void* data, uint32_t size);

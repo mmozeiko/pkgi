@@ -104,6 +104,9 @@ static void pkgi_download_thread(void)
     char message[256];
     if (pkgi_zrif_decode(item->zrif, rif, message, sizeof(message)))
     {
+        // short delay to allow download dialog to animate smoothly
+        pkgi_sleep(300);
+
         pkgi_lock_process();
         if (pkgi_download(item->content, item->url, rif, item->digest) && install(item->content))
         {

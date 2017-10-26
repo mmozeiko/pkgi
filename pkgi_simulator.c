@@ -460,6 +460,11 @@ void pkgi_start_thread(const char* name, pkgi_thread_entry* start)
     Assert(h);
 }
 
+void pkgi_sleep(uint32_t msec)
+{
+    Sleep(msec);
+}
+
 int pkgi_load(const char* name, void* data, uint32_t max)
 {
     WCHAR wname[MAX_PATH];

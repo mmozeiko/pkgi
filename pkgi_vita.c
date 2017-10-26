@@ -664,6 +664,11 @@ void pkgi_start_thread(const char* name, pkgi_thread_entry* start)
     }
 }
 
+void pkgi_sleep(uint32_t msec)
+{
+    sceKernelDelayThread(msec * 1000);
+}
+
 int pkgi_load(const char* name, void* data, uint32_t max)
 {
     SceUID fd = sceIoOpen(name, SCE_O_RDONLY, 0777);
