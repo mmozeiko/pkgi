@@ -126,6 +126,12 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
         LOG("config.txt loaded, parsing");
         char* text = data;
         char* end = data + loaded + 1;
+
+        if (loaded > 3 && (uint8_t)text[0] == 0xef && (uint8_t)text[1] == 0xbb && (uint8_t)text[2] == 0xbf)
+        {
+            text += 3;
+        }
+
         while (text < end)
         {
             char* key = text;

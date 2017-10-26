@@ -160,6 +160,12 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
     db_data[db_size] = '\n';
     char* ptr = db_data;
     char* end = db_data + db_size + 1;
+
+    if (db_size > 3 && (uint8_t)ptr[0] == 0xef && (uint8_t)ptr[1] == 0xbb && (uint8_t)ptr[2] == 0xbf)
+    {
+        ptr += 3;
+    }
+
     while (ptr < end && *ptr)
     {
         const char* content = ptr;
