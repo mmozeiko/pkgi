@@ -421,7 +421,7 @@ static void pkgi_do_head(void)
     if (search_active)
     {
         char text[256];
-        int left = pkgi_text_width(text) + PKGI_MAIN_TEXT_PADDING;
+        int left = pkgi_text_width(search_text) + PKGI_MAIN_TEXT_PADDING;
         int right = rightw + PKGI_MAIN_TEXT_PADDING;
 
         pkgi_snprintf(text, sizeof(text), ">> %s <<", search_text);

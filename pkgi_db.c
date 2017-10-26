@@ -386,6 +386,12 @@ void pkgi_db_configure(const char* search, const Config* config)
         search_count = write;
     }
 
+    if (search_count == 0)
+    {
+        db_item_count = 0;
+        return;
+    }
+
     for (int i = search_count / 2 - 1; i >= 0; i--)
     {
         heapify(search_count, i, config->sort, config->order, config->filter);
