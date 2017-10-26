@@ -205,6 +205,12 @@ static int download_data(uint8_t* buffer, uint32_t size, int encrypted, int save
         }
 
         download_size = http_length + download_offset;
+
+        if (!pkgi_check_free_space(http_length))
+        {
+            return 0;
+        }
+
         LOG("http response length = %lld, total pkg size = %llu", http_length, download_size);
         info_start = pkgi_time_msec();
         info_update = pkgi_time_msec() + 500;
@@ -579,11 +585,7 @@ static int download_files(void)
         {
             uint32_t read = (uint32_t)min64(sizeof(down), encrypted_size - encrypted_offset);
             int size = download_data(down, read, 1, 1);
-            if (size < 0)
-            {
-                goto bail;
-            }
-            else if (size == 0 && pkgi_dialog_is_cancelled())
+            if (size <= 0)
             {
                 goto bail;
             }

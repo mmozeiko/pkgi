@@ -91,6 +91,8 @@ void pkgi_dialog_input_text(const char* title, const char* text);
 int pkgi_dialog_input_update(void);
 void pkgi_dialog_input_get_text(char* text, uint32_t size);
 
+int pkgi_check_free_space(uint64_t http_length);
+
 typedef struct pkgi_http pkgi_http;
 
 pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset);

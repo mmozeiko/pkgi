@@ -127,6 +127,64 @@ static void pkgi_download_thread(void)
     state = StateMain;
 }
 
+static uint32_t friendly_size(uint64_t size)
+{
+    if (size > 10ULL * 1000 * 1024 * 1024)
+    {
+        return (uint32_t)(size / (1024 * 1024 * 1024));
+    }
+    else if (size > 10 * 1000 * 1024)
+    {
+        return (uint32_t)(size / (1024 * 1024));
+    }
+    else if (size > 10 * 1000)
+    {
+        return (uint32_t)(size / 1024);
+    }
+    else
+    {
+        return (uint32_t)size;
+    }
+}
+
+static const char* friendly_size_str(uint64_t size)
+{
+    if (size > 10ULL * 1000 * 1024 * 1024)
+    {
+        return "GB";
+    }
+    else if (size > 10 * 1000 * 1024)
+    {
+        return "MB";
+    }
+    else if (size > 10 * 1000)
+    {
+        return "KB";
+    }
+    else
+    {
+        return "B";
+    }
+}
+
+int pkgi_check_free_space(uint64_t size)
+{
+    uint64_t free = pkgi_get_free_space();
+    if (size > free + 1024 * 1024)
+    {
+        char error[256];
+        pkgi_snprintf(error, sizeof(error), "pkg requires %u %s free space, but only %u %s available",
+            friendly_size(size), friendly_size_str(size),
+            friendly_size(free), friendly_size_str(free)
+        );
+
+        pkgi_dialog_error(error);
+        return 0;
+    }
+
+    return 1;
+}
+
 static void pkgi_friendly_size(char* text, uint32_t textlen, int64_t size)
 {
     if (size <= 0)
@@ -335,11 +393,7 @@ static void pkgi_do_main(pkgi_input* input)
             LOG("[%.9s] %s - alreay installed", item->content + 7, item->name);
             pkgi_dialog_error("Already installed");
         }
-        else if (item->size > (int64_t)pkgi_get_free_space() + 16 * 1024 * 1024)
-        {
-            pkgi_dialog_error("Not enough free space");
-        }
-        else
+        else if (item->presence == PresenceIncomplete || (item->presence == PresenceMissing && pkgi_check_free_space(item->size)))
         {
             LOG("[%.9s] %s - starting to install", item->content + 7, item->name);
             pkgi_dialog_start_progress("Downloading", "Preparing...", 0);
