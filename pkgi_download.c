@@ -52,6 +52,7 @@ static uint32_t meta_count;
 static uint32_t index_count;
 static uint64_t total_size;
 static uint64_t enc_offset;
+static uint64_t enc_size;
 static uint32_t index_size;
 
 // encrypted files
@@ -357,8 +358,9 @@ static int download_head(const uint8_t* zrif)
     index_count = get32be(head + 20);
     total_size = get64be(head + 24);
     enc_offset = get64be(head + 32);
-    LOG("meta_offset=%u meta_count=%u index_count=%u total_size=%llu enc_offset=%llu",
-        meta_offset, meta_count, index_count, total_size, enc_offset);
+    enc_size = get64be(head + 40);
+    LOG("meta_offset=%u meta_count=%u index_count=%u total_size=%llu enc_offset=%llu enc_size=%llu",
+        meta_offset, meta_count, index_count, total_size, enc_offset, enc_size);
 
     if (enc_offset > sizeof(head))
     {
@@ -631,29 +633,25 @@ static int download_tail(void)
         goto bail;
     }
 
-    uint64_t tail_offset = total_size - PKG_TAIL_SIZE;
-    uint64_t ignore = tail_offset - download_offset;
-
-    while (ignore != 0)
+    uint64_t tail_offset = enc_offset + enc_size;
+    while (download_offset < tail_offset)
     {
-        uint32_t read = (uint32_t)min64(sizeof(down), ignore);
+        uint32_t read = (uint32_t)min64(sizeof(down), tail_offset - download_offset);
         int size = download_data(down, read, 0, 0);
-        if (size <= 0)
-        {
-            return 0;
-        }
-        ignore -= size;
-    }
-
-    uint32_t tail_size = 0;
-    while (tail_size != PKG_TAIL_SIZE)
-    {
-        int size = download_data(down, PKG_TAIL_SIZE - tail_size, 0, 1);
         if (size <= 0)
         {
             goto bail;
         }
-        tail_size += size;
+    }
+
+    while (download_offset != total_size)
+    {
+        uint32_t read = (uint32_t)min64(sizeof(down), total_size - download_offset);
+        int size = download_data(down, read, 0, 1);
+        if (size <= 0)
+        {
+            goto bail;
+        }
     }
 
     LOG("tail.bin downloaded");
