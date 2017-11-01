@@ -541,7 +541,7 @@ static void pkgi_do_error(void)
 static void reposition(void)
 {
     uint32_t count = pkgi_db_count();
-    if (first_item < count)
+    if (first_item + selected_item < count)
     {
         return;
     }
