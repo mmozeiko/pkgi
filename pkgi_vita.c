@@ -720,11 +720,11 @@ void pkgi_lock_process(void)
 {
     if (__atomic_fetch_add(&g_power_lock, 1, __ATOMIC_SEQ_CST) == 0)
     {
-        LOG("locking shell functionality");
-        if (sceShellUtilLock(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN) < 0)
-        {
-            LOG("sceShellUtilLock failed");
-        }
+    //    LOG("locking shell functionality");
+    //    if (sceShellUtilLock(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN) < 0)
+    //    {
+    //        LOG("sceShellUtilLock failed");
+    //    }
     }
 }
 
@@ -732,11 +732,11 @@ void pkgi_unlock_process(void)
 {
     if (__atomic_sub_fetch(&g_power_lock, 1, __ATOMIC_SEQ_CST) == 0)
     {
-        LOG("unlocking shell functionality");
-        if (sceShellUtilUnlock(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN) < 0)
-        {
-            LOG("sceShellUtilUnlock failed");
-        }
+    //    LOG("unlocking shell functionality");
+    //    if (sceShellUtilUnlock(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN) < 0)
+    //    {
+    //        LOG("sceShellUtilUnlock failed");
+    //    }
     }
 }
 
@@ -791,7 +791,7 @@ struct pkgi_http
 
 static pkgi_http g_http[4];
 
-pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
+pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset, int* error)
 {
     LOG("http get");
 
@@ -808,6 +808,7 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
     if (!http)
     {
         LOG("too many simultaneous http requests");
+        *error = -1;
         return NULL;
     }
 
@@ -869,6 +870,7 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
         if ((tmpl = sceHttpCreateTemplate(PKGI_USER_AGENT, SCE_HTTP_VERSION_1_1, SCE_TRUE)) < 0)
         {
             LOG("sceHttpCreateTemplate failed: 0x%08x", tmpl);
+            *error = tmpl;
             goto bail;
         }
         // sceHttpSetRecvTimeOut(tmpl, 10 * 1000 * 1000);
@@ -876,12 +878,14 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
         if ((conn = sceHttpCreateConnectionWithURL(tmpl, url, SCE_FALSE)) < 0)
         {
             LOG("sceHttpCreateConnectionWithURL failed: 0x%08x", conn);
+            *error = conn;
             goto bail;
         }
 
         if ((req = sceHttpCreateRequestWithURL(conn, SCE_HTTP_METHOD_GET, url, 0)) < 0)
         {
             LOG("sceHttpCreateRequestWithURL failed: 0x%08x", req);
+            *error = req;
             goto bail;
         }
 
@@ -894,6 +898,7 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
             if ((err = sceHttpAddRequestHeader(req, "Range", range, SCE_HTTP_HEADER_ADD)) < 0)
             {
                 LOG("sceHttpAddRequestHeader failed: 0x%08x", err);
+                *error = err;
                 goto bail;
             }
         }
@@ -901,6 +906,7 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
         if ((err = sceHttpSendRequest(req, NULL, 0)) < 0)
         {
             LOG("sceHttpSendRequest failed: 0x%08x", err);
+            *error = err;
             goto bail;
         }
 
@@ -922,7 +928,7 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
     return result;
 }
 
-int pkgi_http_response_length(pkgi_http* http, int64_t* length)
+int pkgi_http_response_length(pkgi_http* http, int64_t* length, int* error)
 {
     if (http->local)
     {
@@ -936,6 +942,7 @@ int pkgi_http_response_length(pkgi_http* http, int64_t* length)
         if ((res = sceHttpGetStatusCode(http->req, &status)) < 0)
         {
             LOG("sceHttpGetStatusCode failed: 0x%08x", res);
+            *error = res;
             return 0;
         }
 
@@ -961,6 +968,7 @@ int pkgi_http_response_length(pkgi_http* http, int64_t* length)
             else if (res < 0)
             {
                 LOG("sceHttpGetResponseContentLength failed: 0x%08x", res);
+                *error = res;
                 return 0;
             }
             else

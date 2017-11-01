@@ -92,18 +92,19 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
     {
         LOG("loading update from %s", update_url);
 
-        pkgi_http* http = pkgi_http_get(update_url, NULL, 0);
+        int err;
+        pkgi_http* http = pkgi_http_get(update_url, NULL, 0, &err);
         if (!http)
         {
-            pkgi_snprintf(error, error_size, "failed to download list");
+            pkgi_snprintf(error, error_size, "failed to download list, HTTP error 0x%08x", err);
             return 0;
         }
         else
         {
             int64_t length;
-            if (!pkgi_http_response_length(http, &length))
+            if (!pkgi_http_response_length(http, &length, &err))
             {
-                pkgi_snprintf(error, error_size, "failed to download list");
+                pkgi_snprintf(error, error_size, "failed to download list, HTTP error 0x%08x", err);
             }
             else
             {
@@ -128,7 +129,7 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
                     }
                     else if (read < 0)
                     {
-                        pkgi_snprintf(error, sizeof(error_size), "HTTP error 0x%08x", read);
+                        pkgi_snprintf(error, sizeof(error_size), "HTTP read error 0x%08x", read);
                         db_size = 0;
                         break;
                     }

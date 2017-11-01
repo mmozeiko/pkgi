@@ -184,18 +184,23 @@ static int download_data(uint8_t* buffer, uint32_t size, int encrypted, int save
     if (!http)
     {
         initial_offset = download_offset;
+        int err;
         LOG("requesting %s @ %llu", download_url, download_offset);
-        http = pkgi_http_get(download_url, download_content, download_offset);
+        http = pkgi_http_get(download_url, download_content, download_offset, &err);
         if (!http)
         {
-            pkgi_dialog_error("cannot send HTTP request");
+            char error[256];
+            pkgi_snprintf(error, sizeof(error), "cannot send HTTP request, error 0x%08x", err);
+            pkgi_dialog_error(error);
             return 0;
         }
 
         int64_t http_length;
-        if (!pkgi_http_response_length(http, &http_length))
+        if (!pkgi_http_response_length(http, &http_length, &err))
         {
-            pkgi_dialog_error("HTTP request failed");
+            char error[256];
+            pkgi_snprintf(error, sizeof(error), "HTTP request failed, error 0x%08x", err);
+            pkgi_dialog_error(error);
             return 0;
         }
         if (http_length < 0)
@@ -583,7 +588,7 @@ static int download_files(void)
             {
                 goto bail;
             }
-            else if (size == 0 && pkgi_dialog_is_cancelled())
+            else if (size == 0 && (pkgi_dialog_is_error() || pkgi_dialog_is_cancelled()))
             {
                 goto bail;
             }

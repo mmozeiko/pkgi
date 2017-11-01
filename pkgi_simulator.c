@@ -549,7 +549,7 @@ int pkgi_text_height(const char* text)
     return r.bottom - r.top;
 }
 
-pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
+pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset, int* error)
 {
     pkgi_http* http = NULL;
     for (size_t i = 0; i < 4; i++)
@@ -564,6 +564,7 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
     if (http == NULL)
     {
         LOG("too many simultaneous http requests");
+        *error = -1;
         return NULL;
     }
 
@@ -608,6 +609,7 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
         else
         {
             http = NULL;
+            *error = -1;
         }
     }
     else
@@ -633,7 +635,7 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
     return http;
 }
 
-int pkgi_http_response_length(pkgi_http* http, int64_t* length)
+int pkgi_http_response_length(pkgi_http* http, int64_t* length, int* error)
 {
     if (http->conn)
     {
@@ -663,15 +665,18 @@ int pkgi_http_response_length(pkgi_http* http, int64_t* length)
                     }
 
                     LOG("error retrieving content length response header");
+                    *error = -1;
                     return 0;
                 }
             }
 
+            *error = -1;
             return 0;
         }
         else
         {
             LOG("cannot get http status code");
+            *error = -1;
             return 0;
         }
     }

@@ -34,6 +34,11 @@ int pkgi_dialog_is_open(void)
     return dialog_type != DialogNone;
 }
 
+int pkgi_dialog_is_error(void)
+{
+    return dialog_type == DialogError;
+}
+
 int pkgi_dialog_is_cancelled(void)
 {
     return dialog_cancelled;
