@@ -296,7 +296,7 @@ static int create_file(void)
     return 1;
 }
 
-static int download_head(const uint8_t* zrif)
+static int download_head(const uint8_t* rif)
 {
     LOG("downloading pkg head");
 
@@ -347,7 +347,7 @@ static int download_head(const uint8_t* zrif)
         goto bail;
     }
 
-    if (!pkgi_memequ(zrif + 0x10, head + 0x30, 0x30))
+    if (rif && !pkgi_memequ(rif + 0x10, head + 0x30, 0x30))
     {
         pkgi_dialog_error("zRIF content id doesn't match pkg");
         goto bail;
@@ -753,7 +753,10 @@ int pkgi_download(const char* content, const char* url, const uint8_t* rif, cons
     if (!download_files()) goto finish;
     if (!download_tail()) goto finish;
     if (!check_integrity(digest)) goto finish;
-    if (!create_rif(rif)) goto finish;
+    if (rif)
+    {
+        if (!create_rif(rif)) goto finish;
+    }
 
     pkgi_rm(resume_file);
     result = 1;

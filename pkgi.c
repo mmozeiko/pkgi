@@ -102,13 +102,13 @@ static void pkgi_download_thread(void)
 
     uint8_t rif[PKGI_RIF_SIZE];
     char message[256];
-    if (pkgi_zrif_decode(item->zrif, rif, message, sizeof(message)))
+    if (item->zrif == NULL || pkgi_zrif_decode(item->zrif, rif, message, sizeof(message)))
     {
         // short delay to allow download dialog to animate smoothly
         pkgi_sleep(300);
 
         pkgi_lock_process();
-        if (pkgi_download(item->content, item->url, rif, item->digest) && install(item->content))
+        if (pkgi_download(item->content, item->url, item->zrif == NULL ? NULL : rif, item->digest) && install(item->content))
         {
             pkgi_snprintf(message, sizeof(message), "Successfully installed %s", item->name);
             pkgi_dialog_message(message);
