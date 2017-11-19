@@ -368,7 +368,12 @@ uint64_t pkgi_get_free_space(void)
     return available.QuadPart;
 }
 
-const char* pkgi_get_pkgi_folder(void)
+const char* pkgi_get_config_folder(void)
+{
+    return PKGI_FOLDER;
+}
+
+const char* pkgi_get_temp_folder(void)
 {
     return PKGI_FOLDER;
 }
@@ -381,7 +386,7 @@ const char* pkgi_get_app_folder(void)
 int pkgi_is_incomplete(const char* titleid)
 {
     char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/%s.resume", pkgi_get_pkgi_folder(), titleid);
+    pkgi_snprintf(path, sizeof(path), "%s/%s.resume", pkgi_get_temp_folder(), titleid);
 
     WCHAR wpath[MAX_PATH];
     MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_PATH);
@@ -429,7 +434,7 @@ int pkgi_install(const char* titleid)
     CreateDirectoryW(L"app", NULL);
 
     char src[256];
-    pkgi_snprintf(src, sizeof(src), "%s/%.9s", pkgi_get_pkgi_folder(), titleid);
+    pkgi_snprintf(src, sizeof(src), "%s/%.9s", pkgi_get_temp_folder(), titleid);
     char dst[256];
     pkgi_snprintf(dst, sizeof(dst), "%s/%.9s", pkgi_get_app_folder(), titleid);
 
@@ -581,7 +586,7 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
     if (content)
     {
         char path[MAX_PATH];
-        strcpy(path, pkgi_get_pkgi_folder());
+        strcpy(path, pkgi_get_temp_folder());
         strcat(path, strrchr(url, '/'));
 
         WCHAR wpath[MAX_PATH];
@@ -591,7 +596,7 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
         if (handle == INVALID_HANDLE_VALUE)
         {
             LOG("%s not found, trying shorter path", path);
-            pkgi_snprintf(path, sizeof(path), "%s/%s.pkg", pkgi_get_pkgi_folder(), content);
+            pkgi_snprintf(path, sizeof(path), "%s/%s.pkg", pkgi_get_temp_folder(), content);
 
             MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_PATH);
             handle = CreateFileW(wpath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);

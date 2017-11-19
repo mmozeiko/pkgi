@@ -718,10 +718,10 @@ int pkgi_download(const char* content, const char* url, const uint8_t* rif, cons
 {
     int result = 0;
 
-    pkgi_snprintf(root, sizeof(root), "%s/%.9s", pkgi_get_pkgi_folder(), content + 7);
+    pkgi_snprintf(root, sizeof(root), "%s/%.9s", pkgi_get_temp_folder(), content + 7);
     LOG("temp installation folder: %s", root);
 
-    pkgi_snprintf(resume_file, sizeof(resume_file), "%s/%.9s.resume", pkgi_get_pkgi_folder(), content + 7);
+    pkgi_snprintf(resume_file, sizeof(resume_file), "%s/%.9s.resume", pkgi_get_temp_folder(), content + 7);
     if (pkgi_load(resume_file, &sha, sizeof(sha)) == sizeof(sha))
     {
         LOG("resume file exists, trying to resume");

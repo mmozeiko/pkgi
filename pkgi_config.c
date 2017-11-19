@@ -116,7 +116,8 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
 
     char data[4096];
     char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/config.txt", pkgi_get_pkgi_folder());
+    pkgi_snprintf(path, sizeof(path), "%s/config.txt", pkgi_get_config_folder());
+    LOG("config location: %s", path);
 
     int loaded = pkgi_load(path, data, sizeof(data) - 1);
     if (loaded > 0)
@@ -243,7 +244,7 @@ void pkgi_save_config(const Config* config, const char* update_url)
     }
 
     char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/config.txt", pkgi_get_pkgi_folder());
+    pkgi_snprintf(path, sizeof(path), "%s/config.txt", pkgi_get_config_folder());
 
     if (pkgi_save(path, data, len))
     {

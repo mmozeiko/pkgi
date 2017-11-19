@@ -37,6 +37,8 @@ static uint32_t g_button_frame_count;
 
 static SceUInt64 g_time;
 
+static char g_pkgi_folder[32];
+
 #ifdef PKGI_ENABLE_LOGGING
 static int g_log_socket;
 #endif
@@ -459,6 +461,16 @@ void pkgi_start(void)
         g_cancel_button = PKGI_BUTTON_O;
     }
 
+    SceIoStat stat;
+    if (sceIoGetstat("ur0:pkgi", &stat) >= 0 && SCE_S_ISDIR(stat.st_mode))
+    {
+        pkgi_strncpy(g_pkgi_folder, sizeof(g_pkgi_folder), "ur0:pkgi");
+    }
+    else
+    {
+        pkgi_strncpy(g_pkgi_folder, sizeof(g_pkgi_folder), "ux0:pkgi");
+    }
+
     if (scePromoterUtilityInit() < 0)
     {
         LOG("cannot initialize promoter utility");
@@ -591,7 +603,12 @@ uint64_t pkgi_get_free_space(void)
     }
 }
 
-const char* pkgi_get_pkgi_folder(void)
+const char* pkgi_get_config_folder(void)
+{
+    return g_pkgi_folder;
+}
+
+const char* pkgi_get_temp_folder(void)
 {
     return "ux0:pkgi";
 }
@@ -604,7 +621,7 @@ const char* pkgi_get_app_folder(void)
 int pkgi_is_incomplete(const char* titleid)
 {
     char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/%s.resume", pkgi_get_pkgi_folder(), titleid);
+    pkgi_snprintf(path, sizeof(path), "%s/%s.resume", pkgi_get_temp_folder(), titleid);
 
     SceIoStat stat;
     int res = sceIoGetstat(path, &stat);
@@ -623,7 +640,7 @@ int pkgi_is_installed(const char* titleid)
 int pkgi_install(const char* titleid)
 {
     char path[128];
-    snprintf(path, sizeof(path), "%s/%s", pkgi_get_pkgi_folder(), titleid);
+    snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), titleid);
 
     LOG("calling scePromoterUtilityPromotePkgWithRif on %s", path);
     int res = scePromoterUtilityPromotePkgWithRif(path, 1);
@@ -827,14 +844,14 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
 
     if (content)
     {
-        strcpy(path, pkgi_get_pkgi_folder());
+        strcpy(path, pkgi_get_temp_folder());
         strcat(path, strrchr(url, '/'));
 
         http->fd = sceIoOpen(path, SCE_O_RDONLY, 0777);
         if (http->fd < 0)
         {
             LOG("%s not found, trying shorter path", path);
-            pkgi_snprintf(path, sizeof(path), "%s/%s.pkg", pkgi_get_pkgi_folder(), content);
+            pkgi_snprintf(path, sizeof(path), "%s/%s.pkg", pkgi_get_temp_folder(), content);
         }
 
         http->fd = sceIoOpen(path, SCE_O_RDONLY, 0777);

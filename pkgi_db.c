@@ -80,7 +80,7 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
     db_item_count = 0;
 
     char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/pkgi.txt", pkgi_get_pkgi_folder());
+    pkgi_snprintf(path, sizeof(path), "%s/pkgi.txt", pkgi_get_config_folder());
 
     LOG("loading update from %s", path);
     int loaded = pkgi_load(path, db_data, sizeof(db_data) - 1);
