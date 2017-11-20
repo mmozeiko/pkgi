@@ -119,6 +119,22 @@ int pkgi_read(void* f, void* buffer, uint32_t size);
 int pkgi_write(void* f, const void* buffer, uint32_t size);
 
 // UI stuff
+typedef void* pkgi_texture;
+#ifdef _MSC_VER
+#define pkgi_load_png(name) \
+    pkgi_load_png_raw(# name ## ".png", 0)
+#else
+#define pkgi_load_png(name) \
+    ({ extern uint8_t _binary_assets_##name##_png_start; \
+       extern uint8_t _binary_assets_##name##_png_end; \
+       pkgi_load_png_raw((void*)&_binary_assets_##name##_png_start, \
+           (uint32_t)(&_binary_assets_##name##_png_end - &_binary_assets_##name##_png_start)); \
+    })
+#endif
+
+pkgi_texture pkgi_load_png_raw(const void* data, uint32_t size);
+void pkgi_draw_texture(pkgi_texture texture, int x, int y);
+
 void pkgi_clip_set(int x, int y, int w, int h);
 void pkgi_clip_remove(void);
 void pkgi_draw_rect(int x, int y, int w, int h, uint32_t color);

@@ -1,6 +1,8 @@
 #include "pkgi.h"
 #include "pkgi_style.h"
 
+#define INITGUID
+#define COBJMACROS
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
@@ -11,10 +13,12 @@
 #include <stdarg.h>
 #include <shlwapi.h>
 #include <wininet.h>
+#include <wincodec.h>
 
 #pragma comment (lib, "shlwapi.lib")
 #pragma comment (lib, "dwmapi.lib")
 #pragma comment (lib, "wininet.lib")
+#pragma comment (lib, "windowscodecs.lib")
 
 #define Assert(cond) do { if (!(cond)) __debugbreak(); } while (0)
 
@@ -191,6 +195,9 @@ void pkgi_start(void)
 {
     InitializeCriticalSection(&g_dialog_lock);
 
+    HRESULT hr = CoInitializeEx(NULL, 0);
+    Assert(SUCCEEDED(hr));
+
     g_inet = InternetOpenW(L"pkgi", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
     Assert(g_inet);
 
@@ -270,10 +277,6 @@ void pkgi_start(void)
 
 int pkgi_update(pkgi_input* input)
 {
-    SetDCBrushColor(g_memdc, GDI_COLOR(PKGI_COLOR_BACKGROUND));
-    RECT rect = { 0, 0, VITA_WIDTH, VITA_HEIGHT };
-    FillRect(g_memdc, &rect, GetStockObject(DC_BRUSH));
-
     MSG msg;
     while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
     {
@@ -512,6 +515,102 @@ void pkgi_lock_process(void)
 
 void pkgi_unlock_process(void)
 {
+}
+
+pkgi_texture pkgi_load_png_raw(const void* data, uint32_t size)
+{
+    (void)size;
+
+    HBITMAP bmp = NULL;
+
+    WCHAR exepath[MAX_PATH];
+    GetModuleFileNameW(NULL, exepath, MAX_PATH);
+    WCHAR* last = StrRChrIW(exepath, NULL, L'\\');
+    *last = 0;
+
+    WCHAR path[MAX_PATH];
+    int cnt = wsprintfW(path, L"%s\\..\\..\\..\\assets\\", exepath);
+
+    MultiByteToWideChar(CP_UTF8, 0, data, -1, path + cnt, MAX_PATH - cnt);
+
+    HRESULT hr;
+
+    IWICImagingFactory* factory;
+    hr = CoCreateInstance(&CLSID_WICImagingFactory, 0, CLSCTX_INPROC_SERVER, &IID_IWICImagingFactory, (LPVOID*)&factory);
+    if (SUCCEEDED(hr))
+    {
+        IWICBitmapDecoder* decoder;
+        hr = IWICImagingFactory_CreateDecoderFromFilename(factory, path, 0, GENERIC_READ, WICDecodeMetadataCacheOnDemand, &decoder);
+        if (SUCCEEDED(hr))
+        {
+            IWICBitmapFrameDecode* frame;
+            hr = IWICBitmapDecoder_GetFrame(decoder, 0, &frame);
+            if (SUCCEEDED(hr))
+            {
+                IWICFormatConverter* converter;
+                hr = IWICImagingFactory_CreateFormatConverter(factory, &converter);
+                if (SUCCEEDED(hr))
+                {
+                    hr = IWICFormatConverter_Initialize(converter, (IWICBitmapSource*)frame, &GUID_WICPixelFormat32bppBGRA,
+                                                        WICBitmapDitherTypeNone, 0, 0.0, WICBitmapPaletteTypeCustom);
+                    if (SUCCEEDED(hr))
+                    {
+                        UINT width, height;
+                        hr = IWICFormatConverter_GetSize(converter, &width, &height);
+                        if (SUCCEEDED(hr))
+                        {
+                            BITMAPINFO bmi =
+                            {
+                                .bmiHeader =
+                                {
+                                    .biSize = sizeof(bmi.bmiHeader),
+                                    .biWidth = width,
+                                    .biHeight = -(LONG)height,
+                                    .biPlanes = 1,
+                                    .biBitCount = 32,
+                                    .biCompression = BI_RGB,
+                                },
+                            };
+
+                            HDC dc = GetDC(NULL);
+                            Assert(dc);
+
+                            void* bits;
+                            bmp = CreateDIBSection(dc, &bmi, DIB_RGB_COLORS, &bits, NULL, 0);
+                            Assert(bmp);
+
+                            ReleaseDC(NULL, dc);
+
+                            hr = IWICFormatConverter_CopyPixels(converter, 0, width * 4, width * height * 4, bits);
+                            Assert(SUCCEEDED(hr));
+                        }
+                    }
+                    IWICFormatConverter_Release(converter);
+                }
+                IWICBitmapFrameDecode_Release(frame);
+            }
+            IWICBitmapDecoder_Release(decoder);
+        }
+        IWICImagingFactory_Release(factory);
+    }
+
+    Assert(bmp);
+
+    return (pkgi_texture)bmp;
+}
+
+void pkgi_draw_texture(pkgi_texture texture, int x, int y)
+{
+    HBITMAP bmp = (HBITMAP)texture;
+    BITMAP bitmap;
+    GetObjectW(bmp, sizeof(bitmap), &bitmap);
+
+    HDC dc = CreateCompatibleDC(NULL);
+    SelectObject(dc, bmp);
+
+    BitBlt(g_memdc, x, y, bitmap.bmWidth, bitmap.bmHeight, dc, 0, 0, SRCCOPY);
+
+    DeleteObject(dc);
 }
 
 void pkgi_clip_set(int x, int y, int w, int h)

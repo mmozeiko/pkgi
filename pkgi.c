@@ -660,9 +660,13 @@ int main()
         pkgi_snprintf(error_state, sizeof(error_state), "pkgi requires unsafe enabled in Henkaku settings!");
     }
 
+    pkgi_texture background = pkgi_load_png(background);
+
     pkgi_input input;
     while (pkgi_update(&input))
     {
+        pkgi_draw_texture(background, 0, 0);
+
         if (state == StateUpdateDone)
         {
             if (!config.no_version_check)

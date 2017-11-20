@@ -521,8 +521,6 @@ int pkgi_update(pkgi_input* input)
     }
 
     vita2d_start_drawing();
-    vita2d_set_clear_color(VITA_COLOR(PKGI_COLOR_BACKGROUND));
-    vita2d_clear_screen();
 
     uint64_t time = sceKernelGetProcessTimeWide();
     input->delta = time - g_time;
@@ -765,6 +763,23 @@ void pkgi_unlock_process(void)
             LOG("sceShellUtilUnlock failed");
         }
     }
+}
+
+pkgi_texture pkgi_load_png_raw(const void* data, uint32_t size)
+{
+    (void)size;
+    vita2d_texture* tex = vita2d_load_PNG_buffer((const char*)data);
+    if (!tex)
+    {
+        LOG("failed to load texture");
+    }
+    return tex;
+}
+
+void pkgi_draw_texture(pkgi_texture texture, int x, int y)
+{
+    vita2d_texture* tex = texture;
+    vita2d_draw_texture(tex, (float)x, (float)y);
 }
 
 void pkgi_clip_set(int x, int y, int w, int h)

@@ -31,7 +31,28 @@ set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -flto")
 
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 
+function(add_assets target)
+  set(result)
+  foreach(in_f ${ARGN})
+    set(out_f "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${in_f}.o")
+    get_filename_component(out_dir ${out_f} DIRECTORY)
+    add_custom_command(OUTPUT ${out_f}
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${out_dir}
+      COMMAND ${CMAKE_LINKER} -r -b binary -o ${out_f} ${in_f}
+      DEPENDS ${in_f}
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      COMMENT "Using ${in_f}"
+      VERBATIM
+    )
+    list(APPEND result ${out_f})
+  endforeach()
+  set(${target} "${result}" PARENT_SCOPE)
+endfunction()
+
+add_assets(assets assets/background.png)
+
 add_executable(pkgi
+  ${assets}
   pkgi.c
   pkgi_aes128.c
   pkgi_config.c
@@ -47,6 +68,8 @@ add_executable(pkgi
 
 target_link_libraries(pkgi
   vita2d
+  png
+  z
   m
   SceAppMgr_stub
   SceAppUtil_stub
