@@ -393,7 +393,7 @@ static void pkgi_do_main(pkgi_input* input)
 
         if (item->presence == PresenceInstalled)
         {
-            LOG("[%.9s] %s - alreay installed", item->content + 7, item->name);
+            LOG("[%.9s] %s - already installed", item->content + 7, item->name);
             pkgi_dialog_error("Already installed");
         }
         else if (item->presence == PresenceIncomplete || (item->presence == PresenceMissing && pkgi_check_free_space(item->size)))
