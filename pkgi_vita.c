@@ -51,7 +51,7 @@ static int g_log_socket;
 
 #define PKGI_ERRNO_EEXIST (int)(0x80010000 + SCE_NET_EEXIST)
 
-#define PKGI_USER_AGENT "libhttp/3.65 (PS Vita)"
+#define PKGI_USER_AGENT "libhttp/3.67 (PS Vita)"
 
 #ifdef PKGI_ENABLE_LOGGING
 void pkgi_log(const char* msg, ...)
