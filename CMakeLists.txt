@@ -62,7 +62,7 @@ add_executable(pkgi
   pkgi_config.c
   pkgi_db.c
   pkgi_dialog.c
-  pkgi_download.c
+  pkgi_download.cpp
   pkgi_menu.c
   pkgi_sha256.c
   pkgi_vita.c

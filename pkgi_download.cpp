@@ -1,9 +1,12 @@
+extern "C"
+{
 #include "pkgi_download.h"
 #include "pkgi_dialog.h"
 #include "pkgi.h"
 #include "pkgi_utils.h"
 #include "pkgi_aes128.h"
 #include "pkgi_sha256.h"
+}
 
 #include <stddef.h>
 
