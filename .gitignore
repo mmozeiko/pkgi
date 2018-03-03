@@ -16,3 +16,6 @@ Makefile
 *.velf
 pkgi
 eboot.bin
+
+/build*
+.tags
