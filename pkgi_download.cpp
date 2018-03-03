@@ -1,6 +1,6 @@
+#include "pkgi_download.hpp"
 extern "C"
 {
-#include "pkgi_download.h"
 #include "pkgi_dialog.h"
 #include "pkgi.h"
 #include "pkgi_utils.h"

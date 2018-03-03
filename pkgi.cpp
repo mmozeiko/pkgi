@@ -6,10 +6,10 @@ extern "C"
 #include "pkgi_menu.h"
 #include "pkgi_config.h"
 #include "pkgi_dialog.h"
-#include "pkgi_download.h"
 #include "pkgi_utils.h"
 #include "pkgi_style.h"
 }
+#include "pkgi_download.hpp"
 
 #include <stddef.h>
 
