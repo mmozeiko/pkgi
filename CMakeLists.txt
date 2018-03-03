@@ -20,14 +20,18 @@ option(PKGI_ENABLE_LOGGING "enables debug logging over udp multicast" OFF)
 
 if(PKGI_ENABLE_LOGGING)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPKGI_ENABLE_LOGGING")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPKGI_ENABLE_LOGGING")
 endif()
 
 if(NOT $ENV{PKGI_REFRESH_URL} STREQUAL "")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPKGI_REFRESH_URL=\\\"$ENV{PKGI_REFRESH_URL}\\\"")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPKGI_REFRESH_URL=\\\"$ENV{PKGI_REFRESH_URL}\\\"")
 endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPKGI_VERSION=\\\"${VITA_VERSION}\\\" -D_GNU_SOURCE -g -Wall -Wextra -Werror -fvisibility=hidden")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -flto")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPKGI_VERSION=\\\"${VITA_VERSION}\\\" -D_GNU_SOURCE -g -Wall -Wextra -fvisibility=hidden -fpermissive")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto")
 
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 
@@ -53,7 +57,7 @@ add_assets(assets assets/background.png)
 
 add_executable(pkgi
   ${assets}
-  pkgi.c
+  pkgi.cpp
   pkgi_aes128.c
   pkgi_config.c
   pkgi_db.c

@@ -1,3 +1,5 @@
+extern "C"
+{
 #include "pkgi.h"
 #include "pkgi_db.h"
 #include "pkgi_zrif.h"
@@ -7,6 +9,7 @@
 #include "pkgi_download.h"
 #include "pkgi_utils.h"
 #include "pkgi_style.h"
+}
 
 #include <stddef.h>
 
