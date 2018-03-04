@@ -46,8 +46,15 @@ void Downloader::run()
                 _cond.wait();
         }
 
-        if (!item.content.empty())
-            do_download(item);
+        try
+        {
+            if (!item.content.empty())
+                do_download(item);
+        }
+        catch (const std::exception& e)
+        {
+            LOG("error: %s", e.what());
+        }
     }
 }
 
