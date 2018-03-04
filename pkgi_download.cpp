@@ -287,6 +287,8 @@ int Download::download_head(const uint8_t* rif)
         aes128_init(&ctx, pkg_vita_4);
         aes128_encrypt(&ctx, iv, key);
     }
+    else
+        throw DownloadError("invalid key type " + std::to_string(key_type));
 
     aes128_ctr_init(&aes, key);
 

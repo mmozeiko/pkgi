@@ -10,6 +10,9 @@ endif()
 
 project(pkgi)
 
+# useful for memory alignment constraints
+set(CMAKE_CXX_STANDARD 17)
+
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 include(ExternalProject)
 
