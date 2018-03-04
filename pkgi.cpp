@@ -99,6 +99,119 @@ static int install(const char* content)
     return 1;
 }
 
+static char dialog_extra[256];
+static char dialog_eta[256];
+
+static void format_eta(uint32_t seconds)
+{
+    if (seconds < 60)
+    {
+        pkgi_snprintf(
+                dialog_eta, sizeof(dialog_eta), "ETA: %us", (uint32_t)seconds);
+    }
+    else if (seconds < 3600)
+    {
+        pkgi_snprintf(
+                dialog_eta,
+                sizeof(dialog_eta),
+                "ETA: %um %02us",
+                (uint32_t)(seconds / 60),
+                (uint32_t)(seconds % 60));
+    }
+    else
+    {
+        uint32_t hours = (uint32_t)(seconds / 3600);
+        uint32_t minutes = (uint32_t)((seconds - hours * 3600) / 60);
+        pkgi_snprintf(
+                dialog_eta,
+                sizeof(dialog_eta),
+                "ETA: %uh %02um",
+                hours,
+                minutes);
+    }
+}
+
+static void update_progress(const Download& dl)
+{
+    uint32_t info_now = pkgi_time_msec();
+    if (info_now >= dl.info_update)
+    {
+        char text[256];
+        if (dl.item_index < 0)
+        {
+            pkgi_snprintf(text, sizeof(text), "%s", dl.item_name);
+        }
+        else
+        {
+            pkgi_snprintf(
+                    text,
+                    sizeof(text),
+                    "[%u/%u] %s",
+                    dl.item_index,
+                    dl.index_count,
+                    dl.item_name);
+        }
+
+        if (dl.download_resume)
+        {
+            // if resuming download, then there is no "download speed"
+            dialog_extra[0] = 0;
+        }
+        else
+        {
+            // report download speed
+            uint32_t speed = (uint32_t)(
+                    ((dl.download_offset - dl.initial_offset) * 1000) /
+                    (info_now - dl.info_start));
+            if (speed > 10 * 1000 * 1024)
+            {
+                pkgi_snprintf(
+                        dialog_extra,
+                        sizeof(dialog_extra),
+                        "%u MB/s",
+                        speed / 1024 / 1024);
+            }
+            else if (speed > 1000)
+            {
+                pkgi_snprintf(
+                        dialog_extra,
+                        sizeof(dialog_extra),
+                        "%u KB/s",
+                        speed / 1024);
+            }
+
+            if (speed != 0)
+            {
+                // report ETA
+                uint32_t remaining_time =
+                        (dl.download_size - dl.download_offset) / speed;
+                format_eta(remaining_time);
+            }
+        }
+
+        float percent;
+        if (dl.download_resume)
+        {
+            // if resuming, then we may not know download size yet, use
+            // total_size from pkg header
+            percent = dl.total_size ? (float)((double)dl.download_offset /
+                                              dl.total_size)
+                                    : 0.f;
+        }
+        else
+        {
+            // when downloading use content length from http response as
+            // download size
+            percent = dl.download_size ? (float)((double)dl.download_offset /
+                                                 dl.download_size)
+                                       : 0.f;
+        }
+
+        pkgi_dialog_update_progress(text, dialog_extra, dialog_eta, percent);
+        const_cast<Download&>(dl).info_update = info_now + 500;
+    }
+}
+
 static void pkgi_download_thread(void)
 {
     DbItem* item = pkgi_db_get(selected_item);
@@ -115,6 +228,7 @@ static void pkgi_download_thread(void)
 
         pkgi_lock_process();
         auto download = std::make_unique<Download>();
+        download->update_progress = &update_progress;
         if (download->pkgi_download(
                     item->content,
                     item->url,

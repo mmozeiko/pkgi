@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include <stdint.h>
 
 extern "C" {
@@ -14,14 +16,14 @@ extern "C" {
 
 class Download
 {
-  public:
+public:
     int pkgi_download(
             const char* content,
             const char* url,
             const uint8_t* rif,
             const uint8_t* digest);
 
-  private:
+    // private:
     // temporary unpack folder ux0:pkgi/TITLE
     char root[256];
 
@@ -67,13 +69,10 @@ class Download
     uint64_t decrypted_size;   // size that's left to write into decrypted file
 
     // UI stuff
-    char dialog_extra[256];
-    char dialog_eta[256];
     uint32_t info_start;
     uint32_t info_update;
+    std::function<void(const Download& dl)> update_progress;
 
-    void calculate_eta(uint32_t speed);
-    void update_progress(void);
     void download_start(void);
     int download_data(uint8_t* buffer, uint32_t size, int encrypted, int save);
     int create_file(void);

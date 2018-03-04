@@ -14,114 +14,6 @@ static const uint8_t pkg_vita_3[] = { 0x42, 0x3a, 0xca, 0x3a, 0x2b, 0xd5, 0x64, 
 static const uint8_t pkg_vita_4[] = { 0xaf, 0x07, 0xfd, 0x59, 0x65, 0x25, 0x27, 0xba, 0xf1, 0x33, 0x89, 0x66, 0x8b, 0x17, 0xd9, 0xea };
 // clang-format on
 
-void Download::calculate_eta(uint32_t speed)
-{
-    uint64_t seconds = (download_size - download_offset) / speed;
-    if (seconds < 60)
-    {
-        pkgi_snprintf(
-                dialog_eta, sizeof(dialog_eta), "ETA: %us", (uint32_t)seconds);
-    }
-    else if (seconds < 3600)
-    {
-        pkgi_snprintf(
-                dialog_eta,
-                sizeof(dialog_eta),
-                "ETA: %um %02us",
-                (uint32_t)(seconds / 60),
-                (uint32_t)(seconds % 60));
-    }
-    else
-    {
-        uint32_t hours = (uint32_t)(seconds / 3600);
-        uint32_t minutes = (uint32_t)((seconds - hours * 3600) / 60);
-        pkgi_snprintf(
-                dialog_eta,
-                sizeof(dialog_eta),
-                "ETA: %uh %02um",
-                hours,
-                minutes);
-    }
-}
-
-void Download::update_progress(void)
-{
-    uint32_t info_now = pkgi_time_msec();
-    if (info_now >= info_update)
-    {
-        char text[256];
-        if (item_index < 0)
-        {
-            pkgi_snprintf(text, sizeof(text), "%s", item_name);
-        }
-        else
-        {
-            pkgi_snprintf(
-                    text,
-                    sizeof(text),
-                    "[%u/%u] %s",
-                    item_index,
-                    index_count,
-                    item_name);
-        }
-
-        if (download_resume)
-        {
-            // if resuming download, then there is no "download speed"
-            dialog_extra[0] = 0;
-        }
-        else
-        {
-            // report download speed
-            uint32_t speed = (uint32_t)(
-                    ((download_offset - initial_offset) * 1000) /
-                    (info_now - info_start));
-            if (speed > 10 * 1000 * 1024)
-            {
-                pkgi_snprintf(
-                        dialog_extra,
-                        sizeof(dialog_extra),
-                        "%u MB/s",
-                        speed / 1024 / 1024);
-            }
-            else if (speed > 1000)
-            {
-                pkgi_snprintf(
-                        dialog_extra,
-                        sizeof(dialog_extra),
-                        "%u KB/s",
-                        speed / 1024);
-            }
-
-            if (speed != 0)
-            {
-                // report ETA
-                calculate_eta(speed);
-            }
-        }
-
-        float percent;
-        if (download_resume)
-        {
-            // if resuming, then we may not know download size yet, use
-            // total_size from pkg header
-            percent = total_size ? (float)((double)download_offset / total_size)
-                                 : 0.f;
-        }
-        else
-        {
-            // when downloading use content length from http response as
-            // download size
-            percent = download_size
-                              ? (float)((double)download_offset / download_size)
-                              : 0.f;
-        }
-
-        pkgi_dialog_update_progress(text, dialog_extra, dialog_eta, percent);
-        info_update = info_now + 500;
-    }
-}
-
 void Download::download_start(void)
 {
     LOG("resuming pkg download from %llu offset", download_offset);
@@ -139,7 +31,7 @@ int Download::download_data(
         return 0;
     }
 
-    update_progress();
+    update_progress(*this);
 
     if (download_resume)
     {
@@ -567,7 +459,7 @@ int Download::download_files(void)
             {
                 LOG("file fully downloaded %s", item_name);
                 download_offset += encrypted_size;
-                update_progress();
+                update_progress(*this);
                 continue;
             }
         }
@@ -772,8 +664,6 @@ int Download::pkgi_download(
     download_content = content;
     download_url = url;
 
-    dialog_extra[0] = 0;
-    dialog_eta[0] = 0;
     info_start = pkgi_time_msec();
     info_update = info_start + 1000;
 
