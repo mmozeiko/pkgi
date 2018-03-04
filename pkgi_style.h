@@ -10,6 +10,7 @@
 #define PKGI_UTF8_T "\xe2\x96\xb3" // 0x25b3
 #define PKGI_UTF8_S "\xe2\x96\xa1" // 0x25a1
 
+#define PKGI_UTF8_INSTALLING "\xe2\x96\xb6" // 0x25b6
 #define PKGI_UTF8_INSTALLED "\xe2\x97\x8f" // 0x25cf
 #define PKGI_UTF8_PARTIAL   "\xe2\x97\x8b" // 0x25cb
 

@@ -5,6 +5,7 @@
 typedef enum {
     PresenceUnknown,
     PresenceIncomplete,
+    PresenceInstalling,
     PresenceInstalled,
     PresenceMissing,
 } DbPresence;

@@ -316,11 +316,14 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 
         if (item->presence == PresenceUnknown)
         {
-            item->presence = pkgi_is_incomplete(titleid)
-                                     ? PresenceIncomplete
-                                     : pkgi_is_installed(titleid)
-                                               ? PresenceInstalled
-                                               : PresenceMissing;
+            if (pkgi_is_installed(titleid))
+                item->presence = PresenceInstalled;
+            else if (downloader.is_in_queue(titleid))
+                item->presence = PresenceInstalling;
+            else if (pkgi_is_incomplete(titleid))
+                item->presence = PresenceIncomplete;
+            else
+                item->presence = PresenceMissing;
         }
 
         char size_str[64];
@@ -356,6 +359,10 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         else if (item->presence == PresenceInstalled)
         {
             pkgi_draw_text(col_installed, y, color, PKGI_UTF8_INSTALLED);
+        }
+        else if (item->presence == PresenceInstalling)
+        {
+            pkgi_draw_text(col_installed, y, color, PKGI_UTF8_INSTALLING);
         }
         pkgi_draw_text(
                 VITA_WIDTH - PKGI_MAIN_SCROLL_WIDTH - PKGI_MAIN_SCROLL_PADDING -
