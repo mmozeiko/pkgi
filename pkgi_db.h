@@ -67,5 +67,6 @@ void pkgi_db_configure(const char* search, const Config* config);
 uint32_t pkgi_db_count(void);
 uint32_t pkgi_db_total(void);
 DbItem* pkgi_db_get(uint32_t index);
+DbItem* pkgi_db_get_by_content(const char* content);
 
 GameRegion pkgi_get_region(const char* content);

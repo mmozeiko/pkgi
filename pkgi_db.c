@@ -461,6 +461,14 @@ DbItem* pkgi_db_get(uint32_t index)
     return index < db_item_count ? db_item[index] : NULL;
 }
 
+DbItem* pkgi_db_get_by_content(const char* content)
+{
+    for (size_t i = 0; i < db_item_count; ++i)
+        if (pkgi_stricmp(db_item[i]->content, content) == 0)
+            return db_item[i];
+    return NULL;
+}
+
 GameRegion pkgi_get_region(const char* content)
 {
     uint32_t first = get32le((uint8_t*)content + 7);
