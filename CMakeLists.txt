@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.6)
 
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   if(DEFINED ENV{VITASDK})
@@ -11,6 +11,7 @@ endif()
 project(pkgi)
 
 include("${VITASDK}/share/vita.cmake" REQUIRED)
+include(ExternalProject)
 
 set(VITA_APP_NAME "PKGi")
 set(VITA_TITLEID  "PKGI00000")
@@ -34,6 +35,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPKGI_VERSION=\\\"${VITA_VERSION}\\\" -
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto")
 
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
+
+ExternalProject_Add(Boost
+  URL https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.bz2
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+  INSTALL_COMMAND ""
+)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/Boost-prefix/src/Boost)
 
 function(add_assets target)
   set(result)
