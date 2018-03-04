@@ -29,6 +29,8 @@ public:
     void add(const DownloadItem& d);
     bool is_in_queue(const std::string& titleid);
 
+    std::function<void(const std::string& content)> refresh;
+
 private:
     using ScopeLock = std::lock_guard<Mutex>;
 
