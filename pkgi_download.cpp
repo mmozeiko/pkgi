@@ -25,7 +25,7 @@ void Download::download_start(void)
 int Download::download_data(
         uint8_t* buffer, uint32_t size, int encrypted, int save)
 {
-    if (pkgi_dialog_is_cancelled())
+    if (is_canceled())
     {
         pkgi_save(resume_file, &sha, sizeof(sha));
         return 0;
@@ -421,7 +421,7 @@ int Download::download_files(void)
 
         if (download_resume)
         {
-            if (pkgi_dialog_is_cancelled())
+            if (is_canceled())
             {
                 goto bail;
             }

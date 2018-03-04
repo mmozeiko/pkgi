@@ -73,6 +73,7 @@ public:
     uint32_t info_update;
     std::function<void(const Download& dl)> update_progress;
     std::function<void(const std::string& status)> update_status;
+    std::function<bool()> is_canceled;
 
     void download_start(void);
     int download_data(uint8_t* buffer, uint32_t size, int encrypted, int save);

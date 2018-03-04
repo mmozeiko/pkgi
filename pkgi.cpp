@@ -232,6 +232,7 @@ static void pkgi_download_thread(void)
         download->update_status = [](const std::string& status) {
             pkgi_dialog_set_progress_title(status.c_str());
         };
+        download->is_canceled = [] { return pkgi_dialog_is_cancelled(); };
         if (download->pkgi_download(
                     item->content,
                     item->url,
