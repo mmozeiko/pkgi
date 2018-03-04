@@ -30,13 +30,15 @@ typedef enum {
 
     // TODO: implement these two
     DbFilterInstalled = 0x10,
-    DbFilterMissing   = 0x20,
+    DbFilterMissing = 0x20,
 
-    DbFilterAllRegions = DbFilterRegionUSA | DbFilterRegionEUR | DbFilterRegionJPN | DbFilterRegionASA,
+    DbFilterAllRegions = DbFilterRegionUSA | DbFilterRegionEUR |
+                         DbFilterRegionJPN | DbFilterRegionASA,
     DbFilterAll = DbFilterAllRegions | DbFilterInstalled | DbFilterMissing,
 } DbFilter;
 
-typedef struct {
+typedef struct
+{
     DbPresence presence;
     const char* content;
     uint32_t flags;
@@ -47,7 +49,6 @@ typedef struct {
     const uint8_t* digest;
     int64_t size;
 } DbItem;
-
 
 typedef enum {
     RegionASA,

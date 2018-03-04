@@ -1,12 +1,12 @@
 #include "pkgi_db.h"
-#include "pkgi_config.h"
-#include "pkgi_utils.h"
-#include "pkgi_sha256.h"
 #include "pkgi.h"
+#include "pkgi_config.h"
+#include "pkgi_sha256.h"
+#include "pkgi_utils.h"
 
 #include <stddef.h>
 
-#define MAX_DB_SIZE (4*1024*1024)
+#define MAX_DB_SIZE (4 * 1024 * 1024)
 #define MAX_DB_ITEMS 8192
 
 static char db_data[MAX_DB_SIZE];
@@ -109,7 +109,11 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
             {
                 if (length > (int64_t)sizeof(db_data) - 1)
                 {
-                    pkgi_snprintf(error, sizeof(error_size), "list is too large... check for newer pkgi version!");
+                    pkgi_snprintf(
+                            error,
+                            sizeof(error_size),
+                            "list is too large... check for newer pkgi "
+                            "version!");
                 }
                 else if (length != 0)
                 {
@@ -120,7 +124,8 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
 
                 for (;;)
                 {
-                    uint32_t want = (uint32_t)min64(1 << 16, sizeof(db_data) - 1 - db_size);
+                    uint32_t want = (uint32_t)min64(
+                            1 << 16, sizeof(db_data) - 1 - db_size);
                     int read = pkgi_http_read(http, db_data + db_size, want);
                     if (read == 0)
                     {
@@ -128,7 +133,11 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
                     }
                     else if (read < 0)
                     {
-                        pkgi_snprintf(error, sizeof(error_size), "HTTP error 0x%08x", read);
+                        pkgi_snprintf(
+                                error,
+                                sizeof(error_size),
+                                "HTTP error 0x%08x",
+                                read);
                         db_size = 0;
                         break;
                     }
@@ -137,7 +146,10 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
 
                 if (error[0] == 0 && db_size == 0)
                 {
-                    pkgi_snprintf(error, sizeof(error_size), "list is empty... check for newer pkgi version!");
+                    pkgi_snprintf(
+                            error,
+                            sizeof(error_size),
+                            "list is empty... check for newer pkgi version!");
                 }
             }
 
@@ -151,7 +163,10 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
     }
     else
     {
-        pkgi_snprintf(error, error_size, "ERROR: pkgi.txt file missing or bad config.txt file?");
+        pkgi_snprintf(
+                error,
+                error_size,
+                "ERROR: pkgi.txt file missing or bad config.txt file?");
         return 0;
     }
 
@@ -161,7 +176,8 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
     char* ptr = db_data;
     char* end = db_data + db_size + 1;
 
-    if (db_size > 3 && (uint8_t)ptr[0] == 0xef && (uint8_t)ptr[1] == 0xbb && (uint8_t)ptr[2] == 0xbf)
+    if (db_size > 3 && (uint8_t)ptr[0] == 0xef && (uint8_t)ptr[1] == 0xbb &&
+        (uint8_t)ptr[2] == 0xbf)
     {
         ptr += 3;
     }
@@ -298,14 +314,19 @@ static void swap(uint32_t a, uint32_t b)
 
 static int matches(GameRegion region, uint32_t filter)
 {
-    return (region == RegionASA && (filter & DbFilterRegionASA))
-        || (region == RegionEUR && (filter & DbFilterRegionEUR))
-        || (region == RegionJPN && (filter & DbFilterRegionJPN))
-        || (region == RegionUSA && (filter & DbFilterRegionUSA))
-        || (region == RegionUnknown);
+    return (region == RegionASA && (filter & DbFilterRegionASA)) ||
+           (region == RegionEUR && (filter & DbFilterRegionEUR)) ||
+           (region == RegionJPN && (filter & DbFilterRegionJPN)) ||
+           (region == RegionUSA && (filter & DbFilterRegionUSA)) ||
+           (region == RegionUnknown);
 }
 
-static int lower(const DbItem* a, const DbItem* b, DbSort sort, DbSortOrder order, uint32_t filter)
+static int lower(
+        const DbItem* a,
+        const DbItem* b,
+        DbSort sort,
+        DbSortOrder order,
+        uint32_t filter)
 {
     GameRegion reg_a = pkgi_get_region(a->content);
     GameRegion reg_b = pkgi_get_region(b->content);
@@ -317,7 +338,8 @@ static int lower(const DbItem* a, const DbItem* b, DbSort sort, DbSortOrder orde
     }
     else if (sort == SortByRegion)
     {
-        cmp = reg_a == reg_b ? pkgi_stricmp(a->content + 7, b->content + 7) < 0 : reg_a < reg_b;
+        cmp = reg_a == reg_b ? pkgi_stricmp(a->content + 7, b->content + 7) < 0
+                             : reg_a < reg_b;
     }
     else if (sort == SortByName)
     {
@@ -345,7 +367,12 @@ static int lower(const DbItem* a, const DbItem* b, DbSort sort, DbSortOrder orde
     }
 }
 
-static void heapify(uint32_t n, uint32_t index, DbSort sort, DbSortOrder order, uint32_t filter)
+static void heapify(
+        uint32_t n,
+        uint32_t index,
+        DbSort sort,
+        DbSortOrder order,
+        uint32_t filter)
 {
     uint32_t largest = index;
     uint32_t left = 2 * index + 1;
@@ -356,7 +383,8 @@ static void heapify(uint32_t n, uint32_t index, DbSort sort, DbSortOrder order, 
         largest = left;
     }
 
-    if (right < n && lower(db_item[largest], db_item[right], sort, order, filter))
+    if (right < n &&
+        lower(db_item[largest], db_item[right], sort, order, filter))
     {
         largest = right;
     }
@@ -473,7 +501,10 @@ GameRegion pkgi_get_region(const char* content)
 {
     uint32_t first = get32le((uint8_t*)content + 7);
 
-#define ID(a, b, c, d) (uint32_t)(((uint8_t)(d) << 24) | ((uint8_t)(c) << 16) | ((uint8_t)(b) << 8) | ((uint8_t)(a)))
+#define ID(a, b, c, d)                                    \
+    (uint32_t)(                                           \
+            ((uint8_t)(d) << 24) | ((uint8_t)(c) << 16) | \
+            ((uint8_t)(b) << 8) | ((uint8_t)(a)))
 
     switch (first)
     {
