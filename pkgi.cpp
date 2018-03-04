@@ -753,6 +753,17 @@ int main()
 
     Downloader downloader;
 
+    downloader.refresh = [](const std::string& content) {
+        // FIXME this runs on the wrong thread
+        const auto item = pkgi_db_get_by_content(content.c_str());
+        if (!item)
+        {
+            LOG("couldn't find %s", content.c_str());
+            return;
+        }
+        item->presence = PresenceUnknown;
+    };
+
     LOG("started");
 
     pkgi_load_config(&config, refresh_url, sizeof(refresh_url));
