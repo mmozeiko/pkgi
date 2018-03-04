@@ -11,6 +11,24 @@ extern "C" {
 #include "pkgi.h"
 }
 
+class ScopeProcessLock
+{
+public:
+    ScopeProcessLock(const ScopeProcessLock&) = delete;
+    ScopeProcessLock(ScopeProcessLock&&) = delete;
+    ScopeProcessLock& operator=(const ScopeProcessLock&) = delete;
+    ScopeProcessLock& operator=(ScopeProcessLock&&) = delete;
+
+    ScopeProcessLock()
+    {
+        pkgi_lock_process();
+    }
+    ~ScopeProcessLock()
+    {
+        pkgi_unlock_process();
+    }
+};
+
 class Mutex
 {
 public:

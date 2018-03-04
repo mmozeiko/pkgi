@@ -53,7 +53,7 @@ void Downloader::run()
 
 void Downloader::do_download(const DownloadItem& item)
 {
-    pkgi_lock_process();
+    ScopeProcessLock _;
     LOG("downloading %s", item.name.c_str());
     auto download = std::make_unique<Download>();
     download->update_progress_cb = [](auto&&) {};
@@ -69,5 +69,4 @@ void Downloader::do_download(const DownloadItem& item)
     if (!pkgi_install(item.content.substr(7, 9).c_str()))
         return;
     LOG("install of %s completed!", item.name.c_str());
-    pkgi_unlock_process();
 }
