@@ -89,10 +89,11 @@ public:
     // UI stuff
     uint32_t info_start;
     uint32_t info_update;
-    std::function<void(const Download& dl)> update_progress;
+    std::function<void(const Download& dl)> update_progress_cb;
     std::function<void(const std::string& status)> update_status;
     std::function<bool()> is_canceled;
 
+    void update_progress();
     void download_start(void);
     int download_data(uint8_t* buffer, uint32_t size, int encrypted, int save);
     int create_file(void);

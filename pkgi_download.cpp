@@ -23,6 +23,16 @@ void Download::download_start(void)
     update_status("Downloading");
 }
 
+void Download::update_progress()
+{
+    uint32_t info_now = pkgi_time_msec();
+    if (info_now >= info_update)
+    {
+        update_progress_cb(*this);
+        info_update = info_now + 500;
+    }
+}
+
 int Download::download_data(
         uint8_t* buffer, uint32_t size, int encrypted, int save)
 {
@@ -32,7 +42,7 @@ int Download::download_data(
         return 0;
     }
 
-    update_progress(*this);
+    update_progress();
 
     if (download_resume)
     {
@@ -446,7 +456,7 @@ int Download::download_files(void)
             {
                 LOG("file fully downloaded %s", item_name);
                 download_offset += encrypted_size;
-                update_progress(*this);
+                update_progress();
                 continue;
             }
         }
