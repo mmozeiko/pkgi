@@ -169,7 +169,7 @@ public:
     Thread(const std::string& name, EntryPoint entry)
     {
         _tid = sceKernelCreateThread(
-                name.c_str(), &entry_point, 0x40, 0x4000, 0, 0, nullptr);
+                name.c_str(), &entry_point, 0xb0, 0x4000, 0, 0, nullptr);
         if (_tid < 0)
         {
             // TODO throw
