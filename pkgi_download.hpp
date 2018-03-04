@@ -1,6 +1,8 @@
 #pragma once
 
 #include <functional>
+#include <stdexcept>
+#include <string>
 
 #include <stdint.h>
 
@@ -13,6 +15,22 @@ extern "C" {
 #define PKG_HEADER_SIZE 192
 #define PKG_HEADER_EXT_SIZE 64
 #define PKG_TAIL_SIZE 480
+
+class DownloadError : public std::exception
+{
+public:
+    DownloadError(std::string msg) : _msg(std::move(msg))
+    {
+    }
+
+    virtual const char* what() const noexcept override
+    {
+        return _msg.c_str();
+    }
+
+private:
+    std::string _msg;
+};
 
 class Download
 {

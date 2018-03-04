@@ -233,20 +233,27 @@ static void pkgi_download_thread(void)
             pkgi_dialog_set_progress_title(status.c_str());
         };
         download->is_canceled = [] { return pkgi_dialog_is_cancelled(); };
-        if (download->pkgi_download(
-                    item->content,
-                    item->url,
-                    item->zrif == NULL ? NULL : rif,
-                    item->digest) &&
-            install(item->content))
+        try
         {
-            pkgi_snprintf(
-                    message,
-                    sizeof(message),
-                    "Successfully installed %s",
-                    item->name);
-            pkgi_dialog_message(message);
-            LOG("download completed!");
+            if (download->pkgi_download(
+                        item->content,
+                        item->url,
+                        item->zrif == NULL ? NULL : rif,
+                        item->digest) &&
+                install(item->content))
+            {
+                pkgi_snprintf(
+                        message,
+                        sizeof(message),
+                        "Successfully installed %s",
+                        item->name);
+                pkgi_dialog_message(message);
+                LOG("download completed!");
+            }
+        }
+        catch (const std::exception& e)
+        {
+            pkgi_dialog_error(e.what());
         }
         pkgi_unlock_process();
 

@@ -43,8 +43,7 @@ int Download::download_data(
             char error[256];
             pkgi_snprintf(
                     error, sizeof(error), "failed to read file %s", item_path);
-            pkgi_dialog_error(error);
-            return -1;
+            throw DownloadError(error);
         }
 
         if (read != 0)
@@ -65,20 +64,17 @@ int Download::download_data(
         http = pkgi_http_get(download_url, download_content, download_offset);
         if (!http)
         {
-            pkgi_dialog_error("cannot send HTTP request");
-            return 0;
+            throw DownloadError("cannot send HTTP request");
         }
 
         int64_t http_length;
         if (!pkgi_http_response_length(http, &http_length))
         {
-            pkgi_dialog_error("HTTP request failed");
-            return 0;
+            throw DownloadError("HTTP request failed");
         }
         if (http_length < 0)
         {
-            pkgi_dialog_error("HTTP response has unknown length");
-            return 0;
+            throw DownloadError("HTTP response has unknown length");
         }
 
         download_size = http_length + download_offset;
@@ -98,17 +94,15 @@ int Download::download_data(
     int read = pkgi_http_read(http, buffer, size);
     if (read < 0)
     {
+        pkgi_save(resume_file, &sha, sizeof(sha));
         char error[256];
         pkgi_snprintf(error, sizeof(error), "HTTP download error 0x%08x", read);
-        pkgi_dialog_error(error);
-        pkgi_save(resume_file, &sha, sizeof(sha));
-        return -1;
+        throw DownloadError(error);
     }
     else if (read == 0)
     {
-        pkgi_dialog_error("HTTP connection closed");
         pkgi_save(resume_file, &sha, sizeof(sha));
-        return -1;
+        throw DownloadError("HTTP connection closed");
     }
     download_offset += read;
 
@@ -138,8 +132,7 @@ int Download::download_data(
             char error[256];
             pkgi_snprintf(
                     error, sizeof(error), "failed to write to %s", item_path);
-            pkgi_dialog_error(error);
-            return -1;
+            throw DownloadError(error);
         }
     }
 
@@ -159,8 +152,7 @@ int Download::create_file(void)
     {
         char error[256];
         pkgi_snprintf(error, sizeof(error), "cannot create folder %s", folder);
-        pkgi_dialog_error(error);
-        return 1;
+        throw DownloadError(error);
     }
 
     LOG("creating %s file", item_name);
@@ -169,8 +161,7 @@ int Download::create_file(void)
     {
         char error[256];
         pkgi_snprintf(error, sizeof(error), "cannot create file %s", item_name);
-        pkgi_dialog_error(error);
-        return 0;
+        throw DownloadError(error);
     }
 
     return 1;
@@ -212,8 +203,7 @@ int Download::download_head(const uint8_t* rif)
         {
             char error[256];
             pkgi_snprintf(error, sizeof(error), "cannot create %s", item_path);
-            pkgi_dialog_error(error);
-            return 0;
+            throw DownloadError(error);
         }
     }
 
@@ -233,14 +223,12 @@ int Download::download_head(const uint8_t* rif)
     if (get32be(head) != 0x7f504b47 ||
         get32be(head + PKG_HEADER_SIZE) != 0x7F657874)
     {
-        pkgi_dialog_error("wrong pkg header");
-        return 0;
+        throw DownloadError("wrong pkg header");
     }
 
     if (rif && !pkgi_memequ(rif + 0x10, head + 0x30, 0x30))
     {
-        pkgi_dialog_error("zRIF content id doesn't match pkg");
-        return 0;
+        throw DownloadError("zRIF content id doesn't match pkg");
     }
 
     meta_offset = get32be(head + 8);
@@ -261,8 +249,7 @@ int Download::download_head(const uint8_t* rif)
     if (enc_offset > sizeof(head))
     {
         LOG("pkg file head is too large");
-        pkgi_dialog_error("pkg is not supported, head.bin is too big");
-        return 0;
+        throw DownloadError("pkg is not supported, head.bin is too big");
     }
 
     pkgi_memcpy(iv, head + 0x70, sizeof(iv));
@@ -314,8 +301,7 @@ int Download::download_head(const uint8_t* rif)
     {
         if (offset + 16 >= enc_offset)
         {
-            pkgi_dialog_error("pkg file is too small or corrupted");
-            return 0;
+            throw DownloadError("pkg file is too small or corrupted");
         }
 
         uint32_t type = get32be(head + offset + 0);
@@ -326,8 +312,7 @@ int Download::download_head(const uint8_t* rif)
             uint32_t content_type = get32be(head + offset + 8);
             if (content_type != 21)
             {
-                pkgi_dialog_error("pkg is not a main package");
-                return 0;
+                throw DownloadError("pkg is not a main package");
             }
         }
         else if (type == 13)
@@ -340,16 +325,14 @@ int Download::download_head(const uint8_t* rif)
 
     if (index_offset != 0 || index_size == 0)
     {
-        pkgi_dialog_error("pkg is missing encrypted file index");
-        return 0;
+        throw DownloadError("pkg is missing encrypted file index");
     }
 
     target_size = (uint32_t)(enc_offset + index_size);
     if (target_size > sizeof(head))
     {
         LOG("pkg file head is too large");
-        pkgi_dialog_error("pkg is not supported, head.bin is too big");
-        return 0;
+        throw DownloadError("pkg is not supported, head.bin is too big");
     }
 
     while (head_size != target_size)
@@ -396,8 +379,7 @@ int Download::download_files(void)
         if (name_size > sizeof(item_name) - 1 ||
             enc_offset + name_offset + name_size > total_size)
         {
-            pkgi_dialog_error("pkg file is too small or corrupted");
-            return 0;
+            throw DownloadError("pkg file is too small or corrupted");
         }
 
         pkgi_memcpy(item_name, head + enc_offset + name_offset, name_size);
@@ -454,8 +436,7 @@ int Download::download_files(void)
                             sizeof(error),
                             "cannot append to %s",
                             item_name);
-                    pkgi_dialog_error(error);
-                    return 0;
+                    throw DownloadError(error);
                 }
                 encrypted_offset = (uint64_t)current_size;
                 decrypted_size -= current_size;
@@ -479,21 +460,19 @@ int Download::download_files(void)
                 char error[256];
                 pkgi_snprintf(
                         error, sizeof(error), "cannot create %s", item_name);
-                pkgi_dialog_error(error);
-                return 0;
+                throw DownloadError(error);
             }
         }
 
         if (enc_offset + item_offset + encrypted_offset != download_offset)
         {
-            pkgi_dialog_error("pkg is not supported, files are in wrong order");
-            return 0;
+            throw DownloadError(
+                    "pkg is not supported, files are in wrong order");
         }
 
         if (enc_offset + item_offset + item_size > total_size)
         {
-            pkgi_dialog_error("pkg file is too small or corrupted");
-            return 0;
+            throw DownloadError("pkg file is too small or corrupted");
         }
 
         while (encrypted_offset != encrypted_size)
@@ -543,8 +522,7 @@ int Download::download_tail(void)
     {
         char error[256];
         pkgi_snprintf(error, sizeof(error), "cannot create %s", item_path);
-        pkgi_dialog_error(error);
-        return 0;
+        throw DownloadError(error);
     }
 
     uint64_t tail_offset = enc_offset + enc_size;
@@ -594,8 +572,7 @@ int Download::check_integrity(const uint8_t* digest)
         pkgi_snprintf(path, sizeof(path), "%s/sce_sys/package/head.bin", root);
         pkgi_rm(path);
 
-        pkgi_dialog_error("pkg integrity failed, try downloading again");
-        return 0;
+        throw DownloadError("pkg integrity failed, try downloading again");
     }
 
     LOG("pkg integrity check succeeded");
@@ -614,8 +591,7 @@ int Download::create_rif(const uint8_t* rif)
     {
         char error[256];
         pkgi_snprintf(error, sizeof(error), "cannot save rif to %s", path);
-        pkgi_dialog_error(error);
-        return 0;
+        throw DownloadError(error);
     }
 
     LOG("work.bin created");
