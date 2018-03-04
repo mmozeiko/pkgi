@@ -11,6 +11,8 @@ extern "C"
 }
 #include "pkgi_download.hpp"
 
+#include <memory>
+
 #include <stddef.h>
 
 #define PKGI_UPDATE_URL "https://api.github.com/repos/mmozeiko/pkgi/releases/latest"
@@ -111,7 +113,8 @@ static void pkgi_download_thread(void)
         pkgi_sleep(300);
 
         pkgi_lock_process();
-        if (pkgi_download(item->content, item->url, item->zrif == NULL ? NULL : rif, item->digest) && install(item->content))
+        auto download = std::make_unique<Download>();
+        if (download->pkgi_download(item->content, item->url, item->zrif == NULL ? NULL : rif, item->digest) && install(item->content))
         {
             pkgi_snprintf(message, sizeof(message), "Successfully installed %s", item->name);
             pkgi_dialog_message(message);

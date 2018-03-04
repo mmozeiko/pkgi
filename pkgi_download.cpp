@@ -1,94 +1,50 @@
-#include "pkgi_download.hpp"
-extern "C"
-{
-#include "pkgi_dialog.h"
+extern "C" {
 #include "pkgi.h"
+#include "pkgi_dialog.h"
 #include "pkgi_utils.h"
-#include "pkgi_aes128.h"
-#include "pkgi_sha256.h"
 }
+#include "pkgi_download.hpp"
 
 #include <stddef.h>
 
-#define PKG_HEADER_SIZE 192
-#define PKG_HEADER_EXT_SIZE 64
-#define PKG_TAIL_SIZE 480
-
+// clang-format off
 static const uint8_t pkg_psp_key[] = { 0x07, 0xf2, 0xc6, 0x82, 0x90, 0xb5, 0x0d, 0x2c, 0x33, 0x81, 0x8d, 0x70, 0x9b, 0x60, 0xe6, 0x2b };
 static const uint8_t pkg_vita_2[] = { 0xe3, 0x1a, 0x70, 0xc9, 0xce, 0x1d, 0xd7, 0x2b, 0xf3, 0xc0, 0x62, 0x29, 0x63, 0xf2, 0xec, 0xcb };
 static const uint8_t pkg_vita_3[] = { 0x42, 0x3a, 0xca, 0x3a, 0x2b, 0xd5, 0x64, 0x9f, 0x96, 0x86, 0xab, 0xad, 0x6f, 0xd8, 0x80, 0x1f };
 static const uint8_t pkg_vita_4[] = { 0xaf, 0x07, 0xfd, 0x59, 0x65, 0x25, 0x27, 0xba, 0xf1, 0x33, 0x89, 0x66, 0x8b, 0x17, 0xd9, 0xea };
+// clang-format on
 
-// temporary unpack folder ux0:pkgi/TITLE
-static char root[256];
-
-static char resume_file[256];
-
-static pkgi_http* http;
-static const char* download_content;
-static const char* download_url;
-static int download_resume;
-
-static uint64_t initial_offset;  // where http download resumes
-static uint64_t download_offset; // pkg absolute offset
-static uint64_t download_size;   // pkg total size (from http request)
-
-static uint8_t iv[AES_BLOCK_SIZE];
-static aes128_ctx aes;
-static sha256_ctx sha;
-
-static void* item_file;     // current file handle
-static char item_name[256]; // current file name
-static char item_path[256]; // current file path
-static int item_index;      // current item
-
-// head.bin contents, kept in memory while downloading
-static uint8_t head[4 * 1024 * 1024];
-static uint32_t head_size;
-
-// temporary buffer for downloads
-static uint8_t down[64 * 1024];
-
-// pkg header
-static uint32_t meta_offset;
-static uint32_t meta_count;
-static uint32_t index_count;
-static uint64_t total_size;
-static uint64_t enc_offset;
-static uint64_t enc_size;
-static uint32_t index_size;
-
-// encrypted files
-static uint64_t encrypted_base;   // offset in pkg where it starts
-static uint64_t encrypted_offset; // offset from beginning of file
-static uint64_t decrypted_size;   // size that's left to write into decrypted file
-
-// UI stuff
-static char dialog_extra[256];
-static char dialog_eta[256];
-static uint32_t info_start;
-static uint32_t info_update;
-
-static void calculate_eta(uint32_t speed)
+void Download::calculate_eta(uint32_t speed)
 {
     uint64_t seconds = (download_size - download_offset) / speed;
     if (seconds < 60)
     {
-        pkgi_snprintf(dialog_eta, sizeof(dialog_eta), "ETA: %us", (uint32_t)seconds);
+        pkgi_snprintf(
+                dialog_eta, sizeof(dialog_eta), "ETA: %us", (uint32_t)seconds);
     }
     else if (seconds < 3600)
     {
-        pkgi_snprintf(dialog_eta, sizeof(dialog_eta), "ETA: %um %02us", (uint32_t)(seconds / 60), (uint32_t)(seconds % 60));
+        pkgi_snprintf(
+                dialog_eta,
+                sizeof(dialog_eta),
+                "ETA: %um %02us",
+                (uint32_t)(seconds / 60),
+                (uint32_t)(seconds % 60));
     }
     else
     {
         uint32_t hours = (uint32_t)(seconds / 3600);
         uint32_t minutes = (uint32_t)((seconds - hours * 3600) / 60);
-        pkgi_snprintf(dialog_eta, sizeof(dialog_eta), "ETA: %uh %02um", hours, minutes);
+        pkgi_snprintf(
+                dialog_eta,
+                sizeof(dialog_eta),
+                "ETA: %uh %02um",
+                hours,
+                minutes);
     }
 }
 
-static void update_progress(void)
+void Download::update_progress(void)
 {
     uint32_t info_now = pkgi_time_msec();
     if (info_now >= info_update)
@@ -100,7 +56,13 @@ static void update_progress(void)
         }
         else
         {
-            pkgi_snprintf(text, sizeof(text), "[%u/%u] %s", item_index, index_count, item_name);
+            pkgi_snprintf(
+                    text,
+                    sizeof(text),
+                    "[%u/%u] %s",
+                    item_index,
+                    index_count,
+                    item_name);
         }
 
         if (download_resume)
@@ -111,14 +73,24 @@ static void update_progress(void)
         else
         {
             // report download speed
-            uint32_t speed = (uint32_t)(((download_offset - initial_offset) * 1000) / (info_now - info_start));
+            uint32_t speed = (uint32_t)(
+                    ((download_offset - initial_offset) * 1000) /
+                    (info_now - info_start));
             if (speed > 10 * 1000 * 1024)
             {
-                pkgi_snprintf(dialog_extra, sizeof(dialog_extra), "%u MB/s", speed / 1024 / 1024);
+                pkgi_snprintf(
+                        dialog_extra,
+                        sizeof(dialog_extra),
+                        "%u MB/s",
+                        speed / 1024 / 1024);
             }
             else if (speed > 1000)
             {
-                pkgi_snprintf(dialog_extra, sizeof(dialog_extra), "%u KB/s", speed / 1024);
+                pkgi_snprintf(
+                        dialog_extra,
+                        sizeof(dialog_extra),
+                        "%u KB/s",
+                        speed / 1024);
             }
 
             if (speed != 0)
@@ -131,13 +103,18 @@ static void update_progress(void)
         float percent;
         if (download_resume)
         {
-            // if resuming, then we may not know download size yet, use total_size from pkg header
-            percent = total_size ? (float)((double)download_offset / total_size) : 0.f;
+            // if resuming, then we may not know download size yet, use
+            // total_size from pkg header
+            percent = total_size ? (float)((double)download_offset / total_size)
+                                 : 0.f;
         }
         else
         {
-            // when downloading use content length from http response as download size
-            percent = download_size ? (float)((double)download_offset / download_size) : 0.f;
+            // when downloading use content length from http response as
+            // download size
+            percent = download_size
+                              ? (float)((double)download_offset / download_size)
+                              : 0.f;
         }
 
         pkgi_dialog_update_progress(text, dialog_extra, dialog_eta, percent);
@@ -145,7 +122,7 @@ static void update_progress(void)
     }
 }
 
-static void download_start(void)
+void Download::download_start(void)
 {
     LOG("resuming pkg download from %llu offset", download_offset);
     download_resume = 0;
@@ -153,7 +130,8 @@ static void download_start(void)
     pkgi_dialog_set_progress_title("Downloading");
 }
 
-static int download_data(uint8_t* buffer, uint32_t size, int encrypted, int save)
+int Download::download_data(
+        uint8_t* buffer, uint32_t size, int encrypted, int save)
 {
     if (pkgi_dialog_is_cancelled())
     {
@@ -169,7 +147,8 @@ static int download_data(uint8_t* buffer, uint32_t size, int encrypted, int save
         if (read < 0)
         {
             char error[256];
-            pkgi_snprintf(error, sizeof(error), "failed to read file %s", item_path);
+            pkgi_snprintf(
+                    error, sizeof(error), "failed to read file %s", item_path);
             pkgi_dialog_error(error);
             return -1;
         }
@@ -215,7 +194,9 @@ static int download_data(uint8_t* buffer, uint32_t size, int encrypted, int save
             return 0;
         }
 
-        LOG("http response length = %lld, total pkg size = %llu", http_length, download_size);
+        LOG("http response length = %lld, total pkg size = %llu",
+            http_length,
+            download_size);
         info_start = pkgi_time_msec();
         info_update = pkgi_time_msec() + 500;
     }
@@ -261,7 +242,8 @@ static int download_data(uint8_t* buffer, uint32_t size, int encrypted, int save
         if (!pkgi_write(item_file, buffer, write))
         {
             char error[256];
-            pkgi_snprintf(error, sizeof(error), "failed to write to %s", item_path);
+            pkgi_snprintf(
+                    error, sizeof(error), "failed to write to %s", item_path);
             pkgi_dialog_error(error);
             return -1;
         }
@@ -270,8 +252,9 @@ static int download_data(uint8_t* buffer, uint32_t size, int encrypted, int save
     return read;
 }
 
-// this includes creating of all the parent folders necessary to actually create file
-static int create_file(void)
+// this includes creating of all the parent folders necessary to actually
+// create file
+int Download::create_file(void)
 {
     char folder[256];
     pkgi_strncpy(folder, sizeof(folder), item_path);
@@ -299,12 +282,13 @@ static int create_file(void)
     return 1;
 }
 
-static int download_head(const uint8_t* rif)
+int Download::download_head(const uint8_t* rif)
 {
     LOG("downloading pkg head");
 
     pkgi_strncpy(item_name, sizeof(item_name), "Preparing...");
-    pkgi_snprintf(item_path, sizeof(item_path), "%s/sce_sys/package/head.bin", root);
+    pkgi_snprintf(
+            item_path, sizeof(item_path), "%s/sce_sys/package/head.bin", root);
 
     int result = 0;
 
@@ -336,7 +320,8 @@ static int download_head(const uint8_t* rif)
     uint32_t head_offset = 0;
     while (head_offset != head_size)
     {
-        int size = download_data(head + head_offset, head_size - head_offset, 0, 1);
+        int size = download_data(
+                head + head_offset, head_size - head_offset, 0, 1);
         if (size <= 0)
         {
             goto bail;
@@ -344,7 +329,8 @@ static int download_head(const uint8_t* rif)
         head_offset += size;
     }
 
-    if (get32be(head) != 0x7f504b47 || get32be(head + PKG_HEADER_SIZE) != 0x7F657874)
+    if (get32be(head) != 0x7f504b47 ||
+        get32be(head + PKG_HEADER_SIZE) != 0x7F657874)
     {
         pkgi_dialog_error("wrong pkg header");
         goto bail;
@@ -362,8 +348,14 @@ static int download_head(const uint8_t* rif)
     total_size = get64be(head + 24);
     enc_offset = get64be(head + 32);
     enc_size = get64be(head + 40);
-    LOG("meta_offset=%u meta_count=%u index_count=%u total_size=%llu enc_offset=%llu enc_size=%llu",
-        meta_offset, meta_count, index_count, total_size, enc_offset, enc_size);
+    LOG("meta_offset=%u meta_count=%u index_count=%u total_size=%llu "
+        "enc_offset=%llu enc_size=%llu",
+        meta_offset,
+        meta_count,
+        index_count,
+        total_size,
+        enc_offset,
+        enc_size);
 
     if (enc_offset > sizeof(head))
     {
@@ -404,7 +396,8 @@ static int download_head(const uint8_t* rif)
     uint32_t target_size = (uint32_t)enc_offset;
     while (head_size != target_size)
     {
-        int size = download_data(head + head_size, target_size - head_size, 0, 1);
+        int size =
+                download_data(head + head_size, target_size - head_size, 0, 1);
         if (size <= 0)
         {
             goto bail;
@@ -460,7 +453,8 @@ static int download_head(const uint8_t* rif)
 
     while (head_size != target_size)
     {
-        int size = download_data(head + head_size, target_size - head_size, 0, 1);
+        int size =
+                download_data(head + head_size, target_size - head_size, 0, 1);
         if (size <= 0)
         {
             goto bail;
@@ -481,7 +475,7 @@ bail:
     return result;
 }
 
-static int download_files(void)
+int Download::download_files(void)
 {
     LOG("downloading encrypted files");
 
@@ -490,7 +484,8 @@ static int download_files(void)
     for (uint32_t index = 0; index < index_count; index++)
     {
         uint8_t item[32];
-        pkgi_memcpy(item, head + enc_offset + sizeof(item) * index, sizeof(item));
+        pkgi_memcpy(
+                item, head + enc_offset + sizeof(item) * index, sizeof(item));
         aes128_ctr(&aes, iv, sizeof(item) * index, item, sizeof(item));
 
         uint32_t name_offset = get32be(item + 0);
@@ -499,7 +494,8 @@ static int download_files(void)
         uint64_t item_size = get64be(item + 16);
         uint8_t type = item[27];
 
-        if (name_size > sizeof(item_name) - 1 || enc_offset + name_offset + name_size > total_size)
+        if (name_size > sizeof(item_name) - 1 ||
+            enc_offset + name_offset + name_size > total_size)
         {
             pkgi_dialog_error("pkg file is too small or corrupted");
             goto bail;
@@ -509,7 +505,13 @@ static int download_files(void)
         aes128_ctr(&aes, iv, name_offset, (uint8_t*)item_name, name_size);
         item_name[name_size] = 0;
 
-        LOG("[%u/%u] %s item_offset=%llu item_size=%llu type=%u", item_index + 1, index_count, item_name, item_offset, item_size, type);
+        LOG("[%u/%u] %s item_offset=%llu item_size=%llu type=%u",
+            item_index + 1,
+            index_count,
+            item_name,
+            item_offset,
+            item_size,
+            type);
 
         if (type == 4 || type == 18)
         {
@@ -518,7 +520,8 @@ static int download_files(void)
 
         pkgi_snprintf(item_path, sizeof(item_path), "%s/%s", root, item_name);
 
-        uint64_t encrypted_size = (item_size + AES_BLOCK_SIZE - 1) & ~((uint64_t)AES_BLOCK_SIZE - 1);
+        uint64_t encrypted_size = (item_size + AES_BLOCK_SIZE - 1) &
+                                  ~((uint64_t)AES_BLOCK_SIZE - 1);
         decrypted_size = item_size;
         encrypted_base = item_offset;
         encrypted_offset = 0;
@@ -539,12 +542,19 @@ static int download_files(void)
             }
             else if ((uint64_t)current_size != decrypted_size)
             {
-                LOG("downloaded %llu, total %llu, resuming %s", (uint64_t)current_size, decrypted_size, item_path);
+                LOG("downloaded %llu, total %llu, resuming %s",
+                    (uint64_t)current_size,
+                    decrypted_size,
+                    item_path);
                 item_file = pkgi_append(item_path);
                 if (!item_file)
                 {
                     char error[256];
-                    pkgi_snprintf(error, sizeof(error), "cannot append to %s", item_name);
+                    pkgi_snprintf(
+                            error,
+                            sizeof(error),
+                            "cannot append to %s",
+                            item_name);
                     pkgi_dialog_error(error);
                     goto bail;
                 }
@@ -568,7 +578,8 @@ static int download_files(void)
             if (!create_file())
             {
                 char error[256];
-                pkgi_snprintf(error, sizeof(error), "cannot create %s", item_name);
+                pkgi_snprintf(
+                        error, sizeof(error), "cannot create %s", item_name);
                 pkgi_dialog_error(error);
                 goto bail;
             }
@@ -588,7 +599,8 @@ static int download_files(void)
 
         while (encrypted_offset != encrypted_size)
         {
-            uint32_t read = (uint32_t)min64(sizeof(down), encrypted_size - encrypted_offset);
+            uint32_t read = (uint32_t)min64(
+                    sizeof(down), encrypted_size - encrypted_offset);
             int size = download_data(down, read, 1, 1);
             if (size <= 0)
             {
@@ -614,14 +626,15 @@ bail:
     return result;
 }
 
-static int download_tail(void)
+int Download::download_tail(void)
 {
     LOG("downloading tail.bin");
 
     int result = 0;
 
     pkgi_strncpy(item_name, sizeof(item_name), "Finishing...");
-    pkgi_snprintf(item_path, sizeof(item_path), "%s/sce_sys/package/tail.bin", root);
+    pkgi_snprintf(
+            item_path, sizeof(item_path), "%s/sce_sys/package/tail.bin", root);
 
     if (download_resume)
     {
@@ -639,7 +652,8 @@ static int download_tail(void)
     uint64_t tail_offset = enc_offset + enc_size;
     while (download_offset < tail_offset)
     {
-        uint32_t read = (uint32_t)min64(sizeof(down), tail_offset - download_offset);
+        uint32_t read =
+                (uint32_t)min64(sizeof(down), tail_offset - download_offset);
         int size = download_data(down, read, 0, 0);
         if (size <= 0)
         {
@@ -649,7 +663,8 @@ static int download_tail(void)
 
     while (download_offset != total_size)
     {
-        uint32_t read = (uint32_t)min64(sizeof(down), total_size - download_offset);
+        uint32_t read =
+                (uint32_t)min64(sizeof(down), total_size - download_offset);
         int size = download_data(down, read, 0, 1);
         if (size <= 0)
         {
@@ -669,7 +684,7 @@ bail:
     return result;
 }
 
-static int check_integrity(const uint8_t* digest)
+int Download::check_integrity(const uint8_t* digest)
 {
     if (!digest)
     {
@@ -697,7 +712,7 @@ static int check_integrity(const uint8_t* digest)
     return 1;
 }
 
-static int create_rif(const uint8_t* rif)
+int Download::create_rif(const uint8_t* rif)
 {
     LOG("creating work.bin");
     pkgi_dialog_update_progress("Creating work.bin", NULL, NULL, 1.f);
@@ -717,14 +732,24 @@ static int create_rif(const uint8_t* rif)
     return 1;
 }
 
-int pkgi_download(const char* content, const char* url, const uint8_t* rif, const uint8_t* digest)
+int Download::pkgi_download(
+        const char* content,
+        const char* url,
+        const uint8_t* rif,
+        const uint8_t* digest)
 {
     int result = 0;
 
-    pkgi_snprintf(root, sizeof(root), "%s/%.9s", pkgi_get_temp_folder(), content + 7);
+    pkgi_snprintf(
+            root, sizeof(root), "%s/%.9s", pkgi_get_temp_folder(), content + 7);
     LOG("temp installation folder: %s", root);
 
-    pkgi_snprintf(resume_file, sizeof(resume_file), "%s/%.9s.resume", pkgi_get_temp_folder(), content + 7);
+    pkgi_snprintf(
+            resume_file,
+            sizeof(resume_file),
+            "%s/%.9s.resume",
+            pkgi_get_temp_folder(),
+            content + 7);
     if (pkgi_load(resume_file, &sha, sizeof(sha)) == sizeof(sha))
     {
         LOG("resume file exists, trying to resume");
@@ -752,13 +777,18 @@ int pkgi_download(const char* content, const char* url, const uint8_t* rif, cons
     info_start = pkgi_time_msec();
     info_update = info_start + 1000;
 
-    if (!download_head(rif)) goto finish;
-    if (!download_files()) goto finish;
-    if (!download_tail()) goto finish;
-    if (!check_integrity(digest)) goto finish;
+    if (!download_head(rif))
+        goto finish;
+    if (!download_files())
+        goto finish;
+    if (!download_tail())
+        goto finish;
+    if (!check_integrity(digest))
+        goto finish;
     if (rif)
     {
-        if (!create_rif(rif)) goto finish;
+        if (!create_rif(rif))
+            goto finish;
     }
 
     pkgi_rm(resume_file);
