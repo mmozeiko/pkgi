@@ -1,7 +1,7 @@
 #pragma once
 
+#include <deque>
 #include <mutex>
-#include <queue>
 #include <vector>
 
 #include "pkgi_thread.hpp"
@@ -27,12 +27,15 @@ public:
     ~Downloader();
 
     void add(const DownloadItem& d);
+    bool is_in_queue(const std::string& titleid);
 
 private:
     using ScopeLock = std::lock_guard<Mutex>;
 
     Cond _cond;
-    std::queue<DownloadItem> _queue;
+    std::deque<DownloadItem> _queue;
+
+    std::string _current_title_id;
 
     Thread _thread;
     bool _dying = false;

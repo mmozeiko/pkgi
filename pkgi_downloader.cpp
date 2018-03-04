@@ -22,9 +22,23 @@ void Downloader::add(const DownloadItem& d)
     LOG("adding download %s", d.name.c_str());
     {
         ScopeLock _(_cond.get_mutex());
-        _queue.push(d);
+        _queue.push_back(d);
     }
     _cond.notify_one();
+}
+
+bool Downloader::is_in_queue(const std::string& titleid)
+{
+    ScopeLock _(_cond.get_mutex());
+    if (titleid == _current_title_id)
+        return true;
+
+    for (const auto& item : _queue)
+    {
+        if (item.content.substr(7, 9) == titleid)
+            return true;
+    }
+    return false;
 }
 
 void Downloader::run()
@@ -35,12 +49,15 @@ void Downloader::run()
         {
             ScopeLock _(_cond.get_mutex());
 
+            _current_title_id = "";
+
             if (_dying)
                 return;
             else if (!_queue.empty())
             {
                 item = _queue.front();
-                _queue.pop();
+                _queue.pop_front();
+                _current_title_id = item.content.substr(7, 9);
             }
             else
                 _cond.wait();
