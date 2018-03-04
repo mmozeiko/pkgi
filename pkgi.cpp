@@ -229,6 +229,9 @@ static void pkgi_download_thread(void)
         pkgi_lock_process();
         auto download = std::make_unique<Download>();
         download->update_progress = &update_progress;
+        download->update_status = [](const std::string& status) {
+            pkgi_dialog_set_progress_title(status.c_str());
+        };
         if (download->pkgi_download(
                     item->content,
                     item->url,

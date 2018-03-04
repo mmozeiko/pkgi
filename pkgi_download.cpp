@@ -19,7 +19,7 @@ void Download::download_start(void)
     LOG("resuming pkg download from %llu offset", download_offset);
     download_resume = 0;
     info_update = pkgi_time_msec() + 1000;
-    pkgi_dialog_set_progress_title("Downloading");
+    update_status("Downloading");
 }
 
 int Download::download_data(
@@ -645,13 +645,13 @@ int Download::pkgi_download(
     if (pkgi_load(resume_file, &sha, sizeof(sha)) == sizeof(sha))
     {
         LOG("resume file exists, trying to resume");
-        pkgi_dialog_set_progress_title("Resuming");
+        update_status("Resuming");
         download_resume = 1;
     }
     else
     {
         LOG("cannot load resume file, starting download from scratch");
-        pkgi_dialog_set_progress_title("Downloading");
+        update_status("Downloading");
         download_resume = 0;
         sha256_init(&sha);
     }
