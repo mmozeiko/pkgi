@@ -1,6 +1,5 @@
 extern "C" {
 #include "pkgi.h"
-#include "pkgi_dialog.h"
 #include "pkgi_utils.h"
 }
 #include "pkgi_download.hpp"
@@ -582,7 +581,7 @@ int Download::check_integrity(const uint8_t* digest)
 int Download::create_rif(const uint8_t* rif)
 {
     LOG("creating work.bin");
-    pkgi_dialog_update_progress("Creating work.bin", NULL, NULL, 1.f);
+    update_status("Creating work.bin");
 
     char path[256];
     pkgi_snprintf(path, sizeof(path), "%s/sce_sys/package/work.bin", root);
