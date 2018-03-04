@@ -9,6 +9,7 @@ extern "C" {
 #include "pkgi_zrif.h"
 }
 #include "pkgi_download.hpp"
+#include "pkgi_downloader.hpp"
 
 #include <memory>
 
@@ -75,141 +76,7 @@ static void pkgi_refresh_thread(void)
     }
 }
 
-static int install(const char* content)
-{
-    LOG("installing...");
-    pkgi_dialog_start_progress("Installing", "Please wait...", -1);
-
-    char titleid[10];
-    pkgi_memcpy(titleid, content + 7, 9);
-    titleid[9] = 0;
-
-    pkgi_dialog_allow_close(0);
-    int ok = pkgi_install(titleid);
-    pkgi_dialog_allow_close(1);
-
-    if (!ok)
-    {
-        pkgi_dialog_error("installation failed");
-        return 0;
-    }
-
-    LOG("install succeeded");
-
-    return 1;
-}
-
-static char dialog_extra[256];
-static char dialog_eta[256];
-
-static void format_eta(uint32_t seconds)
-{
-    if (seconds < 60)
-    {
-        pkgi_snprintf(
-                dialog_eta, sizeof(dialog_eta), "ETA: %us", (uint32_t)seconds);
-    }
-    else if (seconds < 3600)
-    {
-        pkgi_snprintf(
-                dialog_eta,
-                sizeof(dialog_eta),
-                "ETA: %um %02us",
-                (uint32_t)(seconds / 60),
-                (uint32_t)(seconds % 60));
-    }
-    else
-    {
-        uint32_t hours = (uint32_t)(seconds / 3600);
-        uint32_t minutes = (uint32_t)((seconds - hours * 3600) / 60);
-        pkgi_snprintf(
-                dialog_eta,
-                sizeof(dialog_eta),
-                "ETA: %uh %02um",
-                hours,
-                minutes);
-    }
-}
-
-static void update_progress(const Download& dl)
-{
-    uint32_t info_now = pkgi_time_msec();
-    char text[256];
-    if (dl.item_index < 0)
-    {
-        pkgi_snprintf(text, sizeof(text), "%s", dl.item_name);
-    }
-    else
-    {
-        pkgi_snprintf(
-                text,
-                sizeof(text),
-                "[%u/%u] %s",
-                dl.item_index,
-                dl.index_count,
-                dl.item_name);
-    }
-
-    if (dl.download_resume)
-    {
-        // if resuming download, then there is no "download speed"
-        dialog_extra[0] = 0;
-    }
-    else
-    {
-        // report download speed
-        uint32_t speed = (uint32_t)(
-                ((dl.download_offset - dl.initial_offset) * 1000) /
-                (info_now - dl.info_start));
-        if (speed > 10 * 1000 * 1024)
-        {
-            pkgi_snprintf(
-                    dialog_extra,
-                    sizeof(dialog_extra),
-                    "%u MB/s",
-                    speed / 1024 / 1024);
-        }
-        else if (speed > 1000)
-        {
-            pkgi_snprintf(
-                    dialog_extra,
-                    sizeof(dialog_extra),
-                    "%u KB/s",
-                    speed / 1024);
-        }
-
-        if (speed != 0)
-        {
-            // report ETA
-            uint32_t remaining_time =
-                    (dl.download_size - dl.download_offset) / speed;
-            format_eta(remaining_time);
-        }
-    }
-
-    float percent;
-    if (dl.download_resume)
-    {
-        // if resuming, then we may not know download size yet, use
-        // total_size from pkg header
-        percent = dl.total_size
-                          ? (float)((double)dl.download_offset / dl.total_size)
-                          : 0.f;
-    }
-    else
-    {
-        // when downloading use content length from http response as
-        // download size
-        percent =
-                dl.download_size
-                        ? (float)((double)dl.download_offset / dl.download_size)
-                        : 0.f;
-    }
-
-    pkgi_dialog_update_progress(text, dialog_extra, dialog_eta, percent);
-}
-
-static void pkgi_download_thread(void)
+static void pkgi_start_download(Downloader& downloader)
 {
     DbItem* item = pkgi_db_get(selected_item);
 
@@ -220,44 +87,18 @@ static void pkgi_download_thread(void)
     if (item->zrif == NULL ||
         pkgi_zrif_decode(item->zrif, rif, message, sizeof(message)))
     {
-        // short delay to allow download dialog to animate smoothly
-        pkgi_sleep(300);
-
-        pkgi_lock_process();
-        auto download = std::make_unique<Download>();
-        download->update_progress_cb = &update_progress;
-        download->update_status = [](const std::string& status) {
-            pkgi_dialog_set_progress_title(status.c_str());
-        };
-        download->is_canceled = [] { return pkgi_dialog_is_cancelled(); };
-        try
-        {
-            if (download->pkgi_download(
-                        item->content,
-                        item->url,
-                        item->zrif == NULL ? NULL : rif,
-                        item->digest) &&
-                install(item->content))
-            {
-                pkgi_snprintf(
-                        message,
-                        sizeof(message),
-                        "Successfully installed %s",
-                        item->name);
-                pkgi_dialog_message(message);
-                LOG("download completed!");
-            }
-        }
-        catch (const std::exception& e)
-        {
-            pkgi_dialog_error(e.what());
-        }
-        pkgi_unlock_process();
-
-        if (pkgi_dialog_is_cancelled())
-        {
-            pkgi_dialog_close();
-        }
+        downloader.add(DownloadItem{
+                item->name,
+                item->content,
+                item->url,
+                item->zrif == NULL
+                        ? std::vector<uint8_t>{}
+                        : std::vector<uint8_t>(rif, rif + PKGI_RIF_SIZE),
+                item->digest == NULL
+                        ? std::vector<uint8_t>{}
+                        : std::vector<uint8_t>(
+                                  item->digest,
+                                  item->digest + SHA256_DIGEST_SIZE)});
     }
     else
     {
@@ -359,7 +200,7 @@ static void pkgi_friendly_size(char* text, uint32_t textlen, int64_t size)
     }
 }
 
-static void pkgi_do_main(pkgi_input* input)
+static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 {
     int col_titleid = 0;
     int col_region = col_titleid + pkgi_text_width("PCSE00000") +
@@ -605,8 +446,7 @@ static void pkgi_do_main(pkgi_input* input)
             LOG("[%.9s] %s - starting to install",
                 item->content + 7,
                 item->name);
-            pkgi_dialog_start_progress("Downloading", "Preparing...", 0);
-            pkgi_start_thread("download_thread", &pkgi_download_thread);
+            pkgi_start_download(downloader);
         }
     }
     else if (input && (input->pressed & PKGI_BUTTON_T))
@@ -903,6 +743,9 @@ static void pkgi_check_for_update(void)
 int main()
 {
     pkgi_start();
+
+    Downloader downloader;
+
     LOG("started");
 
     pkgi_load_config(&config, refresh_url, sizeof(refresh_url));
@@ -957,6 +800,7 @@ int main()
 
         case StateMain:
             pkgi_do_main(
+                    downloader,
                     pkgi_dialog_is_open() || pkgi_menu_is_open() ? NULL
                                                                  : &input);
             break;

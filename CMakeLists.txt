@@ -72,12 +72,15 @@ add_executable(pkgi
   pkgi_db.c
   pkgi_dialog.c
   pkgi_download.cpp
+  pkgi_downloader.cpp
   pkgi_menu.c
   pkgi_sha256.c
   pkgi_vita.c
   pkgi_zrif.c
   puff.c
 )
+
+add_dependencies(pkgi Boost)
 
 target_link_libraries(pkgi
   vita2d
