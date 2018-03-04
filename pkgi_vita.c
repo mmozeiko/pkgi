@@ -1091,7 +1091,7 @@ void pkgi_rm(const char* file)
     int err = sceIoRemove(file);
     if (err < 0)
     {
-        LOG("error removing %s file, err=0x%08x", err);
+        LOG("error removing %s file, err=0x%08x", file, err);
     }
 }
 
