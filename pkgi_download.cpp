@@ -5,6 +5,8 @@ extern "C" {
 }
 #include "pkgi_download.hpp"
 
+#include <boost/scope_exit.hpp>
+
 #include <stddef.h>
 
 // clang-format off
@@ -182,7 +184,14 @@ int Download::download_head(const uint8_t* rif)
     pkgi_snprintf(
             item_path, sizeof(item_path), "%s/sce_sys/package/head.bin", root);
 
-    int result = 0;
+    BOOST_SCOPE_EXIT_ALL(&)
+    {
+        if (item_file)
+        {
+            pkgi_close(item_file);
+            item_file = NULL;
+        }
+    };
 
     if (download_resume)
     {
@@ -204,7 +213,7 @@ int Download::download_head(const uint8_t* rif)
             char error[256];
             pkgi_snprintf(error, sizeof(error), "cannot create %s", item_path);
             pkgi_dialog_error(error);
-            goto bail;
+            return 0;
         }
     }
 
@@ -216,7 +225,7 @@ int Download::download_head(const uint8_t* rif)
                 head + head_offset, head_size - head_offset, 0, 1);
         if (size <= 0)
         {
-            goto bail;
+            return 0;
         }
         head_offset += size;
     }
@@ -225,13 +234,13 @@ int Download::download_head(const uint8_t* rif)
         get32be(head + PKG_HEADER_SIZE) != 0x7F657874)
     {
         pkgi_dialog_error("wrong pkg header");
-        goto bail;
+        return 0;
     }
 
     if (rif && !pkgi_memequ(rif + 0x10, head + 0x30, 0x30))
     {
         pkgi_dialog_error("zRIF content id doesn't match pkg");
-        goto bail;
+        return 0;
     }
 
     meta_offset = get32be(head + 8);
@@ -253,7 +262,7 @@ int Download::download_head(const uint8_t* rif)
     {
         LOG("pkg file head is too large");
         pkgi_dialog_error("pkg is not supported, head.bin is too big");
-        goto bail;
+        return 0;
     }
 
     pkgi_memcpy(iv, head + 0x70, sizeof(iv));
@@ -292,7 +301,7 @@ int Download::download_head(const uint8_t* rif)
                 download_data(head + head_size, target_size - head_size, 0, 1);
         if (size <= 0)
         {
-            goto bail;
+            return 0;
         }
         head_size += size;
     }
@@ -306,7 +315,7 @@ int Download::download_head(const uint8_t* rif)
         if (offset + 16 >= enc_offset)
         {
             pkgi_dialog_error("pkg file is too small or corrupted");
-            goto bail;
+            return 0;
         }
 
         uint32_t type = get32be(head + offset + 0);
@@ -318,7 +327,7 @@ int Download::download_head(const uint8_t* rif)
             if (content_type != 21)
             {
                 pkgi_dialog_error("pkg is not a main package");
-                goto bail;
+                return 0;
             }
         }
         else if (type == 13)
@@ -332,7 +341,7 @@ int Download::download_head(const uint8_t* rif)
     if (index_offset != 0 || index_size == 0)
     {
         pkgi_dialog_error("pkg is missing encrypted file index");
-        goto bail;
+        return 0;
     }
 
     target_size = (uint32_t)(enc_offset + index_size);
@@ -340,7 +349,7 @@ int Download::download_head(const uint8_t* rif)
     {
         LOG("pkg file head is too large");
         pkgi_dialog_error("pkg is not supported, head.bin is too big");
-        goto bail;
+        return 0;
     }
 
     while (head_size != target_size)
@@ -349,29 +358,27 @@ int Download::download_head(const uint8_t* rif)
                 download_data(head + head_size, target_size - head_size, 0, 1);
         if (size <= 0)
         {
-            goto bail;
+            return 0;
         }
         head_size += size;
     }
 
     LOG("head.bin downloaded");
-    result = 1;
-
-bail:
-    if (item_file)
-    {
-        pkgi_close(item_file);
-        item_file = NULL;
-    }
-
-    return result;
+    return 1;
 }
 
 int Download::download_files(void)
 {
     LOG("downloading encrypted files");
 
-    int result = 0;
+    BOOST_SCOPE_EXIT_ALL(&)
+    {
+        if (item_file)
+        {
+            pkgi_close(item_file);
+            item_file = NULL;
+        }
+    };
 
     for (uint32_t index = 0; index < index_count; index++)
     {
@@ -390,7 +397,7 @@ int Download::download_files(void)
             enc_offset + name_offset + name_size > total_size)
         {
             pkgi_dialog_error("pkg file is too small or corrupted");
-            goto bail;
+            return 0;
         }
 
         pkgi_memcpy(item_name, head + enc_offset + name_offset, name_size);
@@ -423,7 +430,7 @@ int Download::download_files(void)
         {
             if (is_canceled())
             {
-                goto bail;
+                return 0;
             }
 
             int64_t current_size = pkgi_get_size(item_path);
@@ -448,7 +455,7 @@ int Download::download_files(void)
                             "cannot append to %s",
                             item_name);
                     pkgi_dialog_error(error);
-                    goto bail;
+                    return 0;
                 }
                 encrypted_offset = (uint64_t)current_size;
                 decrypted_size -= current_size;
@@ -473,20 +480,20 @@ int Download::download_files(void)
                 pkgi_snprintf(
                         error, sizeof(error), "cannot create %s", item_name);
                 pkgi_dialog_error(error);
-                goto bail;
+                return 0;
             }
         }
 
         if (enc_offset + item_offset + encrypted_offset != download_offset)
         {
             pkgi_dialog_error("pkg is not supported, files are in wrong order");
-            goto bail;
+            return 0;
         }
 
         if (enc_offset + item_offset + item_size > total_size)
         {
             pkgi_dialog_error("pkg file is too small or corrupted");
-            goto bail;
+            return 0;
         }
 
         while (encrypted_offset != encrypted_size)
@@ -496,7 +503,7 @@ int Download::download_files(void)
             int size = download_data(down, read, 1, 1);
             if (size <= 0)
             {
-                goto bail;
+                return 0;
             }
         }
 
@@ -507,22 +514,21 @@ int Download::download_files(void)
     item_index = -1;
 
     LOG("all files decrypted");
-    result = 1;
-
-bail:
-    if (item_file)
-    {
-        pkgi_close(item_file);
-        item_file = NULL;
-    }
-    return result;
+    return 1;
 }
 
 int Download::download_tail(void)
 {
     LOG("downloading tail.bin");
 
-    int result = 0;
+    BOOST_SCOPE_EXIT_ALL(&)
+    {
+        if (item_file)
+        {
+            pkgi_close(item_file);
+            item_file = NULL;
+        }
+    };
 
     pkgi_strncpy(item_name, sizeof(item_name), "Finishing...");
     pkgi_snprintf(
@@ -538,7 +544,7 @@ int Download::download_tail(void)
         char error[256];
         pkgi_snprintf(error, sizeof(error), "cannot create %s", item_path);
         pkgi_dialog_error(error);
-        goto bail;
+        return 0;
     }
 
     uint64_t tail_offset = enc_offset + enc_size;
@@ -549,7 +555,7 @@ int Download::download_tail(void)
         int size = download_data(down, read, 0, 0);
         if (size <= 0)
         {
-            goto bail;
+            return 0;
         }
     }
 
@@ -560,20 +566,12 @@ int Download::download_tail(void)
         int size = download_data(down, read, 0, 1);
         if (size <= 0)
         {
-            goto bail;
+            return 0;
         }
     }
 
     LOG("tail.bin downloaded");
-    result = 1;
-
-bail:
-    if (item_file != NULL)
-    {
-        pkgi_close(item_file);
-        item_file = NULL;
-    }
-    return result;
+    return 1;
 }
 
 int Download::check_integrity(const uint8_t* digest)
@@ -630,8 +628,6 @@ int Download::pkgi_download(
         const uint8_t* rif,
         const uint8_t* digest)
 {
-    int result = 0;
-
     pkgi_snprintf(
             root, sizeof(root), "%s/%.9s", pkgi_get_temp_folder(), content + 7);
     LOG("temp installation folder: %s", root);
@@ -667,28 +663,28 @@ int Download::pkgi_download(
     info_start = pkgi_time_msec();
     info_update = info_start + 1000;
 
+    BOOST_SCOPE_EXIT_ALL(&)
+    {
+        if (http)
+        {
+            pkgi_http_close(http);
+        }
+    };
+
     if (!download_head(rif))
-        goto finish;
+        return 0;
     if (!download_files())
-        goto finish;
+        return 0;
     if (!download_tail())
-        goto finish;
+        return 0;
     if (!check_integrity(digest))
-        goto finish;
+        return 0;
     if (rif)
     {
         if (!create_rif(rif))
-            goto finish;
+            return 0;
     }
 
     pkgi_rm(resume_file);
-    result = 1;
-
-finish:
-    if (http)
-    {
-        pkgi_http_close(http);
-    }
-
-    return result;
+    return 1;
 }
