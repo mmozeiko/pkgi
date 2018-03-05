@@ -206,6 +206,79 @@ static void parse_pkgi_file()
     db_item_count = db_count;
 }
 
+static void parse_tsv_file()
+{
+    char* ptr = db_data.data();
+    char* end = db_data.data() + db_data.size();
+
+    while (ptr < end && *ptr != '\n')
+        ptr++;
+    ptr++;
+
+    while (ptr < end && *ptr)
+    {
+#define NEXT_FIELD()                  \
+    while (ptr < end && *ptr != '\t') \
+        ptr++;                        \
+    if (ptr == end)                   \
+        break;                        \
+    *ptr++ = 0;
+
+        NEXT_FIELD(); // Title ID
+        NEXT_FIELD(); // Region
+
+        const char* name = ptr;
+        NEXT_FIELD();
+
+        const char* url = ptr;
+        NEXT_FIELD();
+
+        const char* zrif = ptr;
+        NEXT_FIELD();
+
+        const char* content = ptr;
+        NEXT_FIELD();
+
+        NEXT_FIELD(); // Last Modification Date
+
+        const char* name_org = ptr;
+        NEXT_FIELD();
+
+        const char* size = ptr;
+        NEXT_FIELD();
+
+        const char* digest = ptr;
+        while (ptr < end && *ptr != '\n' && *ptr != '\r')
+            ptr++;
+        if (ptr == end)
+            break;
+        *ptr++ = 0;
+
+        if (*ptr == '\n')
+            ptr++;
+
+        if (*url == '\0' || *size == '\0')
+            continue;
+
+        db[db_count].content = content;
+        db[db_count].flags = 0;
+        db[db_count].name = name;
+        db[db_count].name_org = name_org[0] == 0 ? name : name_org;
+        db[db_count].zrif = zrif[0] == 0 ? NULL : zrif;
+        db[db_count].url = url;
+        db[db_count].size = pkgi_strtoll(size);
+        db[db_count].digest = pkgi_hexbytes(digest, SHA256_DIGEST_SIZE);
+        db_item[db_count] = db + db_count;
+        db_count++;
+
+        if (db_count == MAX_DB_ITEMS)
+            break;
+#undef NEXT_FIELD
+    }
+
+    db_item_count = db_count;
+}
+
 int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
 {
     db_data.resize(MAX_DB_SIZE);
@@ -308,10 +381,19 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
 
     LOG("parsing items");
 
-    db_data[db_size] = '\n';
-    db_data.resize(db_size);
-
-    parse_pkgi_file();
+#define TSV_MAGIC "Title ID"
+    if (db_size > sizeof(TSV_MAGIC) &&
+        db_data.substr(0, sizeof(TSV_MAGIC) - 1) == TSV_MAGIC)
+    {
+        db_data.resize(db_size);
+        parse_tsv_file();
+    }
+    else
+    {
+        db_data[db_size] = '\n';
+        db_data.resize(db_size + 1);
+        parse_pkgi_file();
+    }
 
     LOG("finished parsing, %u total items", db_count);
     return 1;
