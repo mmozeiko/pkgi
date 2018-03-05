@@ -5,13 +5,14 @@ extern "C" {
 #include "pkgi_sha256.h"
 #include "pkgi_utils.h"
 }
+#include <string>
 
 #include <stddef.h>
 
 #define MAX_DB_SIZE (4 * 1024 * 1024)
 #define MAX_DB_ITEMS 8192
 
-static char db_data[MAX_DB_SIZE];
+static std::string db_data;
 static uint32_t db_total;
 static uint32_t db_size;
 
@@ -74,109 +75,10 @@ static uint8_t* pkgi_hexbytes(const char* digest, uint32_t length)
     return result;
 }
 
-int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
+static void parse_pkgi_file()
 {
-    db_total = 0;
-    db_size = 0;
-    db_count = 0;
-    db_item_count = 0;
-
-    char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/pkgi.txt", pkgi_get_config_folder());
-
-    LOG("loading update from %s", path);
-    int loaded = pkgi_load(path, db_data, sizeof(db_data) - 1);
-    if (loaded > 0)
-    {
-        db_size = loaded;
-    }
-    else if (update_url[0] != 0)
-    {
-        LOG("loading update from %s", update_url);
-
-        pkgi_http* http = pkgi_http_get(update_url, NULL, 0);
-        if (!http)
-        {
-            pkgi_snprintf(error, error_size, "failed to download list");
-            return 0;
-        }
-        else
-        {
-            int64_t length;
-            if (!pkgi_http_response_length(http, &length))
-            {
-                pkgi_snprintf(error, error_size, "failed to download list");
-            }
-            else
-            {
-                if (length > (int64_t)sizeof(db_data) - 1)
-                {
-                    pkgi_snprintf(
-                            error,
-                            sizeof(error_size),
-                            "list is too large... check for newer pkgi "
-                            "version!");
-                }
-                else if (length != 0)
-                {
-                    db_total = (uint32_t)length;
-                }
-
-                error[0] = 0;
-
-                for (;;)
-                {
-                    uint32_t want = (uint32_t)min64(
-                            1 << 16, sizeof(db_data) - 1 - db_size);
-                    int read = pkgi_http_read(http, db_data + db_size, want);
-                    if (read == 0)
-                    {
-                        break;
-                    }
-                    else if (read < 0)
-                    {
-                        pkgi_snprintf(
-                                error,
-                                sizeof(error_size),
-                                "HTTP error 0x%08x",
-                                read);
-                        db_size = 0;
-                        break;
-                    }
-                    db_size += read;
-                }
-
-                if (error[0] == 0 && db_size == 0)
-                {
-                    pkgi_snprintf(
-                            error,
-                            sizeof(error_size),
-                            "list is empty... check for newer pkgi version!");
-                }
-            }
-
-            pkgi_http_close(http);
-
-            if (db_size == 0)
-            {
-                return 0;
-            }
-        }
-    }
-    else
-    {
-        pkgi_snprintf(
-                error,
-                error_size,
-                "ERROR: pkgi.txt file missing or bad config.txt file?");
-        return 0;
-    }
-
-    LOG("parsing items");
-
-    db_data[db_size] = '\n';
-    char* ptr = db_data;
-    char* end = db_data + db_size + 1;
+    char* ptr = db_data.data();
+    char* end = db_data.data() + db_data.size();
 
     if (db_size > 3 && (uint8_t)ptr[0] == 0xef && (uint8_t)ptr[1] == 0xbb &&
         (uint8_t)ptr[2] == 0xbf)
@@ -302,6 +204,114 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
     }
 
     db_item_count = db_count;
+}
+
+int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
+{
+    db_data.resize(MAX_DB_SIZE);
+    db_total = 0;
+    db_size = 0;
+    db_count = 0;
+    db_item_count = 0;
+
+    char path[256];
+    pkgi_snprintf(path, sizeof(path), "%s/pkgi.txt", pkgi_get_config_folder());
+
+    LOG("loading update from %s", path);
+    int loaded = pkgi_load(path, db_data.data(), db_data.size() - 1);
+    if (loaded > 0)
+    {
+        db_size = loaded;
+    }
+    else if (update_url[0] != 0)
+    {
+        LOG("loading update from %s", update_url);
+
+        pkgi_http* http = pkgi_http_get(update_url, NULL, 0);
+        if (!http)
+        {
+            pkgi_snprintf(error, error_size, "failed to download list");
+            return 0;
+        }
+        else
+        {
+            int64_t length;
+            if (!pkgi_http_response_length(http, &length))
+            {
+                pkgi_snprintf(error, error_size, "failed to download list");
+            }
+            else
+            {
+                if (length > (int64_t)db_data.size() - 1)
+                {
+                    pkgi_snprintf(
+                            error,
+                            sizeof(error_size),
+                            "list is too large... check for newer pkgi "
+                            "version!");
+                }
+                else if (length != 0)
+                {
+                    db_total = (uint32_t)length;
+                }
+
+                error[0] = 0;
+
+                for (;;)
+                {
+                    uint32_t want = (uint32_t)min64(
+                            1 << 16, db_data.size() - 1 - db_size);
+                    int read = pkgi_http_read(
+                            http, db_data.data() + db_size, want);
+                    if (read == 0)
+                    {
+                        break;
+                    }
+                    else if (read < 0)
+                    {
+                        pkgi_snprintf(
+                                error,
+                                sizeof(error_size),
+                                "HTTP error 0x%08x",
+                                read);
+                        db_size = 0;
+                        break;
+                    }
+                    db_size += read;
+                }
+
+                if (error[0] == 0 && db_size == 0)
+                {
+                    pkgi_snprintf(
+                            error,
+                            sizeof(error_size),
+                            "list is empty... check for newer pkgi version!");
+                }
+            }
+
+            pkgi_http_close(http);
+
+            if (db_size == 0)
+            {
+                return 0;
+            }
+        }
+    }
+    else
+    {
+        pkgi_snprintf(
+                error,
+                error_size,
+                "ERROR: pkgi.txt file missing or bad config.txt file?");
+        return 0;
+    }
+
+    LOG("parsing items");
+
+    db_data[db_size] = '\n';
+    db_data.resize(db_size);
+
+    parse_pkgi_file();
 
     LOG("finished parsing, %u total items", db_count);
     return 1;
