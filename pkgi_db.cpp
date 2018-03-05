@@ -211,18 +211,47 @@ static void parse_tsv_file()
     char* ptr = db_data.data();
     char* end = db_data.data() + db_data.size();
 
-    while (ptr < end && *ptr != '\n')
+    while (ptr < end && *ptr != '\r')
         ptr++;
-    ptr++;
+
+    bool has_origname;
+
+    std::string header(db_data.data(), ptr);
+    if (header ==
+        "Title ID\tRegion\tName\tPKG direct link\tzRIF\tContent ID\tLast "
+        "Modification Date\tOriginal Name\tFile Size\tSHA256")
+    {
+        LOG("tsv file with Original Name");
+        has_origname = true;
+    }
+    else if (
+            header ==
+            "Title ID\tRegion\tName\tPKG direct link\tzRIF\tContent ID\tLast "
+            "Modification Date\tFile Size\tSHA256")
+    {
+        LOG("tsv file without Original Name");
+        has_origname = false;
+    }
+    else
+    {
+        LOG("unknown tsv file");
+        return;
+    }
+
+    ptr++; // \r
+    ptr++; // \n
 
     while (ptr < end && *ptr)
     {
-#define NEXT_FIELD()                  \
-    while (ptr < end && *ptr != '\t') \
-        ptr++;                        \
-    if (ptr == end)                   \
-        break;                        \
-    *ptr++ = 0;
+#define NEXT_FIELD()                      \
+    do                                    \
+    {                                     \
+        while (ptr < end && *ptr != '\t') \
+            ptr++;                        \
+        if (ptr == end)                   \
+            break;                        \
+        *ptr++ = 0;                       \
+    } while (0)
 
         NEXT_FIELD(); // Title ID
         NEXT_FIELD(); // Region
@@ -242,7 +271,10 @@ static void parse_tsv_file()
         NEXT_FIELD(); // Last Modification Date
 
         const char* name_org = ptr;
-        NEXT_FIELD();
+        if (has_origname)
+            NEXT_FIELD();
+        else
+            name_org = "";
 
         const char* size = ptr;
         NEXT_FIELD();
