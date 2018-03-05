@@ -1,8 +1,10 @@
+extern "C" {
 #include "pkgi_db.h"
 #include "pkgi.h"
 #include "pkgi_config.h"
 #include "pkgi_sha256.h"
 #include "pkgi_utils.h"
+}
 
 #include <stddef.h>
 

@@ -72,7 +72,7 @@ add_executable(pkgi
   pkgi.cpp
   pkgi_aes128.c
   pkgi_config.c
-  pkgi_db.c
+  pkgi_db.cpp
   pkgi_dialog.c
   pkgi_download.cpp
   pkgi_downloader.cpp
