@@ -441,21 +441,34 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 
         DbItem* item = pkgi_db_get(selected_item);
 
-        if (item->presence == PresenceInstalled)
+        switch (pkgi_db_get_mode())
         {
-            LOG("[%.9s] %s - alreay installed", item->content + 7, item->name);
-            pkgi_dialog_error("Already installed");
+        case ModeGames:
+            if (item->presence == PresenceInstalled)
+            {
+                LOG("[%.9s] %s - alreay installed",
+                    item->content + 7,
+                    item->name);
+                pkgi_dialog_error("Already installed");
+                return;
+            }
+            break;
+        case ModeUpdates:
+            if (item->presence != PresenceInstalled)
+            {
+                LOG("[%.9s] %s - game not installed",
+                    item->content + 7,
+                    item->name);
+                pkgi_dialog_error("Corresponding game not installed");
+                return;
+            }
+            break;
+        default:
+            pkgi_dialog_error("Unsupported package type");
+            return;
         }
-        else if (
-                item->presence == PresenceIncomplete ||
-                (item->presence == PresenceMissing &&
-                 pkgi_check_free_space(item->size)))
-        {
-            LOG("[%.9s] %s - starting to install",
-                item->content + 7,
-                item->name);
-            pkgi_start_download(downloader);
-        }
+        LOG("[%s] %s - starting to install", item->content, item->name);
+        pkgi_start_download(downloader);
     }
     else if (input && (input->pressed & PKGI_BUTTON_T))
     {
