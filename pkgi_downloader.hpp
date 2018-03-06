@@ -37,7 +37,7 @@ private:
     Cond _cond;
     std::deque<DownloadItem> _queue;
 
-    std::string _current_title_id;
+    std::string _current_content_id;
 
     Thread _thread;
     bool _dying = false;

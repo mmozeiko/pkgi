@@ -29,17 +29,15 @@ void Downloader::add(const DownloadItem& d)
     _cond.notify_one();
 }
 
-bool Downloader::is_in_queue(const std::string& titleid)
+bool Downloader::is_in_queue(const std::string& contentid)
 {
     ScopeLock _(_cond.get_mutex());
-    if (titleid == _current_title_id)
+    if (contentid == _current_content_id)
         return true;
 
     for (const auto& item : _queue)
-    {
-        if (item.content.substr(7, 9) == titleid)
+        if (item.content == contentid)
             return true;
-    }
     return false;
 }
 
@@ -51,7 +49,7 @@ void Downloader::run()
         {
             ScopeLock _(_cond.get_mutex());
 
-            _current_title_id = "";
+            _current_content_id = "";
 
             if (_dying)
                 return;
@@ -59,7 +57,7 @@ void Downloader::run()
             {
                 item = _queue.front();
                 _queue.pop_front();
-                _current_title_id = item.content.substr(7, 9);
+                _current_content_id = item.content;
             }
             else
                 _cond.wait();
@@ -97,7 +95,7 @@ void Downloader::do_download(const DownloadItem& item)
                 item.digest.data()))
         return;
     LOG("download of %s completed!", item.name.c_str());
-    if (!pkgi_install(item.content.substr(7, 9).c_str()))
+    if (!pkgi_install(item.content.c_str()))
         return;
     LOG("install of %s completed!", item.name.c_str());
 }

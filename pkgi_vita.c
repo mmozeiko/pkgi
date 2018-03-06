@@ -616,10 +616,10 @@ const char* pkgi_get_app_folder(void)
     return "ux0:app";
 }
 
-int pkgi_is_incomplete(const char* titleid)
+int pkgi_is_incomplete(const char* contentid)
 {
     char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/%s.resume", pkgi_get_temp_folder(), titleid);
+    pkgi_snprintf(path, sizeof(path), "%s/%s.resume", pkgi_get_temp_folder(), contentid);
 
     SceIoStat stat;
     int res = sceIoGetstat(path, &stat);
@@ -635,10 +635,10 @@ int pkgi_is_installed(const char* titleid)
     return res == 0;
 }
 
-int pkgi_install(const char* titleid)
+int pkgi_install(const char* contentid)
 {
     char path[128];
-    snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), titleid);
+    snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
 
     LOG("calling scePromoterUtilityPromotePkgWithRif on %s", path);
     int res = scePromoterUtilityPromotePkgWithRif(path, 1);

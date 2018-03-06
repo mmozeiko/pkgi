@@ -318,9 +318,9 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         {
             if (pkgi_is_installed(titleid))
                 item->presence = PresenceInstalled;
-            else if (downloader.is_in_queue(titleid))
+            else if (downloader.is_in_queue(item->content))
                 item->presence = PresenceInstalling;
-            else if (pkgi_is_incomplete(titleid))
+            else if (pkgi_is_incomplete(item->content))
                 item->presence = PresenceIncomplete;
             else
                 item->presence = PresenceMissing;
