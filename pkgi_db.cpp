@@ -698,3 +698,8 @@ GameRegion pkgi_get_region(const char* content)
 
 #undef ID
 }
+
+Mode pkgi_db_get_mode()
+{
+    return mode;
+}

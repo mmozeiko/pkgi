@@ -95,7 +95,15 @@ void Downloader::do_download(const DownloadItem& item)
                 item.digest.data()))
         return;
     LOG("download of %s completed!", item.name.c_str());
-    if (!pkgi_install(item.content.c_str()))
+    switch (item.type)
+    {
+    case Game:
+        if (!pkgi_install(item.content.c_str()))
+            return;
+        break;
+    default:
+        LOG("error: unsupported type %d", item.type);
         return;
+    }
     LOG("install of %s completed!", item.name.c_str());
 }

@@ -6,8 +6,16 @@
 
 #include "pkgi_thread.hpp"
 
+enum Type
+{
+    Game,
+    Update,
+    Dlc,
+};
+
 struct DownloadItem
 {
+    Type type;
     std::string name;
     std::string content;
     std::string url;

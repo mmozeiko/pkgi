@@ -88,6 +88,7 @@ static void pkgi_start_download(Downloader& downloader)
         pkgi_zrif_decode(item->zrif, rif, message, sizeof(message)))
     {
         downloader.add(DownloadItem{
+                static_cast<Type>(pkgi_db_get_mode()),
                 item->name,
                 item->content,
                 item->url,

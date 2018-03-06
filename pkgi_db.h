@@ -77,3 +77,4 @@ DbItem* pkgi_db_get(uint32_t index);
 DbItem* pkgi_db_get_by_content(const char* content);
 
 GameRegion pkgi_get_region(const char* content);
+Mode pkgi_db_get_mode();
