@@ -101,6 +101,10 @@ void Downloader::do_download(const DownloadItem& item)
         if (!pkgi_install(item.content.c_str()))
             return;
         break;
+    case Update:
+        if (!pkgi_install_update(item.content.c_str()))
+            return;
+        break;
     default:
         LOG("error: unsupported type %d", item.type);
         return;
