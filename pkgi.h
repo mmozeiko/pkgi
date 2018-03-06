@@ -1,16 +1,16 @@
 #pragma once
 
-#include <stdint.h>
 #include <stdarg.h>
+#include <stdint.h>
 
 // values compatible with psp2/ctrl.h header
 #define PKGI_BUTTON_SELECT 0x00000001
-#define PKGI_BUTTON_START  0x00000008
+#define PKGI_BUTTON_START 0x00000008
 
-#define PKGI_BUTTON_UP    0x00000010
+#define PKGI_BUTTON_UP 0x00000010
 #define PKGI_BUTTON_RIGHT 0x00000020
-#define PKGI_BUTTON_DOWN  0x00000040
-#define PKGI_BUTTON_LEFT  0x00000080
+#define PKGI_BUTTON_DOWN 0x00000040
+#define PKGI_BUTTON_LEFT 0x00000080
 
 #define PKGI_BUTTON_LT 0x00000100
 #define PKGI_BUTTON_RT 0x00000200
@@ -22,18 +22,20 @@
 
 #define PKGI_UNUSED(x) (void)(x)
 
-typedef struct pkgi_input {
+typedef struct pkgi_input
+{
     uint64_t delta; // microseconds from previous frame
 
     uint32_t pressed; // button pressed in last frame
     uint32_t down;    // button is currently down
-    uint32_t active;  // button is pressed in last frame, or held down for a long time (10 frames)
+    uint32_t active; // button is pressed in last frame, or held down for a long
+                     // time (10 frames)
 } pkgi_input;
 
-#define PKGI_COUNTOF(arr) (sizeof(arr)/sizeof(0[arr]))
+#define PKGI_COUNTOF(arr) (sizeof(arr) / sizeof(0 [arr]))
 
 #ifdef PKGI_ENABLE_LOGGING
-#define LOG(msg, ...) pkgi_log(msg, ## __VA_ARGS__)
+#define LOG(msg, ...) pkgi_log(msg, ##__VA_ARGS__)
 #else
 #define LOG(...)
 #endif
@@ -121,14 +123,17 @@ int pkgi_write(void* f, const void* buffer, uint32_t size);
 // UI stuff
 typedef void* pkgi_texture;
 #ifdef _MSC_VER
-#define pkgi_load_png(name) \
-    pkgi_load_png_raw(# name ## ".png", 0)
+#define pkgi_load_png(name) pkgi_load_png_raw(#name##".png", 0)
 #else
-#define pkgi_load_png(name) \
-    ({ extern uint8_t _binary_assets_##name##_png_start; \
-       extern uint8_t _binary_assets_##name##_png_end; \
-       pkgi_load_png_raw((void*)&_binary_assets_##name##_png_start, \
-           (uint32_t)(&_binary_assets_##name##_png_end - &_binary_assets_##name##_png_start)); \
+#define pkgi_load_png(name)                                   \
+    ({                                                        \
+        extern uint8_t _binary_assets_##name##_png_start;     \
+        extern uint8_t _binary_assets_##name##_png_end;       \
+        pkgi_load_png_raw(                                    \
+                (void*)&_binary_assets_##name##_png_start,    \
+                (uint32_t)(                                   \
+                        &_binary_assets_##name##_png_end -    \
+                        &_binary_assets_##name##_png_start)); \
     })
 #endif
 
