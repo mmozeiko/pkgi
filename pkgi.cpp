@@ -454,6 +454,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
             }
             break;
         case ModeUpdates:
+        case ModeDlcs:
             if (item->presence != PresenceInstalled)
             {
                 LOG("[%.9s] %s - game not installed",

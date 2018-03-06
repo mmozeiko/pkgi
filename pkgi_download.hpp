@@ -100,6 +100,7 @@ public:
     int download_head(const uint8_t* rif);
     int download_files(void);
     int download_tail(void);
+    int create_stat();
     int check_integrity(const uint8_t* digest);
     int create_rif(const uint8_t* rif);
 };

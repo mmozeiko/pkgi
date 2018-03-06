@@ -679,7 +679,7 @@ int pkgi_install(const char* contentid)
     }
     else
     {
-        LOG("scePromoterUtilityPromotePkgWithRif failed");
+        LOG("scePromoterUtilityPromotePkgWithRif failed: %x", res);
     }
     return res == 0;
 }

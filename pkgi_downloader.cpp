@@ -98,6 +98,7 @@ void Downloader::do_download(const DownloadItem& item)
     switch (item.type)
     {
     case Game:
+    case Dlc:
         if (!pkgi_install(item.content.c_str()))
             return;
         break;

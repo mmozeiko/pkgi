@@ -321,7 +321,7 @@ int Download::download_head(const uint8_t* rif)
         if (type == 2)
         {
             uint32_t content_type = get32be(head + offset + 8);
-            if (content_type != 21)
+            if (content_type != 21 && content_type != 22)
             {
                 throw DownloadError("pkg is not a main package");
             }
@@ -590,6 +590,26 @@ int Download::check_integrity(const uint8_t* digest)
     return 1;
 }
 
+int Download::create_stat()
+{
+    LOG("creating stat.bin");
+    update_status("Creating stat.bin");
+
+    char path[256];
+    pkgi_snprintf(path, sizeof(path), "%s/sce_sys/package/stat.bin", root);
+
+    uint8_t stat[768] = {0};
+    if (!pkgi_save(path, stat, sizeof(stat)))
+    {
+        char error[256];
+        pkgi_snprintf(error, sizeof(error), "cannot save rif to %s", path);
+        throw DownloadError(error);
+    }
+
+    LOG("stat.bin created");
+    return 1;
+}
+
 int Download::create_rif(const uint8_t* rif)
 {
     LOG("creating work.bin");
@@ -662,6 +682,8 @@ int Download::pkgi_download(
     if (!download_files())
         return 0;
     if (!download_tail())
+        return 0;
+    if (!create_stat())
         return 0;
     if (!check_integrity(digest))
         return 0;
