@@ -5,6 +5,8 @@ extern "C" {
 #include "pkgi_sha256.h"
 #include "pkgi_utils.h"
 }
+#include <algorithm>
+#include <cstring>
 #include <string>
 
 #include <stddef.h>
@@ -12,6 +14,7 @@ extern "C" {
 #define MAX_DB_SIZE (4 * 1024 * 1024)
 #define MAX_DB_ITEMS 8192
 
+static Mode mode;
 static std::string db_data;
 static uint32_t db_total;
 static uint32_t db_size;
@@ -214,23 +217,29 @@ static void parse_tsv_file()
     while (ptr < end && *ptr != '\r')
         ptr++;
 
-    bool has_origname;
-
     std::string header(db_data.data(), ptr);
     if (header ==
         "Title ID\tRegion\tName\tPKG direct link\tzRIF\tContent ID\tLast "
         "Modification Date\tOriginal Name\tFile Size\tSHA256")
     {
-        LOG("tsv file with Original Name");
-        has_origname = true;
+        LOG("games tsv file");
+        mode = ModeGames;
+    }
+    else if (
+            header ==
+            "Title ID\tRegion\tName\tUpdate Version\tFW VERSION\tPKG direct "
+            "link\tNoNPDRM mirror\tLast Modification Date\tFile Size\tSHA256")
+    {
+        LOG("updates tsv file");
+        mode = ModeUpdates;
     }
     else if (
             header ==
             "Title ID\tRegion\tName\tPKG direct link\tzRIF\tContent ID\tLast "
             "Modification Date\tFile Size\tSHA256")
     {
-        LOG("tsv file without Original Name");
-        has_origname = false;
+        LOG("dlcs tsv file");
+        mode = ModeDlcs;
     }
     else
     {
@@ -253,28 +262,46 @@ static void parse_tsv_file()
         *ptr++ = 0;                       \
     } while (0)
 
+        const char* zrif = "";
+        const char* content = "";
+        const char* name_org = "";
+
         NEXT_FIELD(); // Title ID
         NEXT_FIELD(); // Region
 
         const char* name = ptr;
         NEXT_FIELD();
 
+        if (mode == ModeUpdates)
+        {
+            NEXT_FIELD(); // Update Version
+            NEXT_FIELD(); // FW VERSION
+        }
+
         const char* url = ptr;
         NEXT_FIELD();
 
-        const char* zrif = ptr;
-        NEXT_FIELD();
+        if (mode == ModeUpdates)
+        {
+            NEXT_FIELD(); // NoNPDRM mirror
+        }
 
-        const char* content = ptr;
-        NEXT_FIELD();
+        if (mode == ModeGames || mode == ModeDlcs)
+        {
+            zrif = ptr;
+            NEXT_FIELD();
+
+            content = ptr;
+            NEXT_FIELD();
+        }
 
         NEXT_FIELD(); // Last Modification Date
 
-        const char* name_org = ptr;
-        if (has_origname)
+        if (mode == ModeGames)
+        {
+            name_org = ptr;
             NEXT_FIELD();
-        else
-            name_org = "";
+        }
 
         const char* size = ptr;
         NEXT_FIELD();
@@ -291,6 +318,16 @@ static void parse_tsv_file()
 
         if (*url == '\0' || *size == '\0')
             continue;
+
+        if (mode == ModeUpdates)
+        {
+            std::reverse_iterator<const char*> rbegin(url + strlen(url) - 1);
+            std::reverse_iterator<const char*> rend(url - 1);
+            auto const it =
+                    std::find_if(rbegin, rend, [](char c) { return c == '/'; });
+            if (it != rend)
+                content = it.base();
+        }
 
         db[db_count].content = content;
         db[db_count].flags = 0;

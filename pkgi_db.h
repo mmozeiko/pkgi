@@ -58,6 +58,12 @@ typedef enum {
     RegionUnknown,
 } GameRegion;
 
+typedef enum {
+    ModeGames,
+    ModeUpdates,
+    ModeDlcs,
+} Mode;
+
 typedef struct Config Config;
 
 int pkgi_db_update(const char* update_url, char* error, uint32_t error_size);
