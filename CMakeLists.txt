@@ -71,7 +71,7 @@ add_executable(pkgi
   ${assets}
   pkgi.cpp
   pkgi_aes128.c
-  pkgi_config.c
+  pkgi_config.cpp
   pkgi_db.cpp
   pkgi_dialog.c
   pkgi_download.cpp

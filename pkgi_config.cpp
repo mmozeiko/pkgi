@@ -1,5 +1,7 @@
+extern "C" {
 #include "pkgi_config.h"
 #include "pkgi.h"
+}
 
 static char* skipnonws(char* text, char* end)
 {
@@ -59,7 +61,7 @@ static DbSortOrder parse_order(const char* value, DbSortOrder order)
     }
 }
 
-static DbSortOrder parse_filter(char* value, uint32_t filter)
+static DbFilter parse_filter(char* value, uint32_t filter)
 {
     uint32_t result = 0;
 
@@ -88,7 +90,7 @@ static DbSortOrder parse_filter(char* value, uint32_t filter)
             }
             else
             {
-                return filter;
+                return static_cast<DbFilter>(filter);
             }
             if (ch == 0)
             {
@@ -103,7 +105,7 @@ static DbSortOrder parse_filter(char* value, uint32_t filter)
         }
     }
 
-    return result;
+    return static_cast<DbFilter>(result);
 }
 
 void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
