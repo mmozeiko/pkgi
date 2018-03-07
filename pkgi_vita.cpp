@@ -1,5 +1,7 @@
+extern "C" {
 #include "pkgi.h"
 #include "pkgi_style.h"
+}
 
 #include <vita2d.h>
 
@@ -137,10 +139,9 @@ static void pkgi_start_debug_log(void)
             SCE_NET_SOCK_DGRAM,
             SCE_NET_IPPROTO_UDP);
 
-    SceNetSockaddrIn addr = {
-            .sin_family = SCE_NET_AF_INET,
-            .sin_port = sceNetHtons(30000),
-    };
+    SceNetSockaddrIn addr{};
+    addr.sin_family = SCE_NET_AF_INET;
+    addr.sin_port = sceNetHtons(30000);
     sceNetInetPton(SCE_NET_AF_INET, "239.255.0.100", &addr.sin_addr);
 
     sceNetConnect(g_log_socket, (SceNetSockaddr*)&addr, sizeof(addr));
@@ -398,7 +399,7 @@ int pkgi_dialog_input_update(void)
     SceCommonDialogStatus status = sceImeDialogGetStatus();
     if (status == SCE_COMMON_DIALOG_STATUS_FINISHED)
     {
-        SceImeDialogResult result = {0};
+        SceImeDialogResult result{};
         sceImeDialogGetResult(&result);
 
         g_ime_active = 0;
@@ -431,6 +432,7 @@ void pkgi_start(void)
     SceNetInitParam net = {
             .memory = netmem,
             .size = sizeof(netmem),
+            .flags = 0,
     };
 
     sceNetInit(&net);
@@ -453,8 +455,8 @@ void pkgi_start(void)
     sceShellUtilInitEvents(0);
     sceShellUtilLock(SCE_SHELL_UTIL_LOCK_TYPE_USB_CONNECTION);
 
-    SceAppUtilInitParam init = {0};
-    SceAppUtilBootParam boot = {0};
+    SceAppUtilInitParam init{};
+    SceAppUtilBootParam boot{};
     sceAppUtilInit(&init, &boot);
 
     SceCommonDialogConfigParam config;
@@ -515,7 +517,7 @@ void pkgi_start(void)
 
 int pkgi_update(pkgi_input* input)
 {
-    SceCtrlData pad = {0};
+    SceCtrlData pad{};
     sceCtrlPeekBufferPositive(0, &pad, 1);
 
     uint32_t previous = input->down;
@@ -615,14 +617,15 @@ uint64_t pkgi_get_free_space(void)
 {
     if (pkgi_is_unsafe_mode())
     {
-        SceIoDevInfo info = {0};
+        SceIoDevInfo info{};
         sceIoDevctl("ux0:", 0x3001, NULL, 0, &info, sizeof(info));
         return info.free_size;
     }
     else
     {
         uint64_t free, max;
-        sceAppMgrGetDevInfo("ux0:", &max, &free);
+        char dev[] = "ux0:";
+        sceAppMgrGetDevInfo(dev, &max, &free);
         return free;
     }
 }
@@ -759,7 +762,7 @@ int pkgi_load(const char* name, void* data, uint32_t max)
         return -1;
     }
 
-    char* data8 = data;
+    char* data8 = static_cast<char*>(data);
 
     int total = 0;
     while (max != 0)
@@ -791,7 +794,7 @@ int pkgi_save(const char* name, const void* data, uint32_t size)
     }
 
     int ret = 1;
-    const char* data8 = data;
+    const char* data8 = static_cast<const char*>(data);
     while (size != 0)
     {
         int written = sceIoWrite(fd, data8, size);
@@ -845,7 +848,7 @@ pkgi_texture pkgi_load_png_raw(const void* data, uint32_t size)
 
 void pkgi_draw_texture(pkgi_texture texture, int x, int y)
 {
-    vita2d_texture* tex = texture;
+    vita2d_texture* tex = static_cast<vita2d_texture*>(texture);
     vita2d_draw_texture(tex, (float)x, (float)y);
 }
 

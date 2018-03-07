@@ -78,7 +78,7 @@ add_executable(pkgi
   pkgi_downloader.cpp
   pkgi_menu.c
   pkgi_sha256.c
-  pkgi_vita.c
+  pkgi_vita.cpp
   pkgi_zrif.c
   puff.c
 )
