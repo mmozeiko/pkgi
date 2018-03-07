@@ -1,13 +1,13 @@
 #include "pkgi_menu.h"
+#include "pkgi.h"
 #include "pkgi_config.h"
 #include "pkgi_style.h"
-#include "pkgi.h"
 
 static int menu_search_clear;
 
-static Config   menu_config;
+static Config menu_config;
 static uint32_t menu_selected;
-static int      menu_allow_refresh;
+static int menu_allow_refresh;
 
 static MenuResult menu_result;
 
@@ -23,30 +23,30 @@ typedef enum {
     MenuRefresh,
 } MenuType;
 
-typedef struct {
+typedef struct
+{
     MenuType type;
     const char* text;
     uint32_t value;
 } MenuEntry;
 
-static const MenuEntry menu_entries[] =
-{
-    { MenuSearch, "Search...", 0 },
-    { MenuSearchClear, PKGI_UTF8_CLEAR " clear", 0 },
+static const MenuEntry menu_entries[] = {
+        {MenuSearch, "Search...", 0},
+        {MenuSearchClear, PKGI_UTF8_CLEAR " clear", 0},
 
-    { MenuText, "Sort by:", 0 },
-    { MenuSort, "Title", SortByTitle},
-    { MenuSort, "Region", SortByRegion },
-    { MenuSort, "Name", SortByName },
-    { MenuSort, "Size", SortBySize },
+        {MenuText, "Sort by:", 0},
+        {MenuSort, "Title", SortByTitle},
+        {MenuSort, "Region", SortByRegion},
+        {MenuSort, "Name", SortByName},
+        {MenuSort, "Size", SortBySize},
 
-    { MenuText, "Regions:", 0 },
-    { MenuFilter, "Asia", DbFilterRegionASA },
-    { MenuFilter, "Europe", DbFilterRegionEUR },
-    { MenuFilter, "Japan", DbFilterRegionJPN },
-    { MenuFilter, "USA", DbFilterRegionUSA },
+        {MenuText, "Regions:", 0},
+        {MenuFilter, "Asia", DbFilterRegionASA},
+        {MenuFilter, "Europe", DbFilterRegionEUR},
+        {MenuFilter, "Japan", DbFilterRegionJPN},
+        {MenuFilter, "USA", DbFilterRegionUSA},
 
-    { MenuRefresh, "Refresh...", 0 },
+        {MenuRefresh, "Refresh...", 0},
 };
 
 int pkgi_menu_is_open(void)
@@ -77,7 +77,9 @@ int pkgi_do_menu(pkgi_input* input)
 {
     if (menu_delta != 0)
     {
-        menu_width += menu_delta * (int32_t)(input->delta * PKGI_ANIMATION_SPEED/2 / 1000000);
+        menu_width +=
+                menu_delta *
+                (int32_t)(input->delta * PKGI_ANIMATION_SPEED / 2 / 1000000);
 
         if (menu_delta < 0 && menu_width <= 0)
         {
@@ -94,12 +96,18 @@ int pkgi_do_menu(pkgi_input* input)
 
     if (menu_width != 0)
     {
-        pkgi_draw_rect(VITA_WIDTH - menu_width, 0, menu_width, VITA_HEIGHT, PKGI_COLOR_MENU_BACKGROUND);
+        pkgi_draw_rect(
+                VITA_WIDTH - menu_width,
+                0,
+                menu_width,
+                VITA_HEIGHT,
+                PKGI_COLOR_MENU_BACKGROUND);
     }
 
     if (input->active & PKGI_BUTTON_UP)
     {
-        do {
+        do
+        {
             if (menu_selected == 0)
             {
                 menu_selected = PKGI_COUNTOF(menu_entries) - 1;
@@ -108,14 +116,17 @@ int pkgi_do_menu(pkgi_input* input)
             {
                 menu_selected--;
             }
-        } while (menu_entries[menu_selected].type == MenuText
-            || (menu_entries[menu_selected].type == MenuSearchClear && !menu_search_clear)
-            || (menu_entries[menu_selected].type == MenuRefresh && !menu_allow_refresh));
+        } while (menu_entries[menu_selected].type == MenuText ||
+                 (menu_entries[menu_selected].type == MenuSearchClear &&
+                  !menu_search_clear) ||
+                 (menu_entries[menu_selected].type == MenuRefresh &&
+                  !menu_allow_refresh));
     }
 
     if (input->active & PKGI_BUTTON_DOWN)
     {
-        do {
+        do
+        {
             if (menu_selected == PKGI_COUNTOF(menu_entries) - 1)
             {
                 menu_selected = 0;
@@ -124,9 +135,11 @@ int pkgi_do_menu(pkgi_input* input)
             {
                 menu_selected++;
             }
-        } while (menu_entries[menu_selected].type == MenuText
-            || (menu_entries[menu_selected].type == MenuSearchClear && !menu_search_clear)
-            || (menu_entries[menu_selected].type == MenuRefresh && !menu_allow_refresh));
+        } while (menu_entries[menu_selected].type == MenuText ||
+                 (menu_entries[menu_selected].type == MenuSearchClear &&
+                  !menu_search_clear) ||
+                 (menu_entries[menu_selected].type == MenuRefresh &&
+                  !menu_allow_refresh));
     }
 
     if (input->pressed & pkgi_cancel_button())
@@ -168,7 +181,9 @@ int pkgi_do_menu(pkgi_input* input)
             DbSort value = (DbSort)menu_entries[menu_selected].value;
             if (menu_config.sort == value)
             {
-                menu_config.order = menu_config.order == SortAscending ? SortDescending : SortAscending;
+                menu_config.order = menu_config.order == SortAscending
+                                            ? SortDescending
+                                            : SortAscending;
             }
             else
             {
@@ -211,12 +226,14 @@ int pkgi_do_menu(pkgi_input* input)
             y += font_height;
         }
 
-        uint32_t color = menu_selected == i ? PKGI_COLOR_TEXT_MENU_SELECTED : PKGI_COLOR_TEXT_MENU;
+        uint32_t color = menu_selected == i ? PKGI_COLOR_TEXT_MENU_SELECTED
+                                            : PKGI_COLOR_TEXT_MENU;
 
         int x = VITA_WIDTH - PKGI_MENU_WIDTH + PKGI_MENU_LEFT_PADDING;
 
         char text[64];
-        if (type == MenuSearch || type == MenuSearchClear || type == MenuText || type == MenuRefresh)
+        if (type == MenuSearch || type == MenuSearchClear || type == MenuText ||
+            type == MenuRefresh)
         {
             pkgi_strncpy(text, sizeof(text), entry->text);
         }
@@ -224,9 +241,14 @@ int pkgi_do_menu(pkgi_input* input)
         {
             if (menu_config.sort == (DbSort)entry->value)
             {
-                pkgi_snprintf(text, sizeof(text), "%s %s",
-                    menu_config.order == SortAscending ? PKGI_UTF8_SORT_ASC : PKGI_UTF8_SORT_DESC,
-                    entry->text);
+                pkgi_snprintf(
+                        text,
+                        sizeof(text),
+                        "%s %s",
+                        menu_config.order == SortAscending
+                                ? PKGI_UTF8_SORT_ASC
+                                : PKGI_UTF8_SORT_DESC,
+                        entry->text);
             }
             else
             {
@@ -236,9 +258,13 @@ int pkgi_do_menu(pkgi_input* input)
         }
         else if (type == MenuFilter)
         {
-            pkgi_snprintf(text, sizeof(text), "%s %s",
-                menu_config.filter & entry->value ? PKGI_UTF8_CHECK_ON : PKGI_UTF8_CHECK_OFF,
-                entry->text);
+            pkgi_snprintf(
+                    text,
+                    sizeof(text),
+                    "%s %s",
+                    menu_config.filter & entry->value ? PKGI_UTF8_CHECK_ON
+                                                      : PKGI_UTF8_CHECK_OFF,
+                    entry->text);
         }
         pkgi_draw_text(x, y, color, text);
 
