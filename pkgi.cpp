@@ -814,7 +814,8 @@ int main()
 
     LOG("started");
 
-    pkgi_load_config(&config, refresh_url, sizeof(refresh_url));
+    pkgi_load_config(
+            &config, refresh_url, sizeof(refresh_url), nullptr, 0, nullptr, 0);
     pkgi_dialog_init();
 
     font_height = pkgi_text_height("M");
@@ -934,7 +935,7 @@ int main()
                 else if (mres == MenuResultAccept)
                 {
                     pkgi_menu_get(&config);
-                    pkgi_save_config(&config, refresh_url);
+                    pkgi_save_config(&config, refresh_url, nullptr, nullptr);
                 }
                 else if (mres == MenuResultRefresh)
                 {

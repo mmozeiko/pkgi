@@ -108,9 +108,16 @@ static DbFilter parse_filter(char* value, uint32_t filter)
     return static_cast<DbFilter>(result);
 }
 
-void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
+void pkgi_load_config(
+        Config* config,
+        char* games_url,
+        uint32_t games_len,
+        char* updates_url,
+        uint32_t updates_len,
+        char* dlcs_url,
+        uint32_t dlcs_len)
 {
-    refresh_url[0] = 0;
+    dlcs_url[0] = updates_url[0] = games_url[0] = 0;
     config->sort = SortByName;
     config->order = SortAscending;
     config->filter = DbFilterAll;
@@ -161,9 +168,18 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
 
             text = skipws(text, end);
 
-            if (pkgi_stricmp(key, "url") == 0)
+            if (pkgi_stricmp(key, "url") == 0 ||
+                pkgi_stricmp(key, "url_games") == 0)
             {
-                pkgi_strncpy(refresh_url, refresh_len, value);
+                pkgi_strncpy(games_url, games_len, value);
+            }
+            else if (pkgi_stricmp(key, "url_updates") == 0)
+            {
+                pkgi_strncpy(updates_url, updates_len, value);
+            }
+            else if (pkgi_stricmp(key, "url_dlcs") == 0)
+            {
+                pkgi_strncpy(dlcs_url, dlcs_len, value);
             }
             else if (pkgi_stricmp(key, "sort") == 0)
             {
@@ -219,15 +235,26 @@ static const char* order_str(DbSortOrder order)
     }
 }
 
-void pkgi_save_config(const Config* config, const char* update_url)
+void pkgi_save_config(
+        const Config* config,
+        const char* games_url,
+        const char* updates_url,
+        const char* dlcs_url)
 {
     char data[4096];
     int len = 0;
-    if (update_url && update_url[0] != 0)
-    {
+    if (games_url && games_url[0] != 0)
         len += pkgi_snprintf(
-                data + len, sizeof(data) - len, "url %s\n", update_url);
-    }
+                data + len, sizeof(data) - len, "url_games %s\n", games_url);
+    if (updates_url && updates_url[0] != 0)
+        len += pkgi_snprintf(
+                data + len,
+                sizeof(data) - len,
+                "url_updates %s\n",
+                updates_url);
+    if (dlcs_url && dlcs_url[0] != 0)
+        len += pkgi_snprintf(
+                data + len, sizeof(data) - len, "url_dlcs %s\n", dlcs_url);
     len += pkgi_snprintf(
             data + len,
             sizeof(data) - len,
