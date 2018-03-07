@@ -2,7 +2,7 @@ git:
   depth: 1
 
 os: linux
-language: c
+language: cpp
 dist: trusty
 sudo: false
 
