@@ -32,7 +32,10 @@ static uint32_t selected_item;
 
 static int search_active;
 
-static char refresh_url[256];
+static char games_url[256];
+static char updates_url[256];
+static char dlcs_url[256];
+static const char* current_url = games_url;
 
 static Config config;
 static Config config_temp;
@@ -57,7 +60,7 @@ static const char* pkgi_get_cancel_str(void)
 static void pkgi_refresh_thread(void)
 {
     LOG("starting update");
-    const char* url = refresh_url;
+    const char* url = current_url;
     if (pkgi_db_update(url, error_state, sizeof(error_state)))
     {
         first_item = 0;
@@ -503,7 +506,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         input->pressed &= ~PKGI_BUTTON_T;
 
         config_temp = config;
-        int allow_refresh = refresh_url[0] != 0;
+        int allow_refresh = current_url[0] != 0;
         pkgi_menu_start(search_active, &config, allow_refresh);
     }
 }
@@ -806,7 +809,13 @@ int main()
     LOG("started");
 
     pkgi_load_config(
-            &config, refresh_url, sizeof(refresh_url), nullptr, 0, nullptr, 0);
+            &config,
+            games_url,
+            sizeof(games_url),
+            updates_url,
+            sizeof(updates_url),
+            dlcs_url,
+            sizeof(dlcs_url));
     pkgi_dialog_init();
 
     font_height = pkgi_text_height("M");
@@ -926,7 +935,7 @@ int main()
                 else if (mres == MenuResultAccept)
                 {
                     pkgi_menu_get(&config);
-                    pkgi_save_config(&config, refresh_url, nullptr, nullptr);
+                    pkgi_save_config(&config, games_url, updates_url, dlcs_url);
                 }
                 else if (mres == MenuResultRefresh)
                 {
