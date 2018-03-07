@@ -8,7 +8,7 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   endif()
 endif()
 
-project(pkgi)
+project(pkgj)
 
 # useful for memory alignment constraints
 set(CMAKE_CXX_STANDARD 17)
@@ -16,9 +16,9 @@ set(CMAKE_CXX_STANDARD 17)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 include(ExternalProject)
 
-set(VITA_APP_NAME "PKGi")
-set(VITA_TITLEID  "PKGI00000")
-set(VITA_VERSION  "00.05")
+set(VITA_APP_NAME "PKGj")
+set(VITA_TITLEID  "PKGJ00000")
+set(VITA_VERSION  "00.06")
 
 option(PKGI_ENABLE_LOGGING "enables debug logging over udp multicast" OFF)
 
@@ -62,7 +62,7 @@ endfunction()
 
 add_assets(assets assets/background.png)
 
-add_executable(pkgi
+add_executable(pkgj
   ${assets}
   pkgi.cpp
   pkgi_aes128.c
@@ -78,9 +78,9 @@ add_executable(pkgi
   puff.c
 )
 
-add_dependencies(pkgi Boost)
+add_dependencies(pkgj Boost)
 
-target_link_libraries(pkgi
+target_link_libraries(pkgj
   vita2d
   png
   z
@@ -102,7 +102,7 @@ target_link_libraries(pkgi
   SceSysmodule_stub
 )
 
-vita_create_self(eboot.bin pkgi UNSAFE)
+vita_create_self(eboot.bin pkgj UNSAFE)
     
 vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} eboot.bin
   VERSION ${VITA_VERSION}

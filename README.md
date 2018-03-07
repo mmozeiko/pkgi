@@ -1,8 +1,8 @@
-# pkgi
+# pkgj
 
-[![Travis CI Build Status][img_travis]][pkgi_travis] [![Downloads][img_downloads]][pkgi_downloads] [![Release][img_latest]][pkgi_latest] [![License][img_license]][pkgi_license]
+[![Travis CI Build Status][img_travis]][pkgj_travis] [![Downloads][img_downloads]][pkgj_downloads] [![Release][img_latest]][pkgj_latest] [![License][img_license]][pkgj_license]
 
-pkgi allows to install original pkg files on your Vita.
+pkgj allows to install original pkg files on your Vita.
 
 This homebrew allows to download & unpack pkg file directly on Vita together with your [NoNpDrm][] fake license.
 
@@ -21,7 +21,7 @@ Current limitations:
 
 # Download
 
-Get latest version as [vpk file here][pkgi_latest].
+Get latest version as [vpk file here][pkgj_latest].
 
 # Setup instructions
 
@@ -44,8 +44,8 @@ where:
 Name cannot contain newlines or commas.
 
 To avoid downloading pkg file over network, you can place it in `ux0:pkgi` folder. Keep the name of file same as in http url,
-or rename it with same name as contentid. pkgi will first check if pkg file can be read locally, and only if it is missing
-then pkgi will download it from http url.
+or rename it with same name as contentid. pkgj will first check if pkg file can be read locally, and only if it is missing
+then pkgj will download it from http url.
 
 # Usage
 
@@ -89,7 +89,7 @@ UDP multicast address 239.255.0.100:30000. To receive them you can use [socat][]
 
     $ socat udp4-recv:30000,ip-add-membership=239.255.0.100:0.0.0.0 -
 
-For easer debugging on Windows you can build pkgi in "simulator" mode - use Visual Studio 2017 solution from simulator folder.
+For easer debugging on Windows you can build pkgj in "simulator" mode - use Visual Studio 2017 solution from simulator folder.
 
 # License
 
@@ -100,17 +100,17 @@ puff.h and puff.c files are under [zlib][] license.
 [NoNpDrm]: https://github.com/TheOfficialFloW/NoNpDrm
 [zrif_online_converter]: https://rawgit.com/mmozeiko/pkg2zip/online/zrif.html
 [pkg_dec]: https://github.com/weaknespase/PkgDecrypt
-[pkg_releases]: https://github.com/mmozeiko/pkgi/releases
+[pkg_releases]: https://github.com/blastrock/pkgj/releases
 [vitasdk]: https://vitasdk.org/
 [libvita2d]: https://github.com/xerpi/libvita2d
 [PSDLE]: https://repod.github.io/psdle/
 [socat]: http://www.dest-unreach.org/socat/
 [zlib]: https://www.zlib.net/zlib_license.html
-[pkgi_travis]: https://travis-ci.org/mmozeiko/pkgi/
-[pkgi_downloads]: https://github.com/mmozeiko/pkgi/releases
-[pkgi_latest]: https://github.com/mmozeiko/pkgi/releases/latest
-[pkgi_license]: https://github.com/mmozeiko/pkgi/blob/master/LICENSE
-[img_travis]: https://api.travis-ci.org/mmozeiko/pkgi.svg?branch=master
-[img_downloads]: https://img.shields.io/github/downloads/mmozeiko/pkgi/total.svg?maxAge=3600
-[img_latest]: https://img.shields.io/github/release/mmozeiko/pkgi.svg?maxAge=3600
-[img_license]: https://img.shields.io/github/license/mmozeiko/pkgi.svg?maxAge=2592000
+[pkgj_travis]: https://travis-ci.org/blastrock/pkgj/
+[pkgj_downloads]: https://github.com/blastrock/pkgj/releases
+[pkgj_latest]: https://github.com/blastrock/pkgj/releases/latest
+[pkgj_license]: https://github.com/blastrock/pkgj/blob/master/LICENSE
+[img_travis]: https://api.travis-ci.org/blastrock/pkgj.svg?branch=master
+[img_downloads]: https://img.shields.io/github/downloads/blastrock/pkgj/total.svg?maxAge=3600
+[img_latest]: https://img.shields.io/github/release/blastrock/pkgj.svg?maxAge=3600
+[img_license]: https://img.shields.io/github/license/blastrock/pkgj.svg?maxAge=2592000
