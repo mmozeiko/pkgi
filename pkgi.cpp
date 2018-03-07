@@ -506,7 +506,9 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         input->pressed &= ~PKGI_BUTTON_T;
 
         config_temp = config;
-        int allow_refresh = current_url[0] != 0;
+        int allow_refresh = (games_url[0] != 0) << 0 |
+                            (updates_url[0] != 0) << 1 |
+                            (dlcs_url[0] != 0) << 2;
         pkgi_menu_start(search_active, &config, allow_refresh);
     }
 }

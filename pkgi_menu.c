@@ -46,7 +46,9 @@ static const MenuEntry menu_entries[] = {
         {MenuFilter, "Japan", DbFilterRegionJPN},
         {MenuFilter, "USA", DbFilterRegionUSA},
 
-        {MenuRefresh, "Refresh...", 0},
+        {MenuRefresh, "Refresh games", 1},
+        {MenuRefresh, "Refresh updates", 2},
+        {MenuRefresh, "Refresh DLCs", 4},
 };
 
 int pkgi_menu_is_open(void)
@@ -120,7 +122,7 @@ int pkgi_do_menu(pkgi_input* input)
                  (menu_entries[menu_selected].type == MenuSearchClear &&
                   !menu_search_clear) ||
                  (menu_entries[menu_selected].type == MenuRefresh &&
-                  !menu_allow_refresh));
+                  !(menu_entries[menu_selected].value & menu_allow_refresh)));
     }
 
     if (input->active & PKGI_BUTTON_DOWN)
@@ -139,7 +141,7 @@ int pkgi_do_menu(pkgi_input* input)
                  (menu_entries[menu_selected].type == MenuSearchClear &&
                   !menu_search_clear) ||
                  (menu_entries[menu_selected].type == MenuRefresh &&
-                  !menu_allow_refresh));
+                  !(menu_entries[menu_selected].value & menu_allow_refresh)));
     }
 
     if (input->pressed & pkgi_cancel_button())
@@ -219,7 +221,7 @@ int pkgi_do_menu(pkgi_input* input)
         }
         else if (type == MenuRefresh)
         {
-            if (!menu_allow_refresh)
+            if (!(entry->value & menu_allow_refresh))
             {
                 continue;
             }
