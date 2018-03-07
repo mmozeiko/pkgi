@@ -13,6 +13,7 @@
 #define PKGI_UTF8_INSTALLING "\xe2\x96\xb6" // 0x25b6
 #define PKGI_UTF8_INSTALLED "\xe2\x97\x8f" // 0x25cf
 #define PKGI_UTF8_PARTIAL   "\xe2\x97\x8b" // 0x25cb
+#define PKGI_COLOR_GAME_PRESENT PKGI_COLOR(50, 50, 255)
 
 #define PKGI_UTF8_B  "B"
 #define PKGI_UTF8_KB "K" // "\xe3\x8e\x85" // 0x3385

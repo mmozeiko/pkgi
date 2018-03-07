@@ -317,14 +317,32 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 
         if (item->presence == PresenceUnknown)
         {
-            if (pkgi_is_installed(titleid))
-                item->presence = PresenceInstalled;
-            else if (downloader.is_in_queue(item->content))
-                item->presence = PresenceInstalling;
-            else if (pkgi_is_incomplete(item->content))
-                item->presence = PresenceIncomplete;
+            if (pkgi_db_get_mode() == ModeGames)
+            {
+                if (pkgi_is_installed(titleid))
+                    item->presence = PresenceInstalled;
+                else if (downloader.is_in_queue(item->content))
+                    item->presence = PresenceInstalling;
+                else if (pkgi_is_incomplete(item->content))
+                    item->presence = PresenceIncomplete;
+                else
+                    item->presence = PresenceMissing;
+            }
             else
-                item->presence = PresenceMissing;
+            {
+                if (downloader.is_in_queue(item->content))
+                    item->presence = PresenceInstalling;
+                else if (
+                        pkgi_db_get_mode() == ModeDlcs &&
+                        pkgi_dlc_is_installed(item->content))
+                    item->presence = PresenceInstalled;
+                else if (pkgi_is_installed(titleid))
+                    item->presence = PresenceGamePresent;
+                else if (pkgi_is_incomplete(item->content))
+                    item->presence = PresenceIncomplete;
+                else
+                    item->presence = PresenceMissing;
+            }
         }
 
         char size_str[64];
@@ -360,6 +378,14 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         else if (item->presence == PresenceInstalled)
         {
             pkgi_draw_text(col_installed, y, color, PKGI_UTF8_INSTALLED);
+        }
+        else if (item->presence == PresenceGamePresent)
+        {
+            pkgi_draw_text(
+                    col_installed,
+                    y,
+                    PKGI_COLOR_GAME_PRESENT,
+                    PKGI_UTF8_INSTALLED);
         }
         else if (item->presence == PresenceInstalling)
         {
@@ -453,9 +479,16 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                 return;
             }
             break;
-        case ModeUpdates:
         case ModeDlcs:
-            if (item->presence != PresenceInstalled)
+            if (item->presence == PresenceInstalled)
+            {
+                LOG("[%s] %s - alreay installed", item->content, item->name);
+                pkgi_dialog_error("Already installed");
+                return;
+            }
+            // fallthrough
+        case ModeUpdates:
+            if (item->presence != PresenceGamePresent)
             {
                 LOG("[%.9s] %s - game not installed",
                     item->content + 7,

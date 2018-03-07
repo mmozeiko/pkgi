@@ -666,6 +666,20 @@ int pkgi_is_installed(const char* titleid)
     return res == 0;
 }
 
+int pkgi_dlc_is_installed(const char* content)
+{
+    char path[128];
+    snprintf(
+            path,
+            sizeof(path),
+            "ux0:addcont/%.9s/%.16s",
+            content + 7,
+            content + 20);
+
+    SceIoStat stat;
+    return sceIoGetstat(path, &stat) >= 0;
+}
+
 int pkgi_install(const char* contentid)
 {
     char path[128];

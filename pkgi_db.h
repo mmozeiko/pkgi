@@ -8,6 +8,7 @@ typedef enum {
     PresenceInstalling,
     PresenceInstalled,
     PresenceMissing,
+    PresenceGamePresent,
 } DbPresence;
 
 typedef enum {

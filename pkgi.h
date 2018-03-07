@@ -74,6 +74,7 @@ const char* pkgi_get_temp_folder(void);
 const char* pkgi_get_app_folder(void);
 int pkgi_is_incomplete(const char* titleid);
 int pkgi_is_installed(const char* titleid);
+int pkgi_dlc_is_installed(const char* content);
 int pkgi_install(const char* titleid);
 int pkgi_install_update(const char* contentid);
 
