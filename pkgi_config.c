@@ -116,7 +116,8 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
 
     char data[4096];
     char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/config.txt", pkgi_get_config_folder());
+    pkgi_snprintf(
+            path, sizeof(path), "%s/config.txt", pkgi_get_config_folder());
     LOG("config location: %s", path);
 
     int loaded = pkgi_load(path, data, sizeof(data) - 1);
@@ -128,7 +129,8 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
         char* text = data;
         char* end = data + loaded + 1;
 
-        if (loaded > 3 && (uint8_t)text[0] == 0xef && (uint8_t)text[1] == 0xbb && (uint8_t)text[2] == 0xbf)
+        if (loaded > 3 && (uint8_t)text[0] == 0xef &&
+            (uint8_t)text[1] == 0xbb && (uint8_t)text[2] == 0xbf)
         {
             text += 3;
         }
@@ -138,17 +140,20 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
             char* key = text;
 
             text = skipnonws(text, end);
-            if (text == end) break;
+            if (text == end)
+                break;
 
             *text++ = 0;
 
             text = skipws(text, end);
-            if (text == end) break;
+            if (text == end)
+                break;
 
             char* value = text;
 
             text = skipnonws(text, end);
-            if (text == end) break;
+            if (text == end)
+                break;
 
             *text++ = 0;
 
@@ -186,11 +191,16 @@ static const char* sort_str(DbSort sort)
 {
     switch (sort)
     {
-    case SortByTitle: return "title";
-    case SortByRegion: return "region";
-    case SortByName: return "name";
-    case SortBySize: return "size";
-    default: return "";
+    case SortByTitle:
+        return "title";
+    case SortByRegion:
+        return "region";
+    case SortByName:
+        return "name";
+    case SortBySize:
+        return "size";
+    default:
+        return "";
     }
 }
 
@@ -198,9 +208,12 @@ static const char* order_str(DbSortOrder order)
 {
     switch (order)
     {
-    case SortAscending: return "asc";
-    case SortDescending: return "desc";
-    default: return "";
+    case SortAscending:
+        return "asc";
+    case SortDescending:
+        return "desc";
+    default:
+        return "";
     }
 }
 
@@ -210,10 +223,19 @@ void pkgi_save_config(const Config* config, const char* update_url)
     int len = 0;
     if (update_url && update_url[0] != 0)
     {
-        len += pkgi_snprintf(data + len, sizeof(data) - len, "url %s\n", update_url);
+        len += pkgi_snprintf(
+                data + len, sizeof(data) - len, "url %s\n", update_url);
     }
-    len += pkgi_snprintf(data + len, sizeof(data) - len, "sort %s\n", sort_str(config->sort));
-    len += pkgi_snprintf(data + len, sizeof(data) - len, "order %s\n", order_str(config->order));
+    len += pkgi_snprintf(
+            data + len,
+            sizeof(data) - len,
+            "sort %s\n",
+            sort_str(config->sort));
+    len += pkgi_snprintf(
+            data + len,
+            sizeof(data) - len,
+            "order %s\n",
+            order_str(config->order));
     len += pkgi_snprintf(data + len, sizeof(data) - len, "filter ");
     const char* sep = "";
     if (config->filter & DbFilterRegionASA)
@@ -240,11 +262,13 @@ void pkgi_save_config(const Config* config, const char* update_url)
 
     if (config->no_version_check)
     {
-        len += pkgi_snprintf(data + len, sizeof(data) - len, "no_version_check 1\n");
+        len += pkgi_snprintf(
+                data + len, sizeof(data) - len, "no_version_check 1\n");
     }
 
     char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/config.txt", pkgi_get_config_folder());
+    pkgi_snprintf(
+            path, sizeof(path), "%s/config.txt", pkgi_get_config_folder());
 
     if (pkgi_save(path, data, len))
     {
