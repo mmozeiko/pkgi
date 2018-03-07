@@ -939,8 +939,21 @@ int main()
                     pkgi_menu_get(&config);
                     pkgi_save_config(&config, games_url, updates_url, dlcs_url);
                 }
-                else if (mres == MenuResultRefresh)
+                else if (mres == MenuResultRefreshGames)
                 {
+                    current_url = games_url;
+                    state = StateRefreshing;
+                    pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
+                }
+                else if (mres == MenuResultRefreshUpdates)
+                {
+                    current_url = updates_url;
+                    state = StateRefreshing;
+                    pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
+                }
+                else if (mres == MenuResultRefreshDlcs)
+                {
+                    current_url = dlcs_url;
                     state = StateRefreshing;
                     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
                 }

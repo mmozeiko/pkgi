@@ -174,7 +174,19 @@ int pkgi_do_menu(pkgi_input* input)
         }
         else if (type == MenuRefresh)
         {
-            menu_result = MenuResultRefresh;
+            switch (menu_entries[menu_selected].value)
+            {
+            case 1:
+                menu_result = MenuResultRefreshGames;
+                break;
+            case 2:
+                menu_result = MenuResultRefreshUpdates;
+                break;
+            case 4:
+                menu_result = MenuResultRefreshDlcs;
+                break;
+            }
+
             menu_delta = -1;
             return 1;
         }
