@@ -3,6 +3,8 @@ extern "C" {
 #include "pkgi_style.h"
 }
 
+#include <string>
+
 #include <vita2d.h>
 
 #include <psp2/appmgr.h>
@@ -10,6 +12,7 @@ extern "C" {
 #include <psp2/display.h>
 #include <psp2/ime_dialog.h>
 #include <psp2/io/devctl.h>
+#include <psp2/io/dirent.h>
 #include <psp2/io/fcntl.h>
 #include <psp2/io/stat.h>
 #include <psp2/kernel/clib.h>
@@ -52,6 +55,7 @@ static int g_log_socket;
 #define VITA_COLOR(c) RGBA8((c)&0xff, (c >> 8) & 0xff, (c >> 16) & 0xff, 255)
 
 #define PKGI_ERRNO_EEXIST (int)(0x80010000 + SCE_NET_EEXIST)
+#define PKGI_ERRNO_ENOENT (int)(0x80010000 + SCE_NET_ENOENT)
 
 #define PKGI_USER_AGENT "libhttp/3.65 (PS Vita)"
 
@@ -701,6 +705,59 @@ int pkgi_install(const char* contentid)
     return res == 0;
 }
 
+static int pkgi_delete_dir(const std::string& path)
+{
+    SceUID dfd = sceIoDopen(path.c_str());
+    if (dfd == PKGI_ERRNO_ENOENT)
+        return 1;
+
+    if (dfd < 0)
+    {
+        LOG("failed to Dopen %s: %x", path.c_str(), dfd);
+        return 0;
+    }
+
+    int res = 0;
+    SceIoDirent dir;
+    memset(&dir, 0, sizeof(SceIoDirent));
+    while ((res = sceIoDread(dfd, &dir)) > 0)
+    {
+        std::string new_path =
+                path + (path[path.size() - 1] == '/' ? "" : "/") + dir.d_name;
+
+        if (SCE_S_ISDIR(dir.d_stat.st_mode))
+        {
+            int ret = pkgi_delete_dir(new_path);
+            if (!ret)
+            {
+                sceIoDclose(dfd);
+                return 0;
+            }
+        }
+        else
+        {
+            int ret = sceIoRemove(new_path.c_str());
+            if (ret < 0)
+            {
+                LOG("failed to remove %s: %x", new_path.c_str(), ret);
+                sceIoDclose(dfd);
+                return 0;
+            }
+        }
+    }
+
+    sceIoDclose(dfd);
+
+    res = sceIoRmdir(path.c_str());
+    if (res < 0)
+    {
+        LOG("failed to rmdir %s: %x", path.c_str(), res);
+        return 0;
+    }
+
+    return 1;
+}
+
 int pkgi_install_update(const char* contentid)
 {
     char path[128];
@@ -708,6 +765,10 @@ int pkgi_install_update(const char* contentid)
 
     char dest[128];
     snprintf(dest, sizeof(dest), "ux0:patch/%.9s", contentid + 7);
+
+    LOG("deleting previous patch");
+    if (!pkgi_delete_dir(dest))
+        return 0;
 
     LOG("installing update at %s", path);
     int res = sceIoRename(path, dest);
