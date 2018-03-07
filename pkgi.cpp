@@ -58,12 +58,6 @@ static void pkgi_refresh_thread(void)
 {
     LOG("starting update");
     const char* url = refresh_url;
-#ifdef PKGI_REFRESH_URL
-    if (url[0] == 0)
-    {
-        url = PKGI_REFRESH_URL;
-    }
-#endif
     if (pkgi_db_update(url, error_state, sizeof(error_state)))
     {
         first_item = 0;
@@ -510,9 +504,6 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 
         config_temp = config;
         int allow_refresh = refresh_url[0] != 0;
-#ifdef PKGI_REFRESH_URL
-        allow_refresh = 1;
-#endif
         pkgi_menu_start(search_active, &config, allow_refresh);
     }
 }
