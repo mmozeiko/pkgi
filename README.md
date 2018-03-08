@@ -29,23 +29,13 @@ Get latest version as [vpk file here][pkgj_latest].
 
 # Setup instructions
 
-You need to create `ux0:pkgi/pkgi.txt` file that will contain items available for installation. This file is in very
-simple CSV format where each line means one item in the list:
+Setup games databases URLs in `ux0:pkgi/config.txt`. The file format is the following:
 
-    contentid,flags,name,name2,zrif,url,size,checksum
+    url_games https://thesite/games.tsv
+    url_updates https://thesite/updates.tsv
+    url_dlcs https://thesite/dlcs.tsv
 
-where:
-
-* *contentid* is full content id of item, for example: `UP2120-PCSE00747_00-TOWERFALLVITA000`.
-* *flags* is currently unused number, set it to 0.
-* *name* is arbitrary UTF-8 string to display for name.
-* *name2* is currently unused alternative name, leave it empty.
-* *zrif* is NoNpDrm created fake license in zRIF format, it must match contentid.
-* *url* is http url where to download PKG, pkg content id must match the specified contentid.
-* *size* is size of pkg in bytes, or 0 if not known.
-* *checksum* is sha256 digest of pkg as 32 hex bytes to make sure pkg is not tampered with. Leave empty to skip the check.
-
-Name cannot contain newlines or commas.
+Then start the application and you are ready to go.
 
 To avoid downloading pkg file over network, you can place it in `ux0:pkgi` folder. Keep the name of file same as in http url,
 or rename it with same name as contentid. pkgj will first check if pkg file can be read locally, and only if it is missing
@@ -56,7 +46,7 @@ then pkgj will download it from http url.
 Using application is pretty straight forward. Select item you want to install and press X. To sort/filter/search press triangle.
 It will open context menu. Press triangle again to confirm choice(s) you make in menu. Or press O to cancel any changes you did.
 
-Press left or right shoulder button to move page up or down.
+Press left or right button to move page up or down.
 
 # Q&A
 
