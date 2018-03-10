@@ -15,13 +15,15 @@ This homebrew allows to download & unpack pkg file directly on Vita together wit
   from place it stopped.
 
 Differences with PKGi:
-* **queues** multiple downloads (but there is no more progress bar for the moment).
-* **supports** the TSV file format
+* **queues** multiple downloads.
+* **supports** the TSV file format.
 * **refreshes** list from 3 URLs for games, updates and DLCs.
 
 Current limitations:
 * **no support for PSM**.
 * **no background downloads** - if application is closed or Vita is put in sleep then download will stop.
+
+Lines in *red* are entries for which the download URL or the zRIF string is missing.
 
 # Download
 
