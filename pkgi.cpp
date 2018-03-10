@@ -475,6 +475,13 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 
         DbItem* item = pkgi_db_get(selected_item);
 
+        if (downloader.is_in_queue(item->content))
+        {
+            downloader.remove_from_queue(item->content);
+            item->presence = PresenceUnknown;
+            return;
+        }
+
         switch (pkgi_db_get_mode())
         {
         case ModeGames:
@@ -670,11 +677,14 @@ static void pkgi_do_tail(void)
     }
     else
     {
+        DbItem* item = pkgi_db_get(selected_item);
         pkgi_snprintf(
                 text,
                 sizeof(text),
-                "%s install  " PKGI_UTF8_T " menu",
-                pkgi_get_ok_str());
+                "%s %s  " PKGI_UTF8_T " menu",
+                pkgi_get_ok_str(),
+                item && item->presence == PresenceInstalling ? "cancel"
+                                                             : "install");
     }
 
     pkgi_clip_set(
