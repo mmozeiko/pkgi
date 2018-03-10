@@ -306,6 +306,17 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                     font_height + PKGI_MAIN_ROW_PADDING - 1,
                     PKGI_COLOR_SELECTED_BACKGROUND);
         }
+        else if (
+                std::string(item->url) == "MISSING" ||
+                std::string(item->zrif) == "MISSING")
+        {
+            pkgi_draw_rect(
+                    0,
+                    y,
+                    VITA_WIDTH,
+                    font_height + PKGI_MAIN_ROW_PADDING - 1,
+                    PKGI_COLOR_BROKEN_BACKGROUND);
+        }
         uint32_t color = PKGI_COLOR_TEXT;
 
         char titleid[10];
