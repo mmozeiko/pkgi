@@ -47,6 +47,7 @@ private:
     std::deque<DownloadItem> _queue;
 
     std::string _current_content_id;
+    bool _cancel_current = false;
 
     Thread _thread;
     bool _dying = false;
