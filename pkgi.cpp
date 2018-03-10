@@ -640,6 +640,13 @@ static void pkgi_do_tail(Downloader& downloader)
 
     const auto current_download = downloader.get_current_download();
 
+    pkgi_draw_rect(
+            0,
+            bottom_y + PKGI_MAIN_HLINE_HEIGHT,
+            int(VITA_WIDTH * downloader.get_current_download_progress()),
+            font_height + PKGI_MAIN_ROW_PADDING - 1,
+            PKGI_COLOR_PROGRESS_BACKGROUND);
+
     if (current_download)
         pkgi_snprintf(
                 text,
