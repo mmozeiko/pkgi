@@ -297,26 +297,6 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
     {
         DbItem* item = pkgi_db_get(i);
 
-        if (i == selected_item)
-        {
-            pkgi_draw_rect(
-                    0,
-                    y,
-                    VITA_WIDTH,
-                    font_height + PKGI_MAIN_ROW_PADDING - 1,
-                    PKGI_COLOR_SELECTED_BACKGROUND);
-        }
-        else if (
-                std::string(item->url) == "MISSING" ||
-                std::string(item->zrif) == "MISSING")
-        {
-            pkgi_draw_rect(
-                    0,
-                    y,
-                    VITA_WIDTH,
-                    font_height + PKGI_MAIN_ROW_PADDING - 1,
-                    PKGI_COLOR_BROKEN_BACKGROUND);
-        }
         uint32_t color = PKGI_COLOR_TEXT;
 
         char titleid[10];
@@ -358,6 +338,28 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         int sizew = pkgi_text_width(size_str);
 
         pkgi_clip_set(0, y, VITA_WIDTH, line_height);
+
+        if (i == selected_item)
+        {
+            pkgi_draw_rect(
+                    0,
+                    y,
+                    VITA_WIDTH,
+                    font_height + PKGI_MAIN_ROW_PADDING - 1,
+                    PKGI_COLOR_SELECTED_BACKGROUND);
+        }
+        else if (
+                std::string(item->url) == "MISSING" ||
+                std::string(item->zrif) == "MISSING")
+        {
+            pkgi_draw_rect(
+                    0,
+                    y,
+                    VITA_WIDTH,
+                    font_height + PKGI_MAIN_ROW_PADDING - 1,
+                    PKGI_COLOR_BROKEN_BACKGROUND);
+        }
+
         pkgi_draw_text(col_titleid, y, color, titleid);
         const char* region;
         switch (pkgi_get_region(item->content))
