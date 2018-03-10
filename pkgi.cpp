@@ -417,16 +417,16 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         pkgi_clip_remove();
 
         y += font_height + PKGI_MAIN_ROW_PADDING;
-        if (y > VITA_HEIGHT - (font_height + PKGI_MAIN_HLINE_EXTRA))
+        if (y > VITA_HEIGHT - (2 * font_height + PKGI_MAIN_HLINE_EXTRA))
         {
             break;
         }
         else if (
                 y + font_height >
-                VITA_HEIGHT - (font_height + PKGI_MAIN_HLINE_EXTRA))
+                VITA_HEIGHT - (2 * font_height + PKGI_MAIN_HLINE_EXTRA))
         {
             line_height =
-                    (VITA_HEIGHT - (font_height + PKGI_MAIN_HLINE_EXTRA)) -
+                    (VITA_HEIGHT - (2 * font_height + PKGI_MAIN_HLINE_EXTRA)) -
                     (y + 1);
             if (line_height < PKGI_MAIN_ROW_PADDING)
             {
@@ -631,15 +631,32 @@ static void pkgi_do_head(void)
     }
 }
 
-static void pkgi_do_tail(void)
+static void pkgi_do_tail(Downloader& downloader)
 {
+    char text[256];
+
     pkgi_draw_rect(
             0, bottom_y, VITA_WIDTH, PKGI_MAIN_HLINE_HEIGHT, PKGI_COLOR_HLINE);
+
+    const auto current_download = downloader.get_current_download();
+
+    if (current_download)
+        pkgi_snprintf(
+                text,
+                sizeof(text),
+                "Downloading %s: %s",
+                type_to_string(current_download->type).c_str(),
+                current_download->name.c_str());
+    else
+        pkgi_snprintf(text, sizeof(text), "Idle");
+
+    pkgi_draw_text(0, bottom_y, PKGI_COLOR_TEXT_TAIL, text);
+
+    const auto second_line = bottom_y + font_height + PKGI_MAIN_ROW_PADDING;
 
     uint32_t count = pkgi_db_count();
     uint32_t total = pkgi_db_total();
 
-    char text[256];
     if (count == total)
     {
         pkgi_snprintf(text, sizeof(text), "Count: %u", count);
@@ -648,7 +665,7 @@ static void pkgi_do_tail(void)
     {
         pkgi_snprintf(text, sizeof(text), "Count: %u (%u)", count, total);
     }
-    pkgi_draw_text(0, bottom_y, PKGI_COLOR_TEXT_TAIL, text);
+    pkgi_draw_text(0, second_line, PKGI_COLOR_TEXT_TAIL, text);
 
     char size[64];
     pkgi_friendly_size(size, sizeof(size), pkgi_get_free_space());
@@ -659,7 +676,7 @@ static void pkgi_do_tail(void)
     int rightw = pkgi_text_width(free);
     pkgi_draw_text(
             VITA_WIDTH - PKGI_MAIN_HLINE_EXTRA - rightw,
-            bottom_y,
+            second_line,
             PKGI_COLOR_TEXT_TAIL,
             free);
 
@@ -688,10 +705,13 @@ static void pkgi_do_tail(void)
     }
 
     pkgi_clip_set(
-            left, bottom_y, VITA_WIDTH - right - left, VITA_HEIGHT - bottom_y);
+            left,
+            second_line,
+            VITA_WIDTH - right - left,
+            VITA_HEIGHT - second_line);
     pkgi_draw_text(
             (VITA_WIDTH - pkgi_text_width(text)) / 2,
-            bottom_y,
+            second_line,
             PKGI_COLOR_TEXT_TAIL,
             text);
     pkgi_clip_remove();
@@ -842,8 +862,8 @@ int main()
     pkgi_dialog_init();
 
     font_height = pkgi_text_height("M");
-    avail_height = VITA_HEIGHT - 2 * (font_height + PKGI_MAIN_HLINE_EXTRA);
-    bottom_y = VITA_HEIGHT - font_height - PKGI_MAIN_ROW_PADDING;
+    avail_height = VITA_HEIGHT - 3 * (font_height + PKGI_MAIN_HLINE_EXTRA);
+    bottom_y = VITA_HEIGHT - 2 * font_height - PKGI_MAIN_ROW_PADDING;
 
     if (pkgi_is_unsafe_mode())
     {
@@ -900,7 +920,7 @@ int main()
             break;
         }
 
-        pkgi_do_tail();
+        pkgi_do_tail(downloader);
 
         if (pkgi_dialog_is_open())
         {
