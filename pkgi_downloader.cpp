@@ -41,6 +41,14 @@ bool Downloader::is_in_queue(const std::string& contentid)
     return false;
 }
 
+std::optional<DownloadItem> Downloader::get_current_download()
+{
+    ScopeLock _(_cond.get_mutex());
+    if (_current_download.content.empty())
+        return std::nullopt;
+    return _current_download;
+}
+
 void Downloader::remove_from_queue(const std::string& contentid)
 {
     ScopeLock _(_cond.get_mutex());

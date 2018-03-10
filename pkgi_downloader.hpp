@@ -2,6 +2,7 @@
 
 #include <deque>
 #include <mutex>
+#include <optional>
 #include <vector>
 
 #include "pkgi_thread.hpp"
@@ -37,6 +38,7 @@ public:
     void add(const DownloadItem& d);
     void remove_from_queue(const std::string& contentid);
     bool is_in_queue(const std::string& titleid);
+    std::optional<DownloadItem> get_current_download();
 
     std::function<void(const std::string& content)> refresh;
 
