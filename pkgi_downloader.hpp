@@ -46,7 +46,7 @@ private:
     Cond _cond;
     std::deque<DownloadItem> _queue;
 
-    std::string _current_content_id;
+    DownloadItem _current_download;
     bool _cancel_current = false;
 
     Thread _thread;

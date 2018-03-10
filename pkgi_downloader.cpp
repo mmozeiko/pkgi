@@ -32,7 +32,7 @@ void Downloader::add(const DownloadItem& d)
 bool Downloader::is_in_queue(const std::string& contentid)
 {
     ScopeLock _(_cond.get_mutex());
-    if (contentid == _current_content_id)
+    if (contentid == _current_download.content)
         return true;
 
     for (const auto& item : _queue)
@@ -44,7 +44,7 @@ bool Downloader::is_in_queue(const std::string& contentid)
 void Downloader::remove_from_queue(const std::string& contentid)
 {
     ScopeLock _(_cond.get_mutex());
-    if (contentid == _current_content_id)
+    if (contentid == _current_download.content)
         _cancel_current = true;
     else
         _queue.erase(
@@ -65,15 +65,14 @@ void Downloader::run()
         {
             ScopeLock _(_cond.get_mutex());
 
-            _current_content_id = "";
+            _current_download = {};
 
             if (_dying)
                 return;
             else if (!_queue.empty())
             {
-                item = _queue.front();
+                item = _current_download = _queue.front();
                 _queue.pop_front();
-                _current_content_id = item.content;
                 _cancel_current = false;
             }
             else
