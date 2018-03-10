@@ -4,6 +4,20 @@
 
 #include "pkgi_download.hpp"
 
+std::string type_to_string(Type type)
+{
+    switch (type)
+    {
+    case Type::Game:
+        return "game";
+    case Type::Update:
+        return "update";
+    case Type::Dlc:
+        return "dlc";
+    }
+    return "unknown";
+}
+
 Downloader::Downloader()
     : _cond("downloader_cond"), _thread("downloader_thread", [this] { run(); })
 {

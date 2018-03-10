@@ -24,6 +24,8 @@ struct DownloadItem
     std::vector<uint8_t> digest;
 };
 
+std::string type_to_string(Type type);
+
 class Downloader
 {
 public:
