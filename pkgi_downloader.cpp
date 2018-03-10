@@ -63,6 +63,11 @@ std::optional<DownloadItem> Downloader::get_current_download()
     return _current_download;
 }
 
+float Downloader::get_current_download_progress()
+{
+    return _progress.load();
+}
+
 void Downloader::remove_from_queue(const std::string& contentid)
 {
     ScopeLock _(_cond.get_mutex());
@@ -88,6 +93,8 @@ void Downloader::run()
             ScopeLock _(_cond.get_mutex());
 
             _current_download = {};
+            _progress = 0.0f;
+            _cancel_current = false;
 
             if (_dying)
                 return;
@@ -95,7 +102,6 @@ void Downloader::run()
             {
                 item = _current_download = _queue.front();
                 _queue.pop_front();
-                _cancel_current = false;
             }
             else
                 _cond.wait();
@@ -123,7 +129,9 @@ void Downloader::do_download(const DownloadItem& item)
     ScopeProcessLock _;
     LOG("downloading %s", item.name.c_str());
     auto download = std::make_unique<Download>();
-    download->update_progress_cb = [](auto&&) {};
+    download->update_progress_cb = [this](const Download& d) {
+        _progress = float(d.download_offset) / float(d.download_size);
+    };
     download->update_status = [](auto&&) {};
     download->is_canceled = [this] { return _cancel_current || _dying; };
     if (!download->pkgi_download(
