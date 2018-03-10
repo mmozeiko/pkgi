@@ -41,6 +41,19 @@ bool Downloader::is_in_queue(const std::string& contentid)
     return false;
 }
 
+void Downloader::remove_from_queue(const std::string& contentid)
+{
+    ScopeLock _(_cond.get_mutex());
+    _queue.erase(
+            std::remove_if(
+                    _queue.begin(),
+                    _queue.end(),
+                    [&](auto const& item) {
+                        return item.content == contentid;
+                    }),
+            _queue.end());
+}
+
 void Downloader::run()
 {
     while (true)

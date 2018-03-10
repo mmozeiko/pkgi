@@ -35,6 +35,7 @@ public:
     ~Downloader();
 
     void add(const DownloadItem& d);
+    void remove_from_queue(const std::string& contentid);
     bool is_in_queue(const std::string& titleid);
 
     std::function<void(const std::string& content)> refresh;
