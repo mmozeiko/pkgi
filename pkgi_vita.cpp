@@ -992,7 +992,14 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
     if (content)
     {
         strcpy(path, pkgi_get_temp_folder());
-        strcat(path, strrchr(url, '/'));
+        const char* lastslash = strrchr(url, '/');
+        if (lastslash)
+            strcat(path, lastslash);
+        else
+        {
+            strcat(path, "/");
+            strcat(path, url);
+        }
 
         http->fd = sceIoOpen(path, SCE_O_RDONLY, 0777);
         if (http->fd < 0)
