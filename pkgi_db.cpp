@@ -329,6 +329,9 @@ static void parse_tsv_file()
                 content = it.base();
         }
 
+        if (std::string(url) == "MISSING" || std::string(zrif) == "MISSING")
+            continue;
+
         db[db_count].content = content;
         db[db_count].flags = 0;
         db[db_count].name = name;
