@@ -23,8 +23,6 @@ Current limitations:
 * **no support for PSM**.
 * **no background downloads** - if application is closed or Vita is put in sleep then download will stop.
 
-Lines in *red* are entries for which the download URL or the zRIF string is missing.
-
 # Download
 
 Get latest version as [vpk file here][pkgj_latest].

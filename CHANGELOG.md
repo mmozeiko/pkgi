@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.08
+
+What's new:
+
+- Items with missing URL or zRIF string are now discarded (instead of shown on a
+  red background)
+
+Bug fixes:
+
+- Fixed crash when refreshing updates
+- Fixed bug where some item where shown as installed when they were not or
+  "corresponding game not installed" when it actually is
+
 ## 0.07
 
 What's new:
