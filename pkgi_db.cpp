@@ -184,6 +184,7 @@ static void parse_pkgi_file()
             ptr++;
         }
 
+        db[db_count].presence = PresenceUnknown;
         db[db_count].content = content;
         db[db_count].flags = (uint32_t)pkgi_strtoll(flags);
         db[db_count].name = name;
@@ -332,6 +333,7 @@ static void parse_tsv_file()
         if (std::string(url) == "MISSING" || std::string(zrif) == "MISSING")
             continue;
 
+        db[db_count].presence = PresenceUnknown;
         db[db_count].content = content;
         db[db_count].flags = 0;
         db[db_count].name = name;
