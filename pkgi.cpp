@@ -349,8 +349,8 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                     PKGI_COLOR_SELECTED_BACKGROUND);
         }
         else if (
-                std::string(item->url) == "MISSING" ||
-                std::string(item->zrif) == "MISSING")
+                (item->url && std::string(item->url) == "MISSING") ||
+                (item->zrif && std::string(item->zrif) == "MISSING"))
         {
             pkgi_draw_rect(
                     0,
