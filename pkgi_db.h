@@ -63,6 +63,7 @@ typedef enum {
     ModeGames,
     ModeUpdates,
     ModeDlcs,
+    ModePsxGames,
 } Mode;
 
 typedef struct Config Config;

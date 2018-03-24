@@ -243,6 +243,14 @@ static void parse_tsv_file()
         LOG("dlcs tsv file");
         mode = ModeDlcs;
     }
+    else if (
+            header ==
+            "Title ID\tRegion\tName\tPKG direct link\tContent ID\tLast "
+            "Modification Date\tOriginal Name\tFile Size\tSHA256")
+    {
+        LOG("psx games tsv file");
+        mode = ModePsxGames;
+    }
     else
     {
         LOG("unknown tsv file");
@@ -296,10 +304,15 @@ static void parse_tsv_file()
             content = ptr;
             NEXT_FIELD();
         }
+        else if (mode == ModePsxGames)
+        {
+            content = ptr;
+            NEXT_FIELD();
+        }
 
         NEXT_FIELD(); // Last Modification Date
 
-        if (mode == ModeGames)
+        if (mode == ModeGames || mode == ModePsxGames)
         {
             name_org = ptr;
             NEXT_FIELD();
