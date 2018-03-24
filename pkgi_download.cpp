@@ -451,8 +451,32 @@ int Download::download_files(void)
         {
             continue;
         }
-
-        pkgi_snprintf(item_path, sizeof(item_path), "%s/%s", root, item_name);
+        else if (content_type == 6)
+        {
+            if (std::string(item_name) == "USRDIR/CONTENT/DOCUMENT.DAT")
+                pkgi_snprintf(
+                        item_path, sizeof(item_path), "%s/DOCUMENT.DAT", root);
+            else if (std::string(item_name) == "USRDIR/CONTENT/EBOOT.PBP")
+                pkgi_snprintf(
+                        item_path, sizeof(item_path), "%s/EBOOT.PBP", root);
+            else
+            {
+                while (encrypted_offset != encrypted_size)
+                {
+                    uint32_t read = (uint32_t)min64(
+                            sizeof(down), encrypted_size - encrypted_offset);
+                    int size = download_data(down, read, 1, 0);
+                    if (size <= 0)
+                    {
+                        return 0;
+                    }
+                }
+                continue;
+            }
+        }
+        else
+            pkgi_snprintf(
+                    item_path, sizeof(item_path), "%s/%s", root, item_name);
 
         if (download_resume)
         {
