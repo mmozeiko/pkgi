@@ -12,6 +12,7 @@ typedef enum {
     MenuResultRefreshGames,
     MenuResultRefreshUpdates,
     MenuResultRefreshDlcs,
+    MenuResultRefreshPsxGames,
 } MenuResult;
 
 int pkgi_menu_is_open(void);

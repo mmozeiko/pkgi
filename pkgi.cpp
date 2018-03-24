@@ -511,7 +511,8 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         config_temp = config;
         int allow_refresh = !config.games_url.empty() << 0 |
                             !config.updates_url.empty() << 1 |
-                            !config.dlcs_url.empty() << 2;
+                            !config.dlcs_url.empty() << 2 |
+                            !config.psx_games_url.empty() << 3;
         pkgi_menu_start(search_active, &config, allow_refresh);
     }
 }
@@ -976,6 +977,11 @@ int main()
                     break;
                 case MenuResultRefreshDlcs:
                     current_url = config.dlcs_url.c_str();
+                    state = StateRefreshing;
+                    pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
+                    break;
+                case MenuResultRefreshPsxGames:
+                    current_url = config.psx_games_url.c_str();
                     state = StateRefreshing;
                     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
                     break;
