@@ -1,6 +1,5 @@
 extern "C" {
 #include "pkgi.h"
-#include "pkgi_config.h"
 #include "pkgi_db.h"
 #include "pkgi_dialog.h"
 #include "pkgi_menu.h"
@@ -8,6 +7,7 @@ extern "C" {
 #include "pkgi_utils.h"
 #include "pkgi_zrif.h"
 }
+#include "pkgi_config.hpp"
 #include "pkgi_download.hpp"
 #include "pkgi_downloader.hpp"
 

@@ -1,9 +1,9 @@
 extern "C" {
 #include "pkgi_menu.h"
 #include "pkgi.h"
-#include "pkgi_config.h"
 #include "pkgi_style.h"
 }
+#include "pkgi_config.hpp"
 
 static int menu_search_clear;
 

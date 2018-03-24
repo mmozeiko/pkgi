@@ -1,7 +1,7 @@
 extern "C" {
-#include "pkgi_config.h"
 #include "pkgi.h"
 }
+#include "pkgi_config.hpp"
 
 static char* skipnonws(char* text, char* end)
 {
