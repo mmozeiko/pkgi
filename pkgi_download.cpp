@@ -321,9 +321,14 @@ int Download::download_head(const uint8_t* rif)
         if (type == 2)
         {
             uint32_t content_type = get32be(head + offset + 8);
-            if (content_type != 21 && content_type != 22)
+            // 6 PSX game
+            // 21 PSV game (or update)
+            // 22 PSV DLC
+            if (content_type != 21 && content_type != 22 && content_type != 6)
             {
-                throw DownloadError("pkg is not a main package");
+                throw DownloadError(
+                        "unsupported package type: " +
+                        std::to_string(content_type));
             }
         }
         else if (type == 13)
