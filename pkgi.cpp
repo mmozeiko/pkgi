@@ -16,7 +16,7 @@ extern "C" {
 #include <stddef.h>
 
 #define PKGI_UPDATE_URL \
-    "https://api.github.com/repos/mmozeiko/pkgi/releases/latest"
+    "https://api.github.com/repos/blastrock/pkgj/releases/latest"
 
 typedef enum {
     StateError,
@@ -787,7 +787,7 @@ static void pkgi_check_for_update(void)
         }
         buffer[size] = 0;
 
-        static const char find[] = "\"name\":\"pkgi v";
+        static const char find[] = "\"name\": \"v";
         const char* start = pkgi_strstr(buffer, find);
         if (start != NULL)
         {
@@ -889,7 +889,7 @@ int main()
         {
             if (!config.no_version_check)
             {
-                pkgi_start_thread("update_thread", &pkgi_check_for_update);
+                // pkgi_start_thread("update_thread", &pkgi_check_for_update);
             }
 
             pkgi_db_configure(NULL, &config);
