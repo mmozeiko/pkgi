@@ -432,6 +432,13 @@ int Download::download_files(void)
         aes128_ctr(&aes, iv, name_offset, (uint8_t*)item_name, name_size);
         item_name[name_size] = 0;
 
+        uint64_t encrypted_size = (item_size + AES_BLOCK_SIZE - 1) &
+                                  ~((uint64_t)AES_BLOCK_SIZE - 1);
+        decrypted_size = item_size;
+        encrypted_base = item_offset;
+        encrypted_offset = 0;
+        item_index = index;
+
         LOG("[%u/%u] %s item_offset=%llu item_size=%llu type=%u",
             item_index + 1,
             index_count,
@@ -446,13 +453,6 @@ int Download::download_files(void)
         }
 
         pkgi_snprintf(item_path, sizeof(item_path), "%s/%s", root, item_name);
-
-        uint64_t encrypted_size = (item_size + AES_BLOCK_SIZE - 1) &
-                                  ~((uint64_t)AES_BLOCK_SIZE - 1);
-        decrypted_size = item_size;
-        encrypted_base = item_offset;
-        encrypted_offset = 0;
-        item_index = index;
 
         if (download_resume)
         {
