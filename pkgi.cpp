@@ -952,18 +952,17 @@ int main()
             else
             {
                 MenuResult mres = pkgi_menu_result();
-                if (mres == MenuResultSearch)
+                switch (mres)
                 {
+                case MenuResultSearch:
                     pkgi_dialog_input_text("Search", search_text);
-                }
-                else if (mres == MenuResultSearchClear)
-                {
+                    break;
+                case MenuResultSearchClear:
                     search_active = 0;
                     search_text[0] = 0;
                     pkgi_db_configure(NULL, &config);
-                }
-                else if (mres == MenuResultCancel)
-                {
+                    break;
+                case MenuResultCancel:
                     if (config_temp.sort != config.sort ||
                         config_temp.order != config.order ||
                         config_temp.filter != config.filter)
@@ -972,29 +971,26 @@ int main()
                                 search_active ? search_text : NULL, &config);
                         reposition();
                     }
-                }
-                else if (mres == MenuResultAccept)
-                {
+                    break;
+                case MenuResultAccept:
                     pkgi_menu_get(&config);
                     pkgi_save_config(&config, games_url, updates_url, dlcs_url);
-                }
-                else if (mres == MenuResultRefreshGames)
-                {
+                    break;
+                case MenuResultRefreshGames:
                     current_url = games_url;
                     state = StateRefreshing;
                     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
-                }
-                else if (mres == MenuResultRefreshUpdates)
-                {
+                    break;
+                case MenuResultRefreshUpdates:
                     current_url = updates_url;
                     state = StateRefreshing;
                     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
-                }
-                else if (mres == MenuResultRefreshDlcs)
-                {
+                    break;
+                case MenuResultRefreshDlcs:
                     current_url = dlcs_url;
                     state = StateRefreshing;
                     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
+                    break;
                 }
             }
         }
