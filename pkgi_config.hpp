@@ -17,8 +17,4 @@ typedef struct Config
 } Config;
 
 Config pkgi_load_config();
-void pkgi_save_config(
-        const Config* config,
-        const char* games_url,
-        const char* updates_url,
-        const char* dlcs_url);
+void pkgi_save_config(const Config& config);

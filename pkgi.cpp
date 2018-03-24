@@ -962,11 +962,7 @@ int main()
                     break;
                 case MenuResultAccept:
                     pkgi_menu_get(&config);
-                    pkgi_save_config(
-                            &config,
-                            config.games_url.c_str(),
-                            config.updates_url.c_str(),
-                            config.dlcs_url.c_str());
+                    pkgi_save_config(config);
                     break;
                 case MenuResultRefreshGames:
                     current_url = config.games_url.c_str();

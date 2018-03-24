@@ -216,61 +216,60 @@ static const char* order_str(DbSortOrder order)
     }
 }
 
-void pkgi_save_config(
-        const Config* config,
-        const char* games_url,
-        const char* updates_url,
-        const char* dlcs_url)
+void pkgi_save_config(const Config& config)
 {
     char data[4096];
     int len = 0;
-    if (games_url && games_url[0] != 0)
+    if (!config.games_url.empty())
         len += pkgi_snprintf(
-                data + len, sizeof(data) - len, "url_games %s\n", games_url);
-    if (updates_url && updates_url[0] != 0)
+                data + len,
+                sizeof(data) - len,
+                "url_games %s\n",
+                config.games_url.c_str());
+    if (!config.updates_url.empty())
         len += pkgi_snprintf(
                 data + len,
                 sizeof(data) - len,
                 "url_updates %s\n",
-                updates_url);
-    if (dlcs_url && dlcs_url[0] != 0)
+                config.updates_url.c_str());
+    if (!config.dlcs_url.empty())
         len += pkgi_snprintf(
-                data + len, sizeof(data) - len, "url_dlcs %s\n", dlcs_url);
+                data + len,
+                sizeof(data) - len,
+                "url_dlcs %s\n",
+                config.dlcs_url.c_str());
     len += pkgi_snprintf(
-            data + len,
-            sizeof(data) - len,
-            "sort %s\n",
-            sort_str(config->sort));
+            data + len, sizeof(data) - len, "sort %s\n", sort_str(config.sort));
     len += pkgi_snprintf(
             data + len,
             sizeof(data) - len,
             "order %s\n",
-            order_str(config->order));
+            order_str(config.order));
     len += pkgi_snprintf(data + len, sizeof(data) - len, "filter ");
     const char* sep = "";
-    if (config->filter & DbFilterRegionASA)
+    if (config.filter & DbFilterRegionASA)
     {
         len += pkgi_snprintf(data + len, sizeof(data) - len, "%sASA", sep);
         sep = ",";
     }
-    if (config->filter & DbFilterRegionEUR)
+    if (config.filter & DbFilterRegionEUR)
     {
         len += pkgi_snprintf(data + len, sizeof(data) - len, "%sEUR", sep);
         sep = ",";
     }
-    if (config->filter & DbFilterRegionJPN)
+    if (config.filter & DbFilterRegionJPN)
     {
         len += pkgi_snprintf(data + len, sizeof(data) - len, "%sJPN", sep);
         sep = ",";
     }
-    if (config->filter & DbFilterRegionUSA)
+    if (config.filter & DbFilterRegionUSA)
     {
         len += pkgi_snprintf(data + len, sizeof(data) - len, "%sUSA", sep);
         sep = ",";
     }
     len += pkgi_snprintf(data + len, sizeof(data) - len, "\n");
 
-    if (config->no_version_check)
+    if (config.no_version_check)
     {
         len += pkgi_snprintf(
                 data + len, sizeof(data) - len, "no_version_check 1\n");
