@@ -306,7 +306,6 @@ int Download::download_head(const uint8_t* rif)
 
     index_size = 0;
 
-    uint32_t index_offset = 1;
     uint32_t offset = meta_offset;
     for (uint32_t i = 0; i < meta_count; i++)
     {
@@ -333,7 +332,7 @@ int Download::download_head(const uint8_t* rif)
         }
         else if (type == 13)
         {
-            index_offset = get32be(head + offset + 8);
+            // index_offset = get32be(head + offset + 8);
             index_size = get32be(head + offset + 12);
         }
         offset += 8 + size;
