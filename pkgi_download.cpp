@@ -320,7 +320,7 @@ int Download::download_head(const uint8_t* rif)
 
         if (type == 2)
         {
-            uint32_t content_type = get32be(head + offset + 8);
+            content_type = get32be(head + offset + 8);
             // 6 PSX game
             // 21 PSV game (or update)
             // 22 PSV DLC

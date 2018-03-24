@@ -81,6 +81,8 @@ public:
     uint64_t enc_size;
     uint32_t index_size;
 
+    uint32_t content_type;
+
     // encrypted files
     uint64_t encrypted_base;   // offset in pkg where it starts
     uint64_t encrypted_offset; // offset from beginning of file
