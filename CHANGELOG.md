@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.09
+
+What's new:
+
+- Added support for PSX games installation
+- Disabled version check because of a SSL issue preventing me from testing the
+  code
+
 ## 0.08
 
 What's new:
