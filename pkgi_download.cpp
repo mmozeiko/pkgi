@@ -611,7 +611,7 @@ int Download::download_tail(void)
     {
         uint32_t read =
                 (uint32_t)min64(sizeof(down), total_size - download_offset);
-        int size = download_data(down, read, 0, 1);
+        int size = download_data(down, read, 0, content_type != 6);
         if (size <= 0)
         {
             return 0;
@@ -742,8 +742,11 @@ int Download::pkgi_download(
         return 0;
     if (!download_tail())
         return 0;
-    if (!create_stat())
-        return 0;
+    if (content_type != 6)
+    {
+        if (!create_stat())
+            return 0;
+    }
     if (!check_integrity(digest))
         return 0;
     if (rif)
