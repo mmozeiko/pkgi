@@ -694,10 +694,14 @@ GameRegion pkgi_get_region(const char* content)
     case ID('P', 'C', 'S', 'H'):
     case ID('V', 'L', 'A', 'S'):
     case ID('P', 'C', 'S', 'D'):
+    case ID('N', 'P', 'H', 'I'):
+    case ID('N', 'P', 'H', 'J'):
         return RegionASA;
 
     case ID('P', 'C', 'S', 'F'):
     case ID('P', 'C', 'S', 'B'):
+    case ID('N', 'P', 'E', 'E'):
+    case ID('N', 'P', 'E', 'F'):
         return RegionEUR;
 
     case ID('P', 'C', 'S', 'C'):
@@ -705,10 +709,15 @@ GameRegion pkgi_get_region(const char* content)
     case ID('P', 'C', 'S', 'G'):
     case ID('V', 'L', 'J', 'S'):
     case ID('V', 'L', 'J', 'M'):
+    case ID('N', 'P', 'J', 'I'):
+    case ID('N', 'P', 'J', 'J'):
         return RegionJPN;
 
     case ID('P', 'C', 'S', 'E'):
     case ID('P', 'C', 'S', 'A'):
+    case ID('N', 'P', 'U', 'F'):
+    case ID('N', 'P', 'U', 'I'):
+    case ID('N', 'P', 'U', 'J'):
         return RegionUSA;
 
     default:
