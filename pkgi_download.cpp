@@ -537,7 +537,11 @@ int Download::download_files(void)
         if (enc_offset + item_offset + encrypted_offset != download_offset)
         {
             throw DownloadError(
-                    "pkg is not supported, files are in wrong order");
+                    "pkg is not supported, files are in wrong order, "
+                    "expected: " +
+                    std::to_string(
+                            enc_offset + item_offset + encrypted_offset) +
+                    ", actual: " + std::to_string(download_offset));
         }
 
         if (enc_offset + item_offset + item_size > total_size)
