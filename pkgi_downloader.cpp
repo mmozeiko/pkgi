@@ -13,7 +13,9 @@ std::string type_to_string(Type type)
     case Type::Update:
         return "update";
     case Type::Dlc:
-        return "dlc";
+        return "DLC";
+    case Type::PsxGame:
+        return "PSX game";
     }
     return "unknown";
 }
@@ -152,9 +154,10 @@ void Downloader::do_download(const DownloadItem& item)
         if (!pkgi_install_update(item.content.c_str()))
             return;
         break;
-    default:
-        LOG("error: unsupported type %d", item.type);
-        return;
+    case PsxGame:
+        if (!pkgi_install_psxgame(item.content.c_str()))
+            return;
+        break;
     }
     LOG("install of %s completed!", item.name.c_str());
 }

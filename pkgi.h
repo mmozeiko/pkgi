@@ -77,6 +77,7 @@ int pkgi_is_installed(const char* titleid);
 int pkgi_dlc_is_installed(const char* content);
 int pkgi_install(const char* titleid);
 int pkgi_install_update(const char* contentid);
+int pkgi_install_psxgame(const char* contentid);
 
 uint32_t pkgi_time_msec();
 

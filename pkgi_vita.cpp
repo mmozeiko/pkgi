@@ -783,6 +783,27 @@ int pkgi_install_update(const char* contentid)
     return res == 0;
 }
 
+int pkgi_install_psxgame(const char* contentid)
+{
+    char path[128];
+    snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
+
+    char dest[128];
+    snprintf(dest, sizeof(dest), "ux0:pspemu/PSP/GAME/%.9s", contentid + 7);
+
+    LOG("installing psx game at %s", path);
+    int res = sceIoRename(path, dest);
+    if (res == 0)
+    {
+        LOG("rename succeeded");
+    }
+    else
+    {
+        LOG("rename failed: %x", res);
+    }
+    return res == 0;
+}
+
 uint32_t pkgi_time_msec()
 {
     return sceKernelGetProcessTimeLow() / 1000;

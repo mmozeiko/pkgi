@@ -13,6 +13,7 @@ enum Type
     Game,
     Update,
     Dlc,
+    PsxGame,
 };
 
 struct DownloadItem
