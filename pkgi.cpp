@@ -503,9 +503,6 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                 return;
             }
             break;
-        default:
-            pkgi_dialog_error("Unsupported package type");
-            return;
         }
         LOG("[%s] %s - starting to install", item->content, item->name);
         pkgi_start_download(downloader);
