@@ -339,12 +339,42 @@ int Download::download_head(const uint8_t* rif)
         offset += 8 + size;
     }
 
-    if (index_offset != 0 || index_size == 0)
+    target_size = (uint32_t)(enc_offset + index_count * 32);
+    if (target_size > sizeof(head))
     {
-        throw DownloadError("pkg is missing encrypted file index");
+        LOG("pkg file head is too large");
+        throw DownloadError("pkg is not supported, head.bin is too big");
     }
 
-    target_size = (uint32_t)(enc_offset + index_size);
+    while (head_size != target_size)
+    {
+        int size =
+                download_data(head + head_size, target_size - head_size, 0, 1);
+        if (size <= 0)
+        {
+            return 0;
+        }
+        head_size += size;
+    }
+
+    uint64_t item_offset;
+    {
+        uint8_t item[32];
+        pkgi_memcpy(item, head + enc_offset, sizeof(item));
+        aes128_ctr(&aes, iv, 0, item, sizeof(item));
+
+        item_offset = get64be(item + 8);
+    }
+
+    if (index_size && item_offset != index_size)
+    {
+        throw DownloadError(
+                "assertion error: read-ahead mismatch, expected: " +
+                std::to_string(index_size) +
+                ", got: " + std::to_string(item_offset));
+    }
+
+    target_size = (uint32_t)(enc_offset + item_offset);
     if (target_size > sizeof(head))
     {
         LOG("pkg file head is too large");
