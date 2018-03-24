@@ -687,6 +687,15 @@ int pkgi_dlc_is_installed(const char* content)
     return sceIoGetstat(path, &stat) >= 0;
 }
 
+int pkgi_psx_is_installed(const char* content)
+{
+    char path[128];
+    snprintf(path, sizeof(path), "ux0:pspemu/PSP/GAME/%.9s", content + 7);
+
+    SceIoStat stat;
+    return sceIoGetstat(path, &stat) >= 0;
+}
+
 int pkgi_install(const char* contentid)
 {
     char path[128];
