@@ -108,20 +108,14 @@ static DbFilter parse_filter(char* value, uint32_t filter)
     return static_cast<DbFilter>(result);
 }
 
-void pkgi_load_config(
-        Config* config,
-        char* games_url,
-        uint32_t games_len,
-        char* updates_url,
-        uint32_t updates_len,
-        char* dlcs_url,
-        uint32_t dlcs_len)
+Config pkgi_load_config()
 {
-    dlcs_url[0] = updates_url[0] = games_url[0] = 0;
-    config->sort = SortByName;
-    config->order = SortAscending;
-    config->filter = DbFilterAll;
-    config->no_version_check = 0;
+    Config config;
+
+    config.sort = SortByName;
+    config.order = SortAscending;
+    config.filter = DbFilterAll;
+    config.no_version_check = 0;
 
     char data[4096];
     char path[256];
@@ -170,39 +164,26 @@ void pkgi_load_config(
 
             if (pkgi_stricmp(key, "url") == 0 ||
                 pkgi_stricmp(key, "url_games") == 0)
-            {
-                pkgi_strncpy(games_url, games_len, value);
-            }
+                config.games_url = value;
             else if (pkgi_stricmp(key, "url_updates") == 0)
-            {
-                pkgi_strncpy(updates_url, updates_len, value);
-            }
+                config.updates_url = value;
             else if (pkgi_stricmp(key, "url_dlcs") == 0)
-            {
-                pkgi_strncpy(dlcs_url, dlcs_len, value);
-            }
+                config.dlcs_url = value;
             else if (pkgi_stricmp(key, "sort") == 0)
-            {
-                config->sort = parse_sort(value, SortByName);
-            }
+                config.sort = parse_sort(value, SortByName);
             else if (pkgi_stricmp(key, "order") == 0)
-            {
-                config->order = parse_order(value, SortAscending);
-            }
+                config.order = parse_order(value, SortAscending);
             else if (pkgi_stricmp(key, "filter") == 0)
-            {
-                config->filter = parse_filter(value, DbFilterAll);
-            }
+                config.filter = parse_filter(value, DbFilterAll);
             else if (pkgi_stricmp(key, "no_version_check") == 0)
-            {
-                config->no_version_check = 1;
-            }
+                config.no_version_check = 1;
         }
     }
     else
     {
         LOG("config.txt cannot be loaded, using default values");
     }
+    return config;
 }
 
 static const char* sort_str(DbSort sort)

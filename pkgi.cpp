@@ -32,10 +32,7 @@ static uint32_t selected_item;
 
 static int search_active;
 
-static char games_url[256];
-static char updates_url[256];
-static char dlcs_url[256];
-static const char* current_url = games_url;
+static const char* current_url = nullptr;
 
 static Config config;
 static Config config_temp;
@@ -512,9 +509,9 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         input->pressed &= ~PKGI_BUTTON_T;
 
         config_temp = config;
-        int allow_refresh = (games_url[0] != 0) << 0 |
-                            (updates_url[0] != 0) << 1 |
-                            (dlcs_url[0] != 0) << 2;
+        int allow_refresh = !config.games_url.empty() << 0 |
+                            !config.updates_url.empty() << 1 |
+                            !config.dlcs_url.empty() << 2;
         pkgi_menu_start(search_active, &config, allow_refresh);
     }
 }
@@ -846,14 +843,8 @@ int main()
 
     LOG("started");
 
-    pkgi_load_config(
-            &config,
-            games_url,
-            sizeof(games_url),
-            updates_url,
-            sizeof(updates_url),
-            dlcs_url,
-            sizeof(dlcs_url));
+    config = pkgi_load_config();
+    current_url = config.games_url.c_str();
     pkgi_dialog_init();
 
     font_height = pkgi_text_height("M");
@@ -971,20 +962,24 @@ int main()
                     break;
                 case MenuResultAccept:
                     pkgi_menu_get(&config);
-                    pkgi_save_config(&config, games_url, updates_url, dlcs_url);
+                    pkgi_save_config(
+                            &config,
+                            config.games_url.c_str(),
+                            config.updates_url.c_str(),
+                            config.dlcs_url.c_str());
                     break;
                 case MenuResultRefreshGames:
-                    current_url = games_url;
+                    current_url = config.games_url.c_str();
                     state = StateRefreshing;
                     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
                     break;
                 case MenuResultRefreshUpdates:
-                    current_url = updates_url;
+                    current_url = config.updates_url.c_str();
                     state = StateRefreshing;
                     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
                     break;
                 case MenuResultRefreshDlcs:
-                    current_url = dlcs_url;
+                    current_url = config.dlcs_url.c_str();
                     state = StateRefreshing;
                     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
                     break;

@@ -2,22 +2,21 @@
 
 #include "pkgi_db.h"
 
+#include <string>
+
 typedef struct Config
 {
     DbSort sort;
     DbSortOrder order;
     uint32_t filter;
     int no_version_check;
+
+    std::string games_url;
+    std::string updates_url;
+    std::string dlcs_url;
 } Config;
 
-void pkgi_load_config(
-        Config* config,
-        char* games_url,
-        uint32_t games_len,
-        char* updates_url,
-        uint32_t updates_len,
-        char* dlcs_url,
-        uint32_t dlcs_len);
+Config pkgi_load_config();
 void pkgi_save_config(
         const Config* config,
         const char* games_url,
