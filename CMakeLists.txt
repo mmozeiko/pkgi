@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.6)
 
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   if(DEFINED ENV{VITASDK})
@@ -8,28 +8,39 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   endif()
 endif()
 
-project(pkgi)
+project(pkgj)
+
+# useful for memory alignment constraints
+set(CMAKE_CXX_STANDARD 17)
 
 include("${VITASDK}/share/vita.cmake" REQUIRED)
+include(ExternalProject)
 
-set(VITA_APP_NAME "PKGi")
-set(VITA_TITLEID  "PKGI00000")
-set(VITA_VERSION  "00.05")
+set(VITA_APP_NAME "PKGj")
+set(VITA_TITLEID  "PKGJ00000")
+set(VITA_VERSION  "00.09")
 
 option(PKGI_ENABLE_LOGGING "enables debug logging over udp multicast" OFF)
 
 if(PKGI_ENABLE_LOGGING)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPKGI_ENABLE_LOGGING")
-endif()
-
-if(NOT $ENV{PKGI_REFRESH_URL} STREQUAL "")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPKGI_REFRESH_URL=\\\"$ENV{PKGI_REFRESH_URL}\\\"")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPKGI_ENABLE_LOGGING")
 endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPKGI_VERSION=\\\"${VITA_VERSION}\\\" -D_GNU_SOURCE -g -Wall -Wextra -Werror -fvisibility=hidden")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -flto")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPKGI_VERSION=\\\"${VITA_VERSION}\\\" -D_GNU_SOURCE -g -Wall -Wextra -fvisibility=hidden")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto")
 
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
+
+ExternalProject_Add(Boost
+  URL https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.bz2
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+  INSTALL_COMMAND ""
+)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/Boost-prefix/src/Boost)
 
 function(add_assets target)
   set(result)
@@ -51,22 +62,25 @@ endfunction()
 
 add_assets(assets assets/background.png)
 
-add_executable(pkgi
+add_executable(pkgj
   ${assets}
-  pkgi.c
+  pkgi.cpp
   pkgi_aes128.c
-  pkgi_config.c
-  pkgi_db.c
+  pkgi_config.cpp
+  pkgi_db.cpp
   pkgi_dialog.c
-  pkgi_download.c
-  pkgi_menu.c
+  pkgi_download.cpp
+  pkgi_downloader.cpp
+  pkgi_menu.cpp
   pkgi_sha256.c
-  pkgi_vita.c
+  pkgi_vita.cpp
   pkgi_zrif.c
   puff.c
 )
 
-target_link_libraries(pkgi
+add_dependencies(pkgj Boost)
+
+target_link_libraries(pkgj
   vita2d
   png
   z
@@ -88,7 +102,7 @@ target_link_libraries(pkgi
   SceSysmodule_stub
 )
 
-vita_create_self(eboot.bin pkgi UNSAFE)
+vita_create_self(eboot.bin pkgj UNSAFE)
     
 vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} eboot.bin
   VERSION ${VITA_VERSION}

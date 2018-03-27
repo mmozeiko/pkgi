@@ -1,30 +1,35 @@
+extern "C" {
 #include "pkgi.h"
 #include "pkgi_style.h"
+}
+
+#include <string>
 
 #include <vita2d.h>
 
+#include <psp2/appmgr.h>
 #include <psp2/ctrl.h>
 #include <psp2/display.h>
-#include <psp2/shellutil.h>
 #include <psp2/ime_dialog.h>
 #include <psp2/io/devctl.h>
+#include <psp2/io/dirent.h>
 #include <psp2/io/fcntl.h>
 #include <psp2/io/stat.h>
+#include <psp2/kernel/clib.h>
+#include <psp2/kernel/processmgr.h>
+#include <psp2/kernel/threadmgr.h>
+#include <psp2/libssl.h>
+#include <psp2/net/http.h>
 #include <psp2/net/net.h>
 #include <psp2/net/netctl.h>
-#include <psp2/net/http.h>
-#include <psp2/kernel/clib.h>
-#include <psp2/kernel/threadmgr.h>
-#include <psp2/kernel/processmgr.h>
 #include <psp2/power.h>
-#include <psp2/libssl.h>
-#include <psp2/appmgr.h>
-#include <psp2/sysmodule.h>
 #include <psp2/promoterutil.h>
+#include <psp2/shellutil.h>
+#include <psp2/sysmodule.h>
 
 #include <stdarg.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 static vita2d_pgf* g_font;
 
@@ -47,9 +52,10 @@ static int g_log_socket;
 #define ANALOG_THRESHOLD 64
 #define ANALOG_SENSITIVITY 16
 
-#define VITA_COLOR(c) RGBA8((c)&0xff, (c>>8)&0xff, (c>>16)&0xff, 255)
+#define VITA_COLOR(c) RGBA8((c)&0xff, (c >> 8) & 0xff, (c >> 16) & 0xff, 255)
 
 #define PKGI_ERRNO_EEXIST (int)(0x80010000 + SCE_NET_EEXIST)
+#define PKGI_ERRNO_ENOENT (int)(0x80010000 + SCE_NET_ENOENT)
 
 #define PKGI_USER_AGENT "libhttp/3.65 (PS Vita)"
 
@@ -131,13 +137,15 @@ int pkgi_memequ(const void* a, const void* b, uint32_t size)
 static void pkgi_start_debug_log(void)
 {
 #ifdef PKGI_ENABLE_LOGGING
-    g_log_socket = sceNetSocket("log_socket", SCE_NET_AF_INET, SCE_NET_SOCK_DGRAM, SCE_NET_IPPROTO_UDP);
+    g_log_socket = sceNetSocket(
+            "log_socket",
+            SCE_NET_AF_INET,
+            SCE_NET_SOCK_DGRAM,
+            SCE_NET_IPPROTO_UDP);
 
-    SceNetSockaddrIn addr =
-    {
-        .sin_family = SCE_NET_AF_INET,
-        .sin_port = sceNetHtons(30000),
-    };
+    SceNetSockaddrIn addr{};
+    addr.sin_family = SCE_NET_AF_INET;
+    addr.sin_port = sceNetHtons(30000);
     sceNetInetPton(SCE_NET_AF_INET, "239.255.0.100", &addr.sin_addr);
 
     sceNetConnect(g_log_socket, (SceNetSockaddr*)&addr, sizeof(addr));
@@ -153,16 +161,17 @@ static void pkgi_stop_debug_log(void)
 }
 
 // TODO: this is from VitaShell
-// no idea why, but this seems to be required for promoter utility functions to work
+// no idea why, but this seems to be required for promoter utility functions to
+// work
 static void pkgi_load_sce_paf()
 {
     uint32_t args[] = {
-        0x00400000,
-        0x0000ea60,
-        0x00040000,
-        0x00000000,
-        0x00000001,
-        0x00000000,
+            0x00400000,
+            0x0000ea60,
+            0x00040000,
+            0x00000000,
+            0x00000001,
+            0x00000000,
     };
 
     uint32_t result = 0xDEADBEEF;
@@ -170,7 +179,8 @@ static void pkgi_load_sce_paf()
     uint32_t buffer[4] = {};
     buffer[1] = (uint32_t)&result;
 
-    sceSysmoduleLoadModuleInternalWithArg(SCE_SYSMODULE_INTERNAL_PAF, sizeof(args), args, buffer);
+    sceSysmoduleLoadModuleInternalWithArg(
+            SCE_SYSMODULE_INTERNAL_PAF, sizeof(args), args, buffer);
 }
 
 int pkgi_is_unsafe_mode(void)
@@ -188,7 +198,7 @@ int pkgi_cancel_button(void)
     return g_cancel_button;
 }
 
-static int pkgi_power_thread(SceSize args, void *argp)
+static int pkgi_power_thread(SceSize args, void* argp)
 {
     PKGI_UNUSED(args);
     PKGI_UNUSED(argp);
@@ -230,7 +240,8 @@ static uint16_t g_ime_title[SCE_IME_DIALOG_MAX_TITLE_LENGTH];
 static uint16_t g_ime_text[SCE_IME_DIALOG_MAX_TEXT_LENGTH];
 static uint16_t g_ime_input[SCE_IME_DIALOG_MAX_TEXT_LENGTH + 1];
 
-static int convert_to_utf16(const char* utf8, uint16_t* utf16, uint32_t available)
+static int convert_to_utf16(
+        const char* utf8, uint16_t* utf16, uint32_t available)
 {
     int count = 0;
     while (*utf8)
@@ -261,7 +272,7 @@ static int convert_to_utf16(const char* utf8, uint16_t* utf16, uint32_t availabl
             extra = 3;
         }
 
-        for (uint32_t i=0; i<extra; i++)
+        for (uint32_t i = 0; i < extra; i++)
         {
             uint8_t next = (uint8_t)*utf8++;
             if (next == 0 || (next & 0xc0) != 0x80)
@@ -273,13 +284,15 @@ static int convert_to_utf16(const char* utf8, uint16_t* utf16, uint32_t availabl
 
         if (code < 0xd800 || code >= 0xe000)
         {
-            if (available < 1) return count;
+            if (available < 1)
+                return count;
             utf16[count++] = (uint16_t)code;
             available--;
         }
         else // surrogate pair
         {
-            if (available < 2) return count;
+            if (available < 2)
+                return count;
             code -= 0x10000;
             utf16[count++] = 0xd800 | (code >> 10);
             utf16[count++] = 0xdc00 | (code & 0x3ff);
@@ -312,20 +325,23 @@ static int convert_from_utf16(const uint16_t* utf16, char* utf8, uint32_t size)
 
         if (code < 0x80)
         {
-            if (size < 1) return count;
+            if (size < 1)
+                return count;
             utf8[count++] = (char)code;
             size--;
         }
         else if (code < 0x800)
         {
-            if (size < 2) return count;
+            if (size < 2)
+                return count;
             utf8[count++] = (char)(0xc0 | (code >> 6));
             utf8[count++] = (char)(0x80 | (code & 0x3f));
             size -= 2;
         }
         else if (code < 0x10000)
         {
-            if (size < 3) return count;
+            if (size < 3)
+                return count;
             utf8[count++] = (char)(0xe0 | (code >> 12));
             utf8[count++] = (char)(0x80 | ((code >> 6) & 0x3f));
             utf8[count++] = (char)(0x80 | (code & 0x3f));
@@ -333,7 +349,8 @@ static int convert_from_utf16(const uint16_t* utf16, char* utf8, uint32_t size)
         }
         else
         {
-            if (size < 4) return count;
+            if (size < 4)
+                return count;
             utf8[count++] = (char)(0xf0 | (code >> 18));
             utf8[count++] = (char)(0x80 | ((code >> 12) & 0x3f));
             utf8[count++] = (char)(0x80 | ((code >> 6) & 0x3f));
@@ -349,8 +366,10 @@ void pkgi_dialog_input_text(const char* title, const char* text)
     SceImeDialogParam param;
     sceImeDialogParamInit(&param);
 
-    int title_len = convert_to_utf16(title, g_ime_title, PKGI_COUNTOF(g_ime_title) - 1);
-    int text_len = convert_to_utf16(text, g_ime_text, PKGI_COUNTOF(g_ime_text) - 1);
+    int title_len =
+            convert_to_utf16(title, g_ime_title, PKGI_COUNTOF(g_ime_title) - 1);
+    int text_len =
+            convert_to_utf16(text, g_ime_text, PKGI_COUNTOF(g_ime_text) - 1);
     g_ime_title[title_len] = 0;
     g_ime_text[text_len] = 0;
 
@@ -384,7 +403,7 @@ int pkgi_dialog_input_update(void)
     SceCommonDialogStatus status = sceImeDialogGetStatus();
     if (status == SCE_COMMON_DIALOG_STATUS_FINISHED)
     {
-        SceImeDialogResult result = { 0 };
+        SceImeDialogResult result{};
         sceImeDialogGetResult(&result);
 
         g_ime_active = 0;
@@ -414,10 +433,10 @@ void pkgi_start(void)
     sceSysmoduleLoadModule(SCE_SYSMODULE_SSL);
 
     static uint8_t netmem[1024 * 1024];
-    SceNetInitParam net =
-    {
-        .memory = netmem,
-        .size = sizeof(netmem),
+    SceNetInitParam net = {
+            .memory = netmem,
+            .size = sizeof(netmem),
+            .flags = 0,
     };
 
     sceNetInit(&net);
@@ -440,14 +459,16 @@ void pkgi_start(void)
     sceShellUtilInitEvents(0);
     sceShellUtilLock(SCE_SHELL_UTIL_LOCK_TYPE_USB_CONNECTION);
 
-    SceAppUtilInitParam init = { 0 };
-    SceAppUtilBootParam boot = { 0 };
+    SceAppUtilInitParam init{};
+    SceAppUtilBootParam boot{};
     sceAppUtilInit(&init, &boot);
 
     SceCommonDialogConfigParam config;
     sceCommonDialogConfigParamInit(&config);
-    sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_LANG, (int*)&config.language);
-    sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_ENTER_BUTTON, (int*)&config.enterButtonAssign);
+    sceAppUtilSystemParamGetInt(
+            SCE_SYSTEM_PARAM_ID_LANG, (int*)&config.language);
+    sceAppUtilSystemParamGetInt(
+            SCE_SYSTEM_PARAM_ID_ENTER_BUTTON, (int*)&config.enterButtonAssign);
     sceCommonDialogSetConfigParam(&config);
 
     if (config.enterButtonAssign == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE)
@@ -479,7 +500,14 @@ void pkgi_start(void)
     sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 
     g_power_lock = 0;
-    SceUID power_thread = sceKernelCreateThread("power_thread", &pkgi_power_thread, 0x10000100, 0x40000, 0, 0, NULL);
+    SceUID power_thread = sceKernelCreateThread(
+            "power_thread",
+            &pkgi_power_thread,
+            0x10000100,
+            0x40000,
+            0,
+            0,
+            NULL);
     if (power_thread >= 0)
     {
         sceKernelStartThread(power_thread, 0, NULL);
@@ -493,16 +521,20 @@ void pkgi_start(void)
 
 int pkgi_update(pkgi_input* input)
 {
-    SceCtrlData pad = { 0 };
+    SceCtrlData pad{};
     sceCtrlPeekBufferPositive(0, &pad, 1);
-    
+
     uint32_t previous = input->down;
 
     input->down = pad.buttons;
-    if (pad.lx < ANALOG_CENTER - ANALOG_THRESHOLD) input->down |= PKGI_BUTTON_LEFT;
-    if (pad.lx > ANALOG_CENTER + ANALOG_THRESHOLD) input->down |= PKGI_BUTTON_RIGHT;
-    if (pad.ly < ANALOG_CENTER - ANALOG_THRESHOLD) input->down |= PKGI_BUTTON_UP;
-    if (pad.ly > ANALOG_CENTER + ANALOG_THRESHOLD) input->down |= PKGI_BUTTON_DOWN;
+    if (pad.lx < ANALOG_CENTER - ANALOG_THRESHOLD)
+        input->down |= PKGI_BUTTON_LEFT;
+    if (pad.lx > ANALOG_CENTER + ANALOG_THRESHOLD)
+        input->down |= PKGI_BUTTON_RIGHT;
+    if (pad.ly < ANALOG_CENTER - ANALOG_THRESHOLD)
+        input->down |= PKGI_BUTTON_UP;
+    if (pad.ly > ANALOG_CENTER + ANALOG_THRESHOLD)
+        input->down |= PKGI_BUTTON_DOWN;
 
     input->pressed = input->down & ~previous;
     input->active = input->pressed;
@@ -553,7 +585,7 @@ void pkgi_end(void)
     sceKernelDeleteLwMutex(&g_dialog_lock);
 
     sceHttpTerm();
-    //sceSslTerm();
+    // sceSslTerm();
     sceNetCtlTerm();
     sceNetTerm();
 
@@ -589,14 +621,15 @@ uint64_t pkgi_get_free_space(void)
 {
     if (pkgi_is_unsafe_mode())
     {
-        SceIoDevInfo info = { 0 };
+        SceIoDevInfo info{};
         sceIoDevctl("ux0:", 0x3001, NULL, 0, &info, sizeof(info));
         return info.free_size;
     }
     else
     {
         uint64_t free, max;
-        sceAppMgrGetDevInfo("ux0:", &max, &free);
+        char dev[] = "ux0:";
+        sceAppMgrGetDevInfo(dev, &max, &free);
         return free;
     }
 }
@@ -616,10 +649,15 @@ const char* pkgi_get_app_folder(void)
     return "ux0:app";
 }
 
-int pkgi_is_incomplete(const char* titleid)
+int pkgi_is_incomplete(const char* contentid)
 {
     char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/%s.resume", pkgi_get_temp_folder(), titleid);
+    pkgi_snprintf(
+            path,
+            sizeof(path),
+            "%s/%s.resume",
+            pkgi_get_temp_folder(),
+            contentid);
 
     SceIoStat stat;
     int res = sceIoGetstat(path, &stat);
@@ -635,10 +673,33 @@ int pkgi_is_installed(const char* titleid)
     return res == 0;
 }
 
-int pkgi_install(const char* titleid)
+int pkgi_dlc_is_installed(const char* content)
 {
     char path[128];
-    snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), titleid);
+    snprintf(
+            path,
+            sizeof(path),
+            "ux0:addcont/%.9s/%.16s",
+            content + 7,
+            content + 20);
+
+    SceIoStat stat;
+    return sceIoGetstat(path, &stat) >= 0;
+}
+
+int pkgi_psx_is_installed(const char* content)
+{
+    char path[128];
+    snprintf(path, sizeof(path), "ux0:pspemu/PSP/GAME/%.9s", content + 7);
+
+    SceIoStat stat;
+    return sceIoGetstat(path, &stat) >= 0;
+}
+
+int pkgi_install(const char* contentid)
+{
+    char path[128];
+    snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
 
     LOG("calling scePromoterUtilityPromotePkgWithRif on %s", path);
     int res = scePromoterUtilityPromotePkgWithRif(path, 1);
@@ -648,7 +709,106 @@ int pkgi_install(const char* titleid)
     }
     else
     {
-        LOG("scePromoterUtilityPromotePkgWithRif failed");
+        LOG("scePromoterUtilityPromotePkgWithRif failed: %x", res);
+    }
+    return res == 0;
+}
+
+static int pkgi_delete_dir(const std::string& path)
+{
+    SceUID dfd = sceIoDopen(path.c_str());
+    if (dfd == PKGI_ERRNO_ENOENT)
+        return 1;
+
+    if (dfd < 0)
+    {
+        LOG("failed to Dopen %s: %x", path.c_str(), dfd);
+        return 0;
+    }
+
+    int res = 0;
+    SceIoDirent dir;
+    memset(&dir, 0, sizeof(SceIoDirent));
+    while ((res = sceIoDread(dfd, &dir)) > 0)
+    {
+        std::string new_path =
+                path + (path[path.size() - 1] == '/' ? "" : "/") + dir.d_name;
+
+        if (SCE_S_ISDIR(dir.d_stat.st_mode))
+        {
+            int ret = pkgi_delete_dir(new_path);
+            if (!ret)
+            {
+                sceIoDclose(dfd);
+                return 0;
+            }
+        }
+        else
+        {
+            int ret = sceIoRemove(new_path.c_str());
+            if (ret < 0)
+            {
+                LOG("failed to remove %s: %x", new_path.c_str(), ret);
+                sceIoDclose(dfd);
+                return 0;
+            }
+        }
+    }
+
+    sceIoDclose(dfd);
+
+    res = sceIoRmdir(path.c_str());
+    if (res < 0)
+    {
+        LOG("failed to rmdir %s: %x", path.c_str(), res);
+        return 0;
+    }
+
+    return 1;
+}
+
+int pkgi_install_update(const char* contentid)
+{
+    char path[128];
+    snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
+
+    char dest[128];
+    snprintf(dest, sizeof(dest), "ux0:patch/%.9s", contentid + 7);
+
+    LOG("deleting previous patch");
+    if (!pkgi_delete_dir(dest))
+        return 0;
+
+    LOG("installing update at %s", path);
+    int res = sceIoRename(path, dest);
+    if (res == 0)
+    {
+        LOG("rename succeeded");
+    }
+    else
+    {
+        LOG("rename failed: %x", res);
+    }
+    return res == 0;
+}
+
+int pkgi_install_psxgame(const char* contentid)
+{
+    char path[128];
+    snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
+
+    char dest[128];
+    snprintf(dest, sizeof(dest), "ux0:pspemu/PSP/GAME/%.9s", contentid + 7);
+
+    LOG("installing psx game at %s", path);
+    int res = sceIoRename(path, dest);
+    if (res == 0)
+    {
+        LOG("rename succeeded");
+    }
+    else
+    {
+        LOG("rename failed: %x", res);
     }
     return res == 0;
 }
@@ -668,7 +828,8 @@ static int pkgi_vita_thread(SceSize args, void* argp)
 
 void pkgi_start_thread(const char* name, pkgi_thread_entry* start)
 {
-    SceUID id = sceKernelCreateThread(name, &pkgi_vita_thread, 0x40, 1024*1024, 0, 0, NULL);
+    SceUID id = sceKernelCreateThread(
+            name, &pkgi_vita_thread, 0x40, 1024 * 1024, 0, 0, NULL);
     if (id < 0)
     {
         LOG("failed to start %s thread", name);
@@ -692,7 +853,7 @@ int pkgi_load(const char* name, void* data, uint32_t max)
         return -1;
     }
 
-    char* data8 = data;
+    char* data8 = static_cast<char*>(data);
 
     int total = 0;
     while (max != 0)
@@ -724,7 +885,7 @@ int pkgi_save(const char* name, const void* data, uint32_t size)
     }
 
     int ret = 1;
-    const char* data8 = data;
+    const char* data8 = static_cast<const char*>(data);
     while (size != 0)
     {
         int written = sceIoWrite(fd, data8, size);
@@ -778,7 +939,7 @@ pkgi_texture pkgi_load_png_raw(const void* data, uint32_t size)
 
 void pkgi_draw_texture(pkgi_texture texture, int x, int y)
 {
-    vita2d_texture* tex = texture;
+    vita2d_texture* tex = static_cast<vita2d_texture*>(texture);
     vita2d_draw_texture(tex, (float)x, (float)y);
 }
 
@@ -795,7 +956,8 @@ void pkgi_clip_remove(void)
 
 void pkgi_draw_rect(int x, int y, int w, int h, uint32_t color)
 {
-    vita2d_draw_rectangle((float)x, (float)y, (float)w, (float)h, VITA_COLOR(color));
+    vita2d_draw_rectangle(
+            (float)x, (float)y, (float)w, (float)h, VITA_COLOR(color));
 }
 
 void pkgi_draw_text(int x, int y, uint32_t color, const char* text)
@@ -860,13 +1022,25 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
     if (content)
     {
         strcpy(path, pkgi_get_temp_folder());
-        strcat(path, strrchr(url, '/'));
+        const char* lastslash = strrchr(url, '/');
+        if (lastslash)
+            strcat(path, lastslash);
+        else
+        {
+            strcat(path, "/");
+            strcat(path, url);
+        }
 
         http->fd = sceIoOpen(path, SCE_O_RDONLY, 0777);
         if (http->fd < 0)
         {
             LOG("%s not found, trying shorter path", path);
-            pkgi_snprintf(path, sizeof(path), "%s/%s.pkg", pkgi_get_temp_folder(), content);
+            pkgi_snprintf(
+                    path,
+                    sizeof(path),
+                    "%s/%s.pkg",
+                    pkgi_get_temp_folder(),
+                    content);
         }
 
         http->fd = sceIoOpen(path, SCE_O_RDONLY, 0777);
@@ -908,7 +1082,8 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
 
         LOG("starting http GET request for %s", url);
 
-        if ((tmpl = sceHttpCreateTemplate(PKGI_USER_AGENT, SCE_HTTP_VERSION_1_1, SCE_TRUE)) < 0)
+        if ((tmpl = sceHttpCreateTemplate(
+                     PKGI_USER_AGENT, SCE_HTTP_VERSION_1_1, SCE_TRUE)) < 0)
         {
             LOG("sceHttpCreateTemplate failed: 0x%08x", tmpl);
             goto bail;
@@ -921,7 +1096,8 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
             goto bail;
         }
 
-        if ((req = sceHttpCreateRequestWithURL(conn, SCE_HTTP_METHOD_GET, url, 0)) < 0)
+        if ((req = sceHttpCreateRequestWithURL(
+                     conn, SCE_HTTP_METHOD_GET, url, 0)) < 0)
         {
             LOG("sceHttpCreateRequestWithURL failed: 0x%08x", req);
             goto bail;
@@ -933,7 +1109,8 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
         {
             char range[64];
             pkgi_snprintf(range, sizeof(range), "bytes=%llu-", offset);
-            if ((err = sceHttpAddRequestHeader(req, "Range", range, SCE_HTTP_HEADER_ADD)) < 0)
+            if ((err = sceHttpAddRequestHeader(
+                         req, "Range", range, SCE_HTTP_HEADER_ADD)) < 0)
             {
                 LOG("sceHttpAddRequestHeader failed: 0x%08x", err);
                 goto bail;
@@ -956,9 +1133,12 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
         result = http;
 
     bail:
-        if (req < 0) sceHttpDeleteRequest(req);
-        if (conn < 0) sceHttpDeleteConnection(conn);
-        if (tmpl < 0) sceHttpDeleteTemplate(tmpl);
+        if (req < 0)
+            sceHttpDeleteRequest(req);
+        if (conn < 0)
+            sceHttpDeleteConnection(conn);
+        if (tmpl < 0)
+            sceHttpDeleteTemplate(tmpl);
     }
 
     return result;
@@ -995,9 +1175,11 @@ int pkgi_http_response_length(pkgi_http* http, int64_t* length)
 
             uint64_t content_length;
             res = sceHttpGetResponseContentLength(http->req, &content_length);
-            if (res == (int)SCE_HTTP_ERROR_NO_CONTENT_LENGTH || res == (int)SCE_HTTP_ERROR_CHUNK_ENC)
+            if (res == (int)SCE_HTTP_ERROR_NO_CONTENT_LENGTH ||
+                res == (int)SCE_HTTP_ERROR_CHUNK_ENC)
             {
-                LOG("http response has no content length (or chunked encoding)");
+                LOG("http response has no content length (or chunked "
+                    "encoding)");
                 *length = 0;
             }
             else if (res < 0)
@@ -1072,7 +1254,8 @@ int pkgi_mkdirs(char* path)
         if (err < 0 && err != PKGI_ERRNO_EEXIST)
         {
             LOG("sceIoMkdir %s err=0x%08x", path, (uint32_t)err);
-            // LOG("pkgi_mkdirs exit %llu", sceKernelGetProcessTimeWide() / 1000);
+            // LOG("pkgi_mkdirs exit %llu", sceKernelGetProcessTimeWide() /
+            // 1000);
             return 0;
         }
         *ptr++ = last;
@@ -1091,7 +1274,7 @@ void pkgi_rm(const char* file)
     int err = sceIoRemove(file);
     if (err < 0)
     {
-        LOG("error removing %s file, err=0x%08x", err);
+        LOG("error removing %s file, err=0x%08x", file, err);
     }
 }
 
@@ -1138,7 +1321,8 @@ void* pkgi_openrw(const char* path)
 void* pkgi_append(const char* path)
 {
     LOG("sceIoOpen append on %s", path);
-    SceUID fd = sceIoOpen(path, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777);
+    SceUID fd =
+            sceIoOpen(path, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777);
     if (fd < 0)
     {
         LOG("cannot append %s, err=0x%08x", path, fd);
