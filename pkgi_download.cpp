@@ -446,11 +446,7 @@ int Download::download_files(void)
             item_size,
             type);
 
-        if (type == 4 || type == 18)
-        {
-            continue;
-        }
-        else if (content_type == 6)
+        if (content_type == 6)
         {
             if (std::string(item_name) == "USRDIR/CONTENT/DOCUMENT.DAT")
                 pkgi_snprintf(
@@ -476,6 +472,16 @@ int Download::download_files(void)
         else
             pkgi_snprintf(
                     item_path, sizeof(item_path), "%s/%s", root, item_name);
+
+        if (type == 4)
+        {
+            pkgi_mkdirs(item_path);
+            continue;
+        }
+        else if (type == 18)
+        {
+            continue;
+        }
 
         if (download_resume)
         {
