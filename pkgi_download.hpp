@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -11,7 +12,7 @@ extern "C" {
 #include "pkgi_sha256.h"
 }
 
-#include "pkgi_vitahttp.hpp"
+#include "pkgi_http.hpp"
 
 #define PKGI_RIF_SIZE 512
 #define PKG_HEADER_SIZE 192
@@ -37,6 +38,8 @@ private:
 class Download
 {
 public:
+    Download(std::unique_ptr<Http> http);
+
     int pkgi_download(
             const char* content,
             const char* url,
@@ -47,7 +50,7 @@ public:
     // temporary unpack folder ux0:pkgi/TITLE
     char root[256];
 
-    VitaHttp _http;
+    std::unique_ptr<Http> _http;
     const char* download_content;
     const char* download_url;
 

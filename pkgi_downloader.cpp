@@ -3,6 +3,7 @@
 #include <boost/scope_exit.hpp>
 
 #include "pkgi_download.hpp"
+#include "pkgi_vitahttp.hpp"
 
 std::string type_to_string(Type type)
 {
@@ -130,7 +131,7 @@ void Downloader::do_download(const DownloadItem& item)
 
     ScopeProcessLock _;
     LOG("downloading %s", item.name.c_str());
-    auto download = std::make_unique<Download>();
+    auto download = std::make_unique<Download>(std::make_unique<VitaHttp>());
     download->update_progress_cb = [this](const Download& d) {
         _progress = float(d.download_offset) / float(d.download_size);
     };

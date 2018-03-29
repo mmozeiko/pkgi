@@ -15,6 +15,10 @@ static const uint8_t pkg_vita_3[] = { 0x42, 0x3a, 0xca, 0x3a, 0x2b, 0xd5, 0x64, 
 static const uint8_t pkg_vita_4[] = { 0xaf, 0x07, 0xfd, 0x59, 0x65, 0x25, 0x27, 0xba, 0xf1, 0x33, 0x89, 0x66, 0x8b, 0x17, 0xd9, 0xea };
 // clang-format on
 
+Download::Download(std::unique_ptr<Http> http) : _http(std::move(http))
+{
+}
+
 void Download::download_start(void)
 {
     LOG("resuming pkg download from %llu offset", download_offset);
@@ -42,12 +46,12 @@ int Download::download_data(
 
     update_progress();
 
-    if (!_http)
+    if (!*_http)
     {
         LOG("requesting %s @ %llu", download_url, download_offset);
-        _http.start(download_url, download_offset);
+        _http->start(download_url, download_offset);
 
-        const int64_t http_length = _http.get_length();
+        const int64_t http_length = _http->get_length();
         if (http_length < 0)
         {
             throw DownloadError("HTTP response has unknown length");
@@ -62,7 +66,7 @@ int Download::download_data(
         info_update = pkgi_time_msec() + 500;
     }
 
-    int read = _http.read(buffer, size);
+    int read = _http->read(buffer, size);
     if (read < 0)
     {
         char error[256];
