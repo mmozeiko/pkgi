@@ -42,20 +42,12 @@ int Download::download_data(
 
     update_progress();
 
-    if (!http)
+    if (!_http)
     {
         LOG("requesting %s @ %llu", download_url, download_offset);
-        http = pkgi_http_get(download_url, download_content, download_offset);
-        if (!http)
-        {
-            throw DownloadError("cannot send HTTP request");
-        }
+        _http.start(download_url, download_offset);
 
-        int64_t http_length;
-        if (!pkgi_http_response_length(http, &http_length))
-        {
-            throw DownloadError("HTTP request failed");
-        }
+        const int64_t http_length = _http.get_length();
         if (http_length < 0)
         {
             throw DownloadError("HTTP response has unknown length");
@@ -75,7 +67,7 @@ int Download::download_data(
         info_update = pkgi_time_msec() + 500;
     }
 
-    int read = pkgi_http_read(http, buffer, size);
+    int read = _http.read(buffer, size);
     if (read < 0)
     {
         char error[256];
@@ -612,7 +604,6 @@ int Download::pkgi_download(
     update_status("Downloading");
     sha256_init(&sha);
 
-    http = NULL;
     item_file = NULL;
     item_index = -1;
     download_size = 0;
@@ -622,14 +613,6 @@ int Download::pkgi_download(
 
     info_start = pkgi_time_msec();
     info_update = info_start + 1000;
-
-    BOOST_SCOPE_EXIT_ALL(&)
-    {
-        if (http)
-        {
-            pkgi_http_close(http);
-        }
-    };
 
     if (!download_head(rif))
         return 0;

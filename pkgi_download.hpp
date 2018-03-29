@@ -11,6 +11,8 @@ extern "C" {
 #include "pkgi_sha256.h"
 }
 
+#include "pkgi_vitahttp.hpp"
+
 #define PKGI_RIF_SIZE 512
 #define PKG_HEADER_SIZE 192
 #define PKG_HEADER_EXT_SIZE 64
@@ -45,7 +47,7 @@ public:
     // temporary unpack folder ux0:pkgi/TITLE
     char root[256];
 
-    pkgi_http* http;
+    VitaHttp _http;
     const char* download_content;
     const char* download_url;
 
