@@ -42,6 +42,20 @@ ExternalProject_Add(Boost
 )
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/Boost-prefix/src/Boost)
 
+ExternalProject_Add(fmtproject
+  URL https://github.com/fmtlib/fmt/releases/download/4.1.0/fmt-4.1.0.zip
+  CMAKE_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}" "-DFMT_TEST=OFF" "-DHAVE_OPEN=OFF" "-DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/fmtinst"
+  BUILD_BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/fmtinst/lib/libfmt.a
+)
+add_library(fmt STATIC IMPORTED GLOBAL)
+set_property(TARGET fmt PROPERTY IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/fmtinst/lib/libfmt.a)
+#if we don't make the dir, cmake is unhappy
+#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/fmtinst/include)
+#actually it doesn't work, vitasdk's gcc thinks that -isystem includes are C
+#set_property(TARGET fmt PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_BINARY_DIR}/fmtinst/include)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/fmtinst/include)
+add_dependencies(fmt fmtproject)
+
 function(add_assets target)
   set(result)
   foreach(in_f ${ARGN})
@@ -71,6 +85,7 @@ add_executable(pkgj
   pkgi_dialog.c
   pkgi_download.cpp
   pkgi_downloader.cpp
+  pkgi_http.cpp
   pkgi_menu.cpp
   pkgi_sha256.c
   pkgi_vita.cpp
@@ -78,10 +93,11 @@ add_executable(pkgj
   puff.c
 )
 
-add_dependencies(pkgj Boost)
+add_dependencies(pkgj Boost fmtproject)
 
 target_link_libraries(pkgj
   vita2d
+  fmt
   png
   z
   m
