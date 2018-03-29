@@ -45,14 +45,10 @@ public:
     // temporary unpack folder ux0:pkgi/TITLE
     char root[256];
 
-    char resume_file[256];
-
     pkgi_http* http;
     const char* download_content;
     const char* download_url;
-    int download_resume;
 
-    uint64_t initial_offset;  // where http download resumes
     uint64_t download_offset; // pkg absolute offset
     uint64_t download_size;   // pkg total size (from http request)
 

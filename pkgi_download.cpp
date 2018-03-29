@@ -18,7 +18,6 @@ static const uint8_t pkg_vita_4[] = { 0xaf, 0x07, 0xfd, 0x59, 0x65, 0x25, 0x27, 
 void Download::download_start(void)
 {
     LOG("resuming pkg download from %llu offset", download_offset);
-    download_resume = 0;
     info_update = pkgi_time_msec() + 1000;
     update_status("Downloading");
 }
@@ -38,37 +37,13 @@ int Download::download_data(
 {
     if (is_canceled())
     {
-        pkgi_save(resume_file, &sha, sizeof(sha));
         return 0;
     }
 
     update_progress();
 
-    if (download_resume)
-    {
-        int read = pkgi_read(item_file, buffer, size);
-        if (read < 0)
-        {
-            char error[256];
-            pkgi_snprintf(
-                    error, sizeof(error), "failed to read file %s", item_path);
-            throw DownloadError(error);
-        }
-
-        if (read != 0)
-        {
-            // this is only for non-encrypted files (head/tail) when resuming
-            download_offset += read;
-            return read;
-        }
-
-        // not more data to read, need to start actual download
-        download_start();
-    }
-
     if (!http)
     {
-        initial_offset = download_offset;
         LOG("requesting %s @ %llu", download_url, download_offset);
         http = pkgi_http_get(download_url, download_content, download_offset);
         if (!http)
@@ -103,14 +78,12 @@ int Download::download_data(
     int read = pkgi_http_read(http, buffer, size);
     if (read < 0)
     {
-        pkgi_save(resume_file, &sha, sizeof(sha));
         char error[256];
         pkgi_snprintf(error, sizeof(error), "HTTP download error 0x%08x", read);
         throw DownloadError(error);
     }
     else if (read == 0)
     {
-        pkgi_save(resume_file, &sha, sizeof(sha));
         throw DownloadError("HTTP connection closed");
     }
     download_offset += read;
@@ -193,27 +166,11 @@ int Download::download_head(const uint8_t* rif)
         }
     };
 
-    if (download_resume)
+    if (!create_file())
     {
-        item_file = pkgi_openrw(item_path);
-        if (item_file)
-        {
-            LOG("trying to resume %s file", item_name);
-        }
-        else
-        {
-            download_start();
-        }
-    }
-
-    if (!download_resume)
-    {
-        if (!create_file())
-        {
-            char error[256];
-            pkgi_snprintf(error, sizeof(error), "cannot create %s", item_path);
-            throw DownloadError(error);
-        }
+        char error[256];
+        pkgi_snprintf(error, sizeof(error), "cannot create %s", item_path);
+        throw DownloadError(error);
     }
 
     head_size = PKG_HEADER_SIZE + PKG_HEADER_EXT_SIZE;
@@ -483,60 +440,11 @@ int Download::download_files(void)
             continue;
         }
 
-        if (download_resume)
+        if (!create_file())
         {
-            if (is_canceled())
-            {
-                return 0;
-            }
-
-            int64_t current_size = pkgi_get_size(item_path);
-            if (current_size < 0)
-            {
-                LOG("file does not exist %s", item_path);
-                download_start();
-            }
-            else if ((uint64_t)current_size != decrypted_size)
-            {
-                LOG("downloaded %llu, total %llu, resuming %s",
-                    (uint64_t)current_size,
-                    decrypted_size,
-                    item_path);
-                item_file = pkgi_append(item_path);
-                if (!item_file)
-                {
-                    char error[256];
-                    pkgi_snprintf(
-                            error,
-                            sizeof(error),
-                            "cannot append to %s",
-                            item_name);
-                    throw DownloadError(error);
-                }
-                encrypted_offset = (uint64_t)current_size;
-                decrypted_size -= current_size;
-                download_offset += current_size;
-                download_start();
-            }
-            else
-            {
-                LOG("file fully downloaded %s", item_name);
-                download_offset += encrypted_size;
-                update_progress();
-                continue;
-            }
-        }
-
-        // if we are starting to download file from scratch
-        if (!download_resume && !item_file)
-        {
-            if (!create_file())
-            {
-                char error[256];
-                pkgi_snprintf(
-                        error, sizeof(error), "cannot create %s", item_name);
-                throw DownloadError(error);
-            }
+            char error[256];
+            pkgi_snprintf(error, sizeof(error), "cannot create %s", item_name);
+            throw DownloadError(error);
         }
 
         if (enc_offset + item_offset + encrypted_offset != download_offset)
@@ -591,11 +499,6 @@ int Download::download_tail(void)
     pkgi_strncpy(item_name, sizeof(item_name), "Finishing...");
     pkgi_snprintf(
             item_path, sizeof(item_path), "%s/sce_sys/package/tail.bin", root);
-
-    if (download_resume)
-    {
-        download_start();
-    }
 
     if (!create_file())
     {
@@ -706,25 +609,8 @@ int Download::pkgi_download(
     pkgi_snprintf(root, sizeof(root), "%s/%s", pkgi_get_temp_folder(), content);
     LOG("temp installation folder: %s", root);
 
-    pkgi_snprintf(
-            resume_file,
-            sizeof(resume_file),
-            "%s/%s.resume",
-            pkgi_get_temp_folder(),
-            content);
-    if (pkgi_load(resume_file, &sha, sizeof(sha)) == sizeof(sha))
-    {
-        LOG("resume file exists, trying to resume");
-        update_status("Resuming");
-        download_resume = 1;
-    }
-    else
-    {
-        LOG("cannot load resume file, starting download from scratch");
-        update_status("Downloading");
-        download_resume = 0;
-        sha256_init(&sha);
-    }
+    update_status("Downloading");
+    sha256_init(&sha);
 
     http = NULL;
     item_file = NULL;
@@ -764,6 +650,5 @@ int Download::pkgi_download(
             return 0;
     }
 
-    pkgi_rm(resume_file);
     return 1;
 }
