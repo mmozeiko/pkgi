@@ -55,11 +55,6 @@ int Download::download_data(
 
         download_size = http_length + download_offset;
 
-        if (!pkgi_check_free_space(http_length))
-        {
-            return 0;
-        }
-
         LOG("http response length = %lld, total pkg size = %llu",
             http_length,
             download_size);

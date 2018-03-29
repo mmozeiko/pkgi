@@ -144,28 +144,6 @@ static const char* friendly_size_str(uint64_t size)
     }
 }
 
-int pkgi_check_free_space(uint64_t size)
-{
-    uint64_t free = pkgi_get_free_space();
-    if (size > free + 1024 * 1024)
-    {
-        char error[256];
-        pkgi_snprintf(
-                error,
-                sizeof(error),
-                "pkg requires %u %s free space, but only %u %s available",
-                friendly_size(size),
-                friendly_size_str(size),
-                friendly_size(free),
-                friendly_size_str(free));
-
-        pkgi_dialog_error(error);
-        return 0;
-    }
-
-    return 1;
-}
-
 static void pkgi_friendly_size(char* text, uint32_t textlen, int64_t size)
 {
     if (size <= 0)
