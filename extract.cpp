@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 
     uint8_t rif[PKGI_RIF_SIZE];
     char message[256];
-    if (!pkgi_zrif_decode(argv[2], rif, message, sizeof(message)))
+    if (argv[2][0] && !pkgi_zrif_decode(argv[2], rif, message, sizeof(message)))
         throw std::runtime_error(fmt::format("can't decode zrif: {}", message));
 
     Download d(std::make_unique<FileHttp>());
@@ -32,7 +32,8 @@ int main(int argc, char* argv[])
     d.update_status = [](auto&&) {};
     d.is_canceled = [] { return false; };
 
-    d.pkgi_download(argv[1], argv[1], rif, digest.data());
+    d.pkgi_download(
+            argv[1], argv[1], argv[2][0] ? rif : nullptr, digest.data());
 
     return 0;
 }
