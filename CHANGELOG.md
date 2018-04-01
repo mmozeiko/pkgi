@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.10
+
+What's new:
+
+- Updated to new TSV format
+
+Bug fixes:
+
+- Fixed bug that would hide the last line of TSV files
+- Fixed installation of certain games
+
+Removed features:
+
+- Can't resume downloads anymore (will be restored later)
+
 ## 0.09
 
 What's new:

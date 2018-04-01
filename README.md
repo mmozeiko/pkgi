@@ -11,8 +11,6 @@ This homebrew allows to download & unpack pkg file directly on Vita together wit
 * **easy** way to see list of available downloads, including searching, filter & sorting.
 * **standalone**, no PC required, everything happens directly on Vita.
 * **automatic** download and unpack, just choose an item, and it will be installed, including bubble in live area.
-* **resumes** interrupted download, you can stop download at any time, switch applications, and come back to download
-  from place it stopped.
 
 Differences with PKGi:
 * **queues** multiple downloads.
