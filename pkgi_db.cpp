@@ -325,14 +325,16 @@ static void parse_tsv_file()
         const char* digest = ptr;
         while (ptr < end && *ptr != '\n' && *ptr != '\r')
             ptr++;
-        if (ptr == end)
-            break;
-        *ptr++ = 0;
+        if (ptr != end)
+        {
+            *ptr++ = 0;
 
-        if (*ptr == '\n')
-            ptr++;
+            if (*ptr == '\n')
+                ptr++;
+        }
 
-        if (*url == '\0' || *size == '\0')
+        if (*url == '\0' || std::string(url) == "MISSING" ||
+            std::string(url) == "CART ONLY" || std::string(zrif) == "MISSING")
             continue;
 
         if (mode == ModeUpdates)
@@ -344,9 +346,6 @@ static void parse_tsv_file()
             if (it != rend)
                 content = it.base();
         }
-
-        if (std::string(url) == "MISSING" || std::string(zrif) == "MISSING")
-            continue;
 
         db[db_count].presence = PresenceUnknown;
         db[db_count].content = content;
