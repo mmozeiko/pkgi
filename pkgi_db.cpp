@@ -229,8 +229,9 @@ static void parse_tsv_file()
     }
     else if (
             header ==
-            "Title ID\tRegion\tName\tUpdate Version\tFW VERSION\tPKG direct "
-            "link\tNoNPDRM mirror\tLast Modification Date\tFile Size\tSHA256")
+            "Title ID (2)\tRegion (1)\tName\tUpdate Version (3)\tFW VERSION "
+            "(4)\tPKG direct link (5)\tNoNPDRM mirror\tLast Modification "
+            "Date\tFile Size\tSHA256")
     {
         LOG("updates tsv file");
         mode = ModeUpdates;
