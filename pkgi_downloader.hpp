@@ -46,6 +46,7 @@ public:
     float get_current_download_progress();
 
     std::function<void(const std::string& content)> refresh;
+    std::function<void(const std::string& error)> error;
 
 private:
     using ScopeLock = std::lock_guard<Mutex>;

@@ -117,7 +117,8 @@ void Downloader::run()
         }
         catch (const std::exception& e)
         {
-            LOG("error: %s", e.what());
+            LOG("download error: %s", e.what());
+            error(e.what());
         }
     }
 }

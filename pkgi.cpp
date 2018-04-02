@@ -831,6 +831,10 @@ int main()
         }
         item->presence = PresenceUnknown;
     };
+    downloader.error = [](const std::string& error) {
+        // FIXME this runs on the wrong thread
+        pkgi_dialog_error(("Download failure: " + error).c_str());
+    };
 
     LOG("started");
 
