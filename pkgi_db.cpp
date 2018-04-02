@@ -398,68 +398,63 @@ int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
             pkgi_snprintf(error, error_size, "failed to download list");
             return 0;
         }
-        else
+
+        int64_t length;
+        if (!pkgi_http_response_length(http, &length))
         {
-            int64_t length;
-            if (!pkgi_http_response_length(http, &length))
+            pkgi_snprintf(error, error_size, "failed to download list");
+            return 0;
+        }
+
+        if (length > (int64_t)db_data.size() - 1)
+        {
+            pkgi_snprintf(
+                    error,
+                    sizeof(error_size),
+                    "list is too large... check for newer pkgi "
+                    "version!");
+            return 0;
+        }
+
+        if (length != 0)
+        {
+            db_total = (uint32_t)length;
+        }
+
+        error[0] = 0;
+
+        for (;;)
+        {
+            uint32_t want =
+                    (uint32_t)min64(1 << 16, db_data.size() - 1 - db_size);
+            int read = pkgi_http_read(http, db_data.data() + db_size, want);
+            if (read == 0)
             {
-                pkgi_snprintf(error, error_size, "failed to download list");
+                break;
             }
-            else
+            else if (read < 0)
             {
-                if (length > (int64_t)db_data.size() - 1)
-                {
-                    pkgi_snprintf(
-                            error,
-                            sizeof(error_size),
-                            "list is too large... check for newer pkgi "
-                            "version!");
-                }
-                else if (length != 0)
-                {
-                    db_total = (uint32_t)length;
-                }
-
-                error[0] = 0;
-
-                for (;;)
-                {
-                    uint32_t want = (uint32_t)min64(
-                            1 << 16, db_data.size() - 1 - db_size);
-                    int read = pkgi_http_read(
-                            http, db_data.data() + db_size, want);
-                    if (read == 0)
-                    {
-                        break;
-                    }
-                    else if (read < 0)
-                    {
-                        pkgi_snprintf(
-                                error,
-                                sizeof(error_size),
-                                "HTTP error 0x%08x",
-                                read);
-                        db_size = 0;
-                        break;
-                    }
-                    db_size += read;
-                }
-
-                if (error[0] == 0 && db_size == 0)
-                {
-                    pkgi_snprintf(
-                            error,
-                            sizeof(error_size),
-                            "list is empty... check for newer pkgi version!");
-                }
+                pkgi_snprintf(
+                        error, sizeof(error_size), "HTTP error 0x%08x", read);
+                db_size = 0;
+                break;
             }
+            db_size += read;
+        }
 
-            pkgi_http_close(http);
+        if (error[0] == 0 && db_size == 0)
+        {
+            pkgi_snprintf(
+                    error,
+                    sizeof(error_size),
+                    "list is empty... check for newer pkgi version!");
+        }
 
-            if (db_size == 0)
-            {
-                return 0;
-            }
+        pkgi_http_close(http);
+
+        if (db_size == 0)
+        {
+            return 0;
         }
     }
     else
