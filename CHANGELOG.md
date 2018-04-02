@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.11
+
+What's new:
+
+- Replaced LiveArea graphics by images from @JesterIOS
+- Kept compatibility with old update TSV format
+
 ## 0.10
 
 What's new:
