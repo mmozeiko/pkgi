@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.12
+
+What's new:
+
+- More design in LiveArea screen from @JesterIOS
+- Added download error reporting to user
+- Do not rely on TSV column header anymore to determine the mode
+
+Removed features:
+
+- Removed support for old pkgi database format
+
 ## 0.11
 
 What's new:
