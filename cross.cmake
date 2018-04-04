@@ -64,13 +64,18 @@ target_link_libraries(pkgj
 
 vita_create_self(eboot.bin pkgj UNSAFE)
 
+configure_file(
+   sce_sys/livearea/contents/template.xml.in
+   sce_sys/livearea/contents/template.xml
+)
+
 vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} eboot.bin
-  VERSION ${VITA_VERSION}
+  VERSION 0${VITA_VERSION}
   NAME ${VITA_APP_NAME}
   FILE sce_sys/icon0.png sce_sys/icon0.png
        sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
        sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
-       sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
+       ${CMAKE_CURRENT_BINARY_DIR}/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
 )
 
 add_custom_target(send

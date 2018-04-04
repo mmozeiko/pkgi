@@ -11,7 +11,7 @@
 	<frame id="frame3">
 		<liveitem>
 			<text origin="background" line-align="center" margin-bottom="1">
-				<str color="#ffffff" size="30" bold="on" shadow="on">PKGj v0.12</str>
+				<str color="#ffffff" size="30" bold="on" shadow="on">PKGj v@VITA_VERSION@</str>
 				<str size="25" bold="on" shadow="on">　
 				</str>
 				<str size="22" shadow="on">PKG download and installation directly on Vita</str>
