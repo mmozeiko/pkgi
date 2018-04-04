@@ -104,46 +104,6 @@ static void pkgi_start_download(Downloader& downloader)
     state = StateMain;
 }
 
-static uint32_t friendly_size(uint64_t size)
-{
-    if (size > 10ULL * 1000 * 1024 * 1024)
-    {
-        return (uint32_t)(size / (1024 * 1024 * 1024));
-    }
-    else if (size > 10 * 1000 * 1024)
-    {
-        return (uint32_t)(size / (1024 * 1024));
-    }
-    else if (size > 10 * 1000)
-    {
-        return (uint32_t)(size / 1024);
-    }
-    else
-    {
-        return (uint32_t)size;
-    }
-}
-
-static const char* friendly_size_str(uint64_t size)
-{
-    if (size > 10ULL * 1000 * 1024 * 1024)
-    {
-        return "GB";
-    }
-    else if (size > 10 * 1000 * 1024)
-    {
-        return "MB";
-    }
-    else if (size > 10 * 1000)
-    {
-        return "KB";
-    }
-    else
-    {
-        return "B";
-    }
-}
-
 static void pkgi_friendly_size(char* text, uint32_t textlen, int64_t size)
 {
     if (size <= 0)
@@ -730,88 +690,6 @@ static void reposition(void)
     {
         first_item = 0;
         selected_item = 0;
-    }
-}
-
-static void pkgi_check_for_update(void)
-{
-    LOG("checking latest pkgi version at %s", PKGI_UPDATE_URL);
-
-    pkgi_http* http = pkgi_http_get(PKGI_UPDATE_URL, NULL, 0);
-    if (http)
-    {
-        char buffer[8 << 10];
-        uint32_t size = 0;
-
-        while (size < sizeof(buffer) - 1)
-        {
-            int read = pkgi_http_read(
-                    http, buffer + size, sizeof(buffer) - 1 - size);
-            if (read < 0)
-            {
-                size = 0;
-                break;
-            }
-            else if (read == 0)
-            {
-                break;
-            }
-            size += read;
-        }
-
-        if (size != 0)
-        {
-            LOG("received %u bytes", size);
-        }
-        buffer[size] = 0;
-
-        static const char find[] = "\"name\": \"v";
-        const char* start = pkgi_strstr(buffer, find);
-        if (start != NULL)
-        {
-            LOG("found name");
-            start += sizeof(find) - 1;
-
-            char* end = pkgi_strstr(start, "\"");
-            if (end != NULL)
-            {
-                *end = 0;
-                LOG("latest version is %s", start);
-
-                const char* current = PKGI_VERSION;
-                if (current[0] == '0')
-                {
-                    current++;
-                }
-
-                if (pkgi_stricmp(current, start) != 0)
-                {
-                    LOG("new version available");
-
-                    char text[256];
-                    pkgi_snprintf(
-                            text,
-                            sizeof(text),
-                            "New pkgi version v%s available!",
-                            start);
-                    pkgi_dialog_message(text);
-                }
-            }
-            else
-            {
-                LOG("no end of name found");
-            }
-        }
-        else
-        {
-            LOG("no name found");
-        }
-
-        pkgi_http_close(http);
-    }
-    else
-    {
-        LOG("http request to %s failed", PKGI_UPDATE_URL);
     }
 }
 
