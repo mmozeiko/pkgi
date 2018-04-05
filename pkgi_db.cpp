@@ -84,52 +84,9 @@ static void parse_tsv_file()
     char* ptr = db_data.data();
     char* end = db_data.data() + db_data.size();
 
+    // skip header
     while (ptr < end && *ptr != '\r')
         ptr++;
-
-    std::string header(db_data.data(), ptr);
-    if (header ==
-        "Title ID\tRegion\tName\tPKG direct link\tzRIF\tContent ID\tLast "
-        "Modification Date\tOriginal Name\tFile Size\tSHA256")
-    {
-        LOG("games tsv file");
-        mode = ModeGames;
-    }
-    else if (
-            header ==
-                    "Title ID (2)\tRegion (1)\tName\tUpdate Version (3)\tFW "
-                    "VERSION (4)\tPKG direct link (5)\tNoNPDRM mirror\tLast "
-                    "Modification Date\tFile Size\tSHA256" ||
-            header ==
-                    "Title ID\tRegion\tName\tUpdate Version\tFW "
-                    "VERSION\tPKG direct link\tNoNPDRM mirror\tLast "
-                    "Modification Date\tFile Size\tSHA256")
-    {
-        LOG("updates tsv file");
-        mode = ModeUpdates;
-    }
-    else if (
-            header ==
-            "Title ID\tRegion\tName\tPKG direct link\tzRIF\tContent ID\tLast "
-            "Modification Date\tFile Size\tSHA256")
-    {
-        LOG("dlcs tsv file");
-        mode = ModeDlcs;
-    }
-    else if (
-            header ==
-            "Title ID\tRegion\tName\tPKG direct link\tContent ID\tLast "
-            "Modification Date\tOriginal Name\tFile Size\tSHA256")
-    {
-        LOG("psx games tsv file");
-        mode = ModePsxGames;
-    }
-    else
-    {
-        LOG("unknown tsv file");
-        return;
-    }
-
     ptr++; // \r
     ptr++; // \n
 
@@ -239,13 +196,16 @@ static void parse_tsv_file()
     db_item_count = db_count;
 }
 
-int pkgi_db_update(const char* update_url, char* error, uint32_t error_size)
+int pkgi_db_update(
+        const char* update_url, char* error, uint32_t error_size, Mode amode)
 {
     db_data.resize(MAX_DB_SIZE);
     db_total = 0;
     db_size = 0;
     db_count = 0;
     db_item_count = 0;
+
+    mode = amode;
 
     char path[256];
     pkgi_snprintf(path, sizeof(path), "%s/pkgi.txt", pkgi_get_config_folder());

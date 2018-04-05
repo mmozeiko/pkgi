@@ -68,7 +68,8 @@ typedef enum {
 
 typedef struct Config Config;
 
-int pkgi_db_update(const char* update_url, char* error, uint32_t error_size);
+int pkgi_db_update(
+        const char* update_url, char* error, uint32_t error_size, Mode mode);
 void pkgi_db_get_update_status(uint32_t* updated, uint32_t* total);
 
 void pkgi_db_configure(const char* search, const Config* config);

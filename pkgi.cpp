@@ -26,6 +26,7 @@ typedef enum {
 } State;
 
 static State state;
+static Mode mode = ModeGames;
 
 static uint32_t first_item;
 static uint32_t selected_item;
@@ -58,7 +59,7 @@ static void pkgi_refresh_thread(void)
 {
     LOG("starting update");
     const char* url = current_url;
-    if (pkgi_db_update(url, error_state, sizeof(error_state)))
+    if (pkgi_db_update(url, error_state, sizeof(error_state), mode))
     {
         first_item = 0;
         selected_item = 0;
@@ -840,21 +841,25 @@ int main()
                 case MenuResultRefreshGames:
                     current_url = config.games_url.c_str();
                     state = StateRefreshing;
+                    mode = ModeGames;
                     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
                     break;
                 case MenuResultRefreshUpdates:
                     current_url = config.updates_url.c_str();
                     state = StateRefreshing;
+                    mode = ModeUpdates;
                     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
                     break;
                 case MenuResultRefreshDlcs:
                     current_url = config.dlcs_url.c_str();
                     state = StateRefreshing;
+                    mode = ModeDlcs;
                     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
                     break;
                 case MenuResultRefreshPsxGames:
                     current_url = config.psx_games_url.c_str();
                     state = StateRefreshing;
+                    mode = ModePsxGames;
                     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
                     break;
                 }
