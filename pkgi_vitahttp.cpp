@@ -5,7 +5,7 @@
 VitaHttp::~VitaHttp()
 {
     if (_http)
-        pkgi_close(_http);
+        pkgi_http_close(_http);
 }
 
 void VitaHttp::start(const std::string& url, uint64_t offset)
