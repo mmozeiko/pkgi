@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.13
+
+Bug fixes:
+
+- It is now possible to download more than 4 packages
+
 ## 0.12
 
 What's new:
