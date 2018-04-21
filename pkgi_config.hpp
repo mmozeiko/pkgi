@@ -15,6 +15,7 @@ typedef struct Config
     std::string updates_url;
     std::string dlcs_url;
     std::string psx_games_url;
+    std::string psp_games_url;
 } Config;
 
 Config pkgi_load_config();

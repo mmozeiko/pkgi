@@ -171,6 +171,8 @@ Config pkgi_load_config()
                 config.dlcs_url = value;
             else if (pkgi_stricmp(key, "url_psx_games") == 0)
                 config.psx_games_url = value;
+            else if (pkgi_stricmp(key, "url_psp_games") == 0)
+                config.psp_games_url = value;
             else if (pkgi_stricmp(key, "sort") == 0)
                 config.sort = parse_sort(value, SortByName);
             else if (pkgi_stricmp(key, "order") == 0)
@@ -246,6 +248,12 @@ void pkgi_save_config(const Config& config)
                 sizeof(data) - len,
                 "url_psx_games %s\n",
                 config.psx_games_url.c_str());
+    if (!config.psp_games_url.empty())
+        len += pkgi_snprintf(
+                data + len,
+                sizeof(data) - len,
+                "url_psp_games %s\n",
+                config.psp_games_url.c_str());
     len += pkgi_snprintf(
             data + len, sizeof(data) - len, "sort %s\n", sort_str(config.sort));
     len += pkgi_snprintf(
