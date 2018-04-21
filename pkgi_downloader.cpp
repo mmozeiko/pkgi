@@ -17,6 +17,8 @@ std::string type_to_string(Type type)
         return "DLC";
     case Type::PsxGame:
         return "PSX game";
+    case Type::PspGame:
+        return "PSP game";
     }
     return "unknown";
 }
@@ -156,6 +158,7 @@ void Downloader::do_download(const DownloadItem& item)
         if (!pkgi_install_update(item.content.c_str()))
             return;
         break;
+    case PspGame:
     case PsxGame:
         if (!pkgi_install_psxgame(item.content.c_str()))
             return;
