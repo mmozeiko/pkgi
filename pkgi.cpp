@@ -424,6 +424,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         {
         case ModeGames:
         case ModePsxGames:
+        case ModePspGames:
             if (item->presence == PresenceInstalled)
             {
                 LOG("[%.9s] %s - alreay installed",

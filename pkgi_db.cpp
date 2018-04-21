@@ -109,6 +109,11 @@ static void parse_tsv_file()
         NEXT_FIELD(); // Title ID
         NEXT_FIELD(); // Region
 
+        if (mode == ModePspGames)
+        {
+            NEXT_FIELD(); // Type
+        }
+
         const char* name = ptr;
         NEXT_FIELD();
 
@@ -134,7 +139,7 @@ static void parse_tsv_file()
             content = ptr;
             NEXT_FIELD();
         }
-        else if (mode == ModePsxGames)
+        else if (mode == ModePsxGames || mode == ModePspGames)
         {
             content = ptr;
             NEXT_FIELD();
@@ -146,6 +151,11 @@ static void parse_tsv_file()
         {
             name_org = ptr;
             NEXT_FIELD();
+        }
+        else if (mode == ModePspGames)
+        {
+            NEXT_FIELD(); // RAP
+            NEXT_FIELD(); // Download RAP
         }
 
         const char* size = ptr;
