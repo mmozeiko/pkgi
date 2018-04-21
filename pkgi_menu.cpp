@@ -52,6 +52,7 @@ static const MenuEntry menu_entries[] = {
         {MenuRefresh, "Refresh updates", 2},
         {MenuRefresh, "Refresh DLCs", 4},
         {MenuRefresh, "Refresh PSX games", 8},
+        {MenuRefresh, "Refresh PSP games", 16},
 };
 
 int pkgi_menu_is_open(void)
@@ -190,6 +191,9 @@ int pkgi_do_menu(pkgi_input* input)
                 break;
             case 8:
                 menu_result = MenuResultRefreshPsxGames;
+                break;
+            case 16:
+                menu_result = MenuResultRefreshPspGames;
                 break;
             }
 

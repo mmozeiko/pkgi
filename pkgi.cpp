@@ -252,7 +252,9 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                 else
                     item->presence = PresenceMissing;
             }
-            else if (pkgi_db_get_mode() == ModePsxGames)
+            else if (
+                    pkgi_db_get_mode() == ModePsxGames ||
+                    pkgi_db_get_mode() == ModePspGames)
             {
                 if (pkgi_psx_is_installed(item->content))
                     item->presence = PresenceInstalled;
@@ -464,7 +466,8 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         int allow_refresh = !config.games_url.empty() << 0 |
                             !config.updates_url.empty() << 1 |
                             !config.dlcs_url.empty() << 2 |
-                            !config.psx_games_url.empty() << 3;
+                            !config.psx_games_url.empty() << 3 |
+                            !config.psp_games_url.empty() << 4;
         pkgi_menu_start(search_active, &config, allow_refresh);
     }
 }
@@ -861,6 +864,12 @@ int main()
                     current_url = config.psx_games_url.c_str();
                     state = StateRefreshing;
                     mode = ModePsxGames;
+                    pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
+                    break;
+                case MenuResultRefreshPspGames:
+                    current_url = config.psp_games_url.c_str();
+                    state = StateRefreshing;
+                    mode = ModePspGames;
                     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
                     break;
                 }
