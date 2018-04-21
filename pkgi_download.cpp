@@ -269,9 +269,11 @@ int Download::download_head(const uint8_t* rif)
         {
             content_type = get32be(head + offset + 8);
             // 6 PSX game
+            // 7 PSP game
             // 21 PSV game (or update)
             // 22 PSV DLC
-            if (content_type != 21 && content_type != 22 && content_type != 6)
+            if (content_type != 21 && content_type != 22 && content_type != 6 &&
+                content_type != 7)
             {
                 throw DownloadError(
                         "unsupported package type: " +
@@ -394,11 +396,17 @@ int Download::download_files(void)
             item_size,
             type);
 
-        if (content_type == 6)
+        if (content_type == 6 || content_type == 7)
         {
             if (std::string(item_name) == "USRDIR/CONTENT/DOCUMENT.DAT")
                 pkgi_snprintf(
                         item_path, sizeof(item_path), "%s/DOCUMENT.DAT", root);
+            else if (std::string(item_name) == "USRDIR/CONTENT/CONTENT.DAT")
+                pkgi_snprintf(
+                        item_path, sizeof(item_path), "%s/CONTENT.DAT", root);
+            else if (std::string(item_name) == "USRDIR/CONTENT/PSP-KEY.EDAT")
+                pkgi_snprintf(
+                        item_path, sizeof(item_path), "%s/PSP-KEY.EDAT", root);
             else if (std::string(item_name) == "USRDIR/CONTENT/EBOOT.PBP")
                 pkgi_snprintf(
                         item_path, sizeof(item_path), "%s/EBOOT.PBP", root);
@@ -619,7 +627,7 @@ int Download::pkgi_download(
         return 0;
     if (!download_tail())
         return 0;
-    if (content_type != 6)
+    if (content_type != 6 && content_type != 7)
     {
         if (!create_stat())
             return 0;
