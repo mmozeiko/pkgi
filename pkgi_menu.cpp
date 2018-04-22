@@ -247,7 +247,7 @@ int pkgi_do_menu(pkgi_input* input)
             {
                 continue;
             }
-            y += font_height;
+            y += font_height / 2;
         }
 
         uint32_t color = menu_selected == i ? PKGI_COLOR_TEXT_MENU_SELECTED
