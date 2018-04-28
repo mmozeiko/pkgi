@@ -13,7 +13,10 @@ typedef struct
 #define AES_BLOCK_SIZE 16
 
 void aes128_init(aes128_ctx* ctx, const uint8_t* key);
+void aes128_init_dec(aes128_ctx* ctx, const uint8_t* key);
 void aes128_encrypt(
+        const aes128_ctx* ctx, const uint8_t* input, uint8_t* output);
+void aes128_decrypt(
         const aes128_ctx* ctx, const uint8_t* input, uint8_t* output);
 
 void aes128_ctr_init(aes128_ctx* ctx, const uint8_t* key);
@@ -21,5 +24,15 @@ void aes128_ctr(
         const aes128_ctx* ctx,
         const uint8_t* iv,
         uint64_t offset,
+        uint8_t* buffer,
+        uint32_t size);
+
+void aes128_cmac(
+        const uint8_t* key, const uint8_t* buffer, uint32_t size, uint8_t* mac);
+
+void aes128_psp_decrypt(
+        const aes128_ctx* ctx,
+        const uint8_t* iv,
+        uint32_t index,
         uint8_t* buffer,
         uint32_t size);

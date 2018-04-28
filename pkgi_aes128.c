@@ -1,5 +1,21 @@
 #include "pkgi_aes128.h"
 
+#include "pkgi.h"
+
+#include <assert.h>
+#include <stddef.h>
+#include <string.h>
+
+#define ASSERT_ALIGNED(o, a)                          \
+    do                                                \
+    {                                                 \
+        if (((uintptr_t)(&(o))) % a != 0)             \
+        {                                             \
+            LOG("unaligned cryptographic operation"); \
+            assert(0);                                \
+        }                                             \
+    } while (0)
+
 #if __ARM_NEON__
 
 // Optimized AES-128 CTR Neon implementation is based on paper from Emilia
@@ -100,6 +116,31 @@ static const uint8_t sbox[256] = {
         0xb0, 0x54, 0xbb, 0x16,
 };
 
+static uint8_t Td[] = {
+        0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e,
+        0x81, 0xf3, 0xd7, 0xfb, 0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87,
+        0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb, 0x54, 0x7b, 0x94, 0x32,
+        0xa6, 0xc2, 0x23, 0x3d, 0xee, 0x4c, 0x95, 0x0b, 0x42, 0xfa, 0xc3, 0x4e,
+        0x08, 0x2e, 0xa1, 0x66, 0x28, 0xd9, 0x24, 0xb2, 0x76, 0x5b, 0xa2, 0x49,
+        0x6d, 0x8b, 0xd1, 0x25, 0x72, 0xf8, 0xf6, 0x64, 0x86, 0x68, 0x98, 0x16,
+        0xd4, 0xa4, 0x5c, 0xcc, 0x5d, 0x65, 0xb6, 0x92, 0x6c, 0x70, 0x48, 0x50,
+        0xfd, 0xed, 0xb9, 0xda, 0x5e, 0x15, 0x46, 0x57, 0xa7, 0x8d, 0x9d, 0x84,
+        0x90, 0xd8, 0xab, 0x00, 0x8c, 0xbc, 0xd3, 0x0a, 0xf7, 0xe4, 0x58, 0x05,
+        0xb8, 0xb3, 0x45, 0x06, 0xd0, 0x2c, 0x1e, 0x8f, 0xca, 0x3f, 0x0f, 0x02,
+        0xc1, 0xaf, 0xbd, 0x03, 0x01, 0x13, 0x8a, 0x6b, 0x3a, 0x91, 0x11, 0x41,
+        0x4f, 0x67, 0xdc, 0xea, 0x97, 0xf2, 0xcf, 0xce, 0xf0, 0xb4, 0xe6, 0x73,
+        0x96, 0xac, 0x74, 0x22, 0xe7, 0xad, 0x35, 0x85, 0xe2, 0xf9, 0x37, 0xe8,
+        0x1c, 0x75, 0xdf, 0x6e, 0x47, 0xf1, 0x1a, 0x71, 0x1d, 0x29, 0xc5, 0x89,
+        0x6f, 0xb7, 0x62, 0x0e, 0xaa, 0x18, 0xbe, 0x1b, 0xfc, 0x56, 0x3e, 0x4b,
+        0xc6, 0xd2, 0x79, 0x20, 0x9a, 0xdb, 0xc0, 0xfe, 0x78, 0xcd, 0x5a, 0xf4,
+        0x1f, 0xdd, 0xa8, 0x33, 0x88, 0x07, 0xc7, 0x31, 0xb1, 0x12, 0x10, 0x59,
+        0x27, 0x80, 0xec, 0x5f, 0x60, 0x51, 0x7f, 0xa9, 0x19, 0xb5, 0x4a, 0x0d,
+        0x2d, 0xe5, 0x7a, 0x9f, 0x93, 0xc9, 0x9c, 0xef, 0xa0, 0xe0, 0x3b, 0x4d,
+        0xae, 0x2a, 0xf5, 0xb0, 0xc8, 0xeb, 0xbb, 0x3c, 0x83, 0x53, 0x99, 0x61,
+        0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63,
+        0x55, 0x21, 0x0c, 0x7d,
+};
+
 static const uint32_t sbox32[256] = {
         0xc66363a5, 0xf87c7c84, 0xee777799, 0xf67b7b8d, 0xfff2f20d, 0xd66b6bbd,
         0xde6f6fb1, 0x91c5c554, 0x60303050, 0x02010103, 0xce6767a9, 0x562b2b7d,
@@ -146,10 +187,63 @@ static const uint32_t sbox32[256] = {
         0x7bb0b0cb, 0xa85454fc, 0x6dbbbbd6, 0x2c16163a,
 };
 
+static const uint32_t TD[] = {
+        0x51f4a750, 0x7e416553, 0x1a17a4c3, 0x3a275e96, 0x3bab6bcb, 0x1f9d45f1,
+        0xacfa58ab, 0x4be30393, 0x2030fa55, 0xad766df6, 0x88cc7691, 0xf5024c25,
+        0x4fe5d7fc, 0xc52acbd7, 0x26354480, 0xb562a38f, 0xdeb15a49, 0x25ba1b67,
+        0x45ea0e98, 0x5dfec0e1, 0xc32f7502, 0x814cf012, 0x8d4697a3, 0x6bd3f9c6,
+        0x038f5fe7, 0x15929c95, 0xbf6d7aeb, 0x955259da, 0xd4be832d, 0x587421d3,
+        0x49e06929, 0x8ec9c844, 0x75c2896a, 0xf48e7978, 0x99583e6b, 0x27b971dd,
+        0xbee14fb6, 0xf088ad17, 0xc920ac66, 0x7dce3ab4, 0x63df4a18, 0xe51a3182,
+        0x97513360, 0x62537f45, 0xb16477e0, 0xbb6bae84, 0xfe81a01c, 0xf9082b94,
+        0x70486858, 0x8f45fd19, 0x94de6c87, 0x527bf8b7, 0xab73d323, 0x724b02e2,
+        0xe31f8f57, 0x6655ab2a, 0xb2eb2807, 0x2fb5c203, 0x86c57b9a, 0xd33708a5,
+        0x302887f2, 0x23bfa5b2, 0x02036aba, 0xed16825c, 0x8acf1c2b, 0xa779b492,
+        0xf307f2f0, 0x4e69e2a1, 0x65daf4cd, 0x0605bed5, 0xd134621f, 0xc4a6fe8a,
+        0x342e539d, 0xa2f355a0, 0x058ae132, 0xa4f6eb75, 0x0b83ec39, 0x4060efaa,
+        0x5e719f06, 0xbd6e1051, 0x3e218af9, 0x96dd063d, 0xdd3e05ae, 0x4de6bd46,
+        0x91548db5, 0x71c45d05, 0x0406d46f, 0x605015ff, 0x1998fb24, 0xd6bde997,
+        0x894043cc, 0x67d99e77, 0xb0e842bd, 0x07898b88, 0xe7195b38, 0x79c8eedb,
+        0xa17c0a47, 0x7c420fe9, 0xf8841ec9, 0x00000000, 0x09808683, 0x322bed48,
+        0x1e1170ac, 0x6c5a724e, 0xfd0efffb, 0x0f853856, 0x3daed51e, 0x362d3927,
+        0x0a0fd964, 0x685ca621, 0x9b5b54d1, 0x24362e3a, 0x0c0a67b1, 0x9357e70f,
+        0xb4ee96d2, 0x1b9b919e, 0x80c0c54f, 0x61dc20a2, 0x5a774b69, 0x1c121a16,
+        0xe293ba0a, 0xc0a02ae5, 0x3c22e043, 0x121b171d, 0x0e090d0b, 0xf28bc7ad,
+        0x2db6a8b9, 0x141ea9c8, 0x57f11985, 0xaf75074c, 0xee99ddbb, 0xa37f60fd,
+        0xf701269f, 0x5c72f5bc, 0x44663bc5, 0x5bfb7e34, 0x8b432976, 0xcb23c6dc,
+        0xb6edfc68, 0xb8e4f163, 0xd731dcca, 0x42638510, 0x13972240, 0x84c61120,
+        0x854a247d, 0xd2bb3df8, 0xaef93211, 0xc729a16d, 0x1d9e2f4b, 0xdcb230f3,
+        0x0d8652ec, 0x77c1e3d0, 0x2bb3166c, 0xa970b999, 0x119448fa, 0x47e96422,
+        0xa8fc8cc4, 0xa0f03f1a, 0x567d2cd8, 0x223390ef, 0x87494ec7, 0xd938d1c1,
+        0x8ccaa2fe, 0x98d40b36, 0xa6f581cf, 0xa57ade28, 0xdab78e26, 0x3fadbfa4,
+        0x2c3a9de4, 0x5078920d, 0x6a5fcc9b, 0x547e4662, 0xf68d13c2, 0x90d8b8e8,
+        0x2e39f75e, 0x82c3aff5, 0x9f5d80be, 0x69d0937c, 0x6fd52da9, 0xcf2512b3,
+        0xc8ac993b, 0x10187da7, 0xe89c636e, 0xdb3bbb7b, 0xcd267809, 0x6e5918f4,
+        0xec9ab701, 0x834f9aa8, 0xe6956e65, 0xaaffe67e, 0x21bccf08, 0xef15e8e6,
+        0xbae79bd9, 0x4a6f36ce, 0xea9f09d4, 0x29b07cd6, 0x31a4b2af, 0x2a3f2331,
+        0xc6a59430, 0x35a266c0, 0x744ebc37, 0xfc82caa6, 0xe090d0b0, 0x33a7d815,
+        0xf104984a, 0x41ecdaf7, 0x7fcd500e, 0x1791f62f, 0x764dd68d, 0x43efb04d,
+        0xccaa4d54, 0xe49604df, 0x9ed1b5e3, 0x4c6a881b, 0xc12c1fb8, 0x4665517f,
+        0x9d5eea04, 0x018c355d, 0xfa877473, 0xfb0b412e, 0xb3671d5a, 0x92dbd252,
+        0xe9105633, 0x6dd64713, 0x9ad7618c, 0x37a10c7a, 0x59f8148e, 0xeb133c89,
+        0xcea927ee, 0xb761c935, 0xe11ce5ed, 0x7a47b13c, 0x9cd2df59, 0x55f2733f,
+        0x1814ce79, 0x73c737bf, 0x53f7cdea, 0x5ffdaa5b, 0xdf3d6f14, 0x7844db86,
+        0xcaaff381, 0xb968c43e, 0x3824342c, 0xc2a3405f, 0x161dc372, 0xbce2250c,
+        0x283c498b, 0xff0d9541, 0x39a80171, 0x080cb3de, 0xd8b4e49c, 0x6456c190,
+        0x7bcb8461, 0xd532b670, 0x486c5c74, 0xd0b85742,
+};
+
 static uint32_t setup_mix(uint32_t temp)
 {
     return (sbox[byte32(temp, 2)] << 24) ^ (sbox[byte32(temp, 1)] << 16) ^
            (sbox[byte32(temp, 0)] << 8) ^ sbox[byte32(temp, 3)];
+}
+
+static uint32_t setup_mix2(uint32_t x)
+{
+    return TD[sbox[byte32(x, 3)]] ^ ror32(TD[sbox[byte32(x, 2)]], 8) ^
+           ror32(TD[sbox[byte32(x, 1)]], 16) ^
+           ror32(TD[sbox[byte32(x, 0)]], 24);
 }
 
 void aes128_init(aes128_ctx* ctx, const uint8_t* key)
@@ -169,6 +263,35 @@ void aes128_init(aes128_ctx* ctx, const uint8_t* key)
         rk[7] = rk[3] ^ rk[6];
         rk += 4;
     }
+}
+
+void aes128_init_dec(aes128_ctx* ctx, const uint8_t* key)
+{
+    aes128_ctx enc;
+    aes128_init(&enc, key);
+
+    uint32_t* ekey = enc.key + 40;
+    uint32_t* dkey = ctx->key;
+
+    *dkey++ = ekey[0];
+    *dkey++ = ekey[1];
+    *dkey++ = ekey[2];
+    *dkey++ = ekey[3];
+    ekey -= 4;
+
+    for (size_t i = 0; i < 9; i++)
+    {
+        *dkey++ = setup_mix2(ekey[0]);
+        *dkey++ = setup_mix2(ekey[1]);
+        *dkey++ = setup_mix2(ekey[2]);
+        *dkey++ = setup_mix2(ekey[3]);
+        ekey -= 4;
+    }
+
+    *dkey++ = ekey[0];
+    *dkey++ = ekey[1];
+    *dkey++ = ekey[2];
+    *dkey++ = ekey[3];
 }
 
 void aes128_ctr_init(aes128_ctx* ctx, const uint8_t* key)
@@ -194,6 +317,8 @@ void aes128_ctr_init(aes128_ctx* ctx, const uint8_t* key)
                                                      0x0};
     uint8x16_t M0 = vld1q_u8(M0_bytes);
 
+    ASSERT_ALIGNED(ctx->key, 16);
+    ASSERT_ALIGNED(ctx->bskey, 16);
     const uint8_t* rk8 = __builtin_assume_aligned(ctx->key, 16);
     uint8_t* bskey = __builtin_assume_aligned(ctx->bskey, 16);
 
@@ -283,6 +408,73 @@ void aes128_encrypt(
          (sbox[byte32(t0, 1)] << 8) ^ (sbox[byte32(t1, 0)]) ^ *key++;
     s3 = (sbox[byte32(t3, 3)] << 24) ^ (sbox[byte32(t0, 2)] << 16) ^
          (sbox[byte32(t1, 1)] << 8) ^ (sbox[byte32(t2, 0)]) ^ *key++;
+
+    set32be(output + 0, s0);
+    set32be(output + 4, s1);
+    set32be(output + 8, s2);
+    set32be(output + 12, s3);
+}
+
+void aes128_decrypt(
+        const aes128_ctx* ctx, const uint8_t* input, uint8_t* output)
+{
+    const uint32_t* key = ctx->key;
+
+    uint32_t s0 = get32be(input + 0) ^ *key++;
+    uint32_t s1 = get32be(input + 4) ^ *key++;
+    uint32_t s2 = get32be(input + 8) ^ *key++;
+    uint32_t s3 = get32be(input + 12) ^ *key++;
+
+    uint32_t t0 = TD[byte32(s0, 3)] ^ ror32(TD[byte32(s3, 2)], 8) ^
+                  ror32(TD[byte32(s2, 1)], 16) ^ ror32(TD[byte32(s1, 0)], 24) ^
+                  *key++;
+    uint32_t t1 = TD[byte32(s1, 3)] ^ ror32(TD[byte32(s0, 2)], 8) ^
+                  ror32(TD[byte32(s3, 1)], 16) ^ ror32(TD[byte32(s2, 0)], 24) ^
+                  *key++;
+    uint32_t t2 = TD[byte32(s2, 3)] ^ ror32(TD[byte32(s1, 2)], 8) ^
+                  ror32(TD[byte32(s0, 1)], 16) ^ ror32(TD[byte32(s3, 0)], 24) ^
+                  *key++;
+    uint32_t t3 = TD[byte32(s3, 3)] ^ ror32(TD[byte32(s2, 2)], 8) ^
+                  ror32(TD[byte32(s1, 1)], 16) ^ ror32(TD[byte32(s0, 0)], 24) ^
+                  *key++;
+
+    for (size_t i = 0; i < 4; i++)
+    {
+        s0 = TD[byte32(t0, 3)] ^ ror32(TD[byte32(t3, 2)], 8) ^
+             ror32(TD[byte32(t2, 1)], 16) ^ ror32(TD[byte32(t1, 0)], 24) ^
+             *key++;
+        s1 = TD[byte32(t1, 3)] ^ ror32(TD[byte32(t0, 2)], 8) ^
+             ror32(TD[byte32(t3, 1)], 16) ^ ror32(TD[byte32(t2, 0)], 24) ^
+             *key++;
+        s2 = TD[byte32(t2, 3)] ^ ror32(TD[byte32(t1, 2)], 8) ^
+             ror32(TD[byte32(t0, 1)], 16) ^ ror32(TD[byte32(t3, 0)], 24) ^
+             *key++;
+        s3 = TD[byte32(t3, 3)] ^ ror32(TD[byte32(t2, 2)], 8) ^
+             ror32(TD[byte32(t1, 1)], 16) ^ ror32(TD[byte32(t0, 0)], 24) ^
+             *key++;
+
+        t0 = TD[byte32(s0, 3)] ^ ror32(TD[byte32(s3, 2)], 8) ^
+             ror32(TD[byte32(s2, 1)], 16) ^ ror32(TD[byte32(s1, 0)], 24) ^
+             *key++;
+        t1 = TD[byte32(s1, 3)] ^ ror32(TD[byte32(s0, 2)], 8) ^
+             ror32(TD[byte32(s3, 1)], 16) ^ ror32(TD[byte32(s2, 0)], 24) ^
+             *key++;
+        t2 = TD[byte32(s2, 3)] ^ ror32(TD[byte32(s1, 2)], 8) ^
+             ror32(TD[byte32(s0, 1)], 16) ^ ror32(TD[byte32(s3, 0)], 24) ^
+             *key++;
+        t3 = TD[byte32(s3, 3)] ^ ror32(TD[byte32(s2, 2)], 8) ^
+             ror32(TD[byte32(s1, 1)], 16) ^ ror32(TD[byte32(s0, 0)], 24) ^
+             *key++;
+    }
+
+    s0 = (Td[byte32(t0, 3)] << 24) ^ (Td[byte32(t3, 2)] << 16) ^
+         (Td[byte32(t2, 1)] << 8) ^ Td[byte32(t1, 0)] ^ *key++;
+    s1 = (Td[byte32(t1, 3)] << 24) ^ (Td[byte32(t0, 2)] << 16) ^
+         (Td[byte32(t3, 1)] << 8) ^ Td[byte32(t2, 0)] ^ *key++;
+    s2 = (Td[byte32(t2, 3)] << 24) ^ (Td[byte32(t1, 2)] << 16) ^
+         (Td[byte32(t0, 1)] << 8) ^ Td[byte32(t3, 0)] ^ *key++;
+    s3 = (Td[byte32(t3, 3)] << 24) ^ (Td[byte32(t2, 2)] << 16) ^
+         (Td[byte32(t1, 1)] << 8) ^ Td[byte32(t0, 0)] ^ *key++;
 
     set32be(output + 0, s0);
     set32be(output + 4, s1);
@@ -798,6 +990,7 @@ static void aes128_ctr_neon(
 
         // round 0 - addkey & shiftrows
         {
+            ASSERT_ALIGNED(ctx->key, 16);
             const uint8_t* key0 = __builtin_assume_aligned(ctx->key, 16);
             uint8x16_t first = vrev32q_u8(vld1q_u8(key0));
             x0 = veorq_u8(x0, first);
@@ -858,6 +1051,7 @@ static void aes128_ctr_neon(
         uint8x16_t shuffle = vld1q_u8(SR_bytes);
 
         int round = 9;
+        ASSERT_ALIGNED(ctx->bskey, 16);
         const uint8_t* bskey = __builtin_assume_aligned(ctx->bskey, 16);
 
         // rounds [1..9]
@@ -938,6 +1132,7 @@ static void aes128_ctr_neon(
 
         // round 10 - addkey
         {
+            ASSERT_ALIGNED(ctx->key, 16);
             const uint8_t* key10 =
                     __builtin_assume_aligned(ctx->key + 4 * 10, 16);
             uint8x16_t last = vrev32q_u8(vld1q_u8(key10));
@@ -1036,5 +1231,157 @@ void aes128_ctr(
         {
             *buffer++ ^= tmp[i];
         }
+    }
+}
+
+// https://tools.ietf.org/rfc/rfc4493.txt
+
+typedef struct
+{
+    aes128_ctx key;
+    uint8_t last[16];
+    uint8_t block[16];
+    uint32_t size;
+} aes128_cmac_ctx;
+
+static void aes128_cmac_process(
+        const aes128_ctx* ctx,
+        uint8_t* block,
+        const uint8_t* buffer,
+        uint32_t size)
+{
+    assert(size % 16 == 0);
+
+    for (uint32_t i = 0; i < size; i += 16)
+    {
+        for (size_t k = 0; k < 16; k++)
+        {
+            block[k] ^= *buffer++;
+        }
+        aes128_encrypt(ctx, block, block);
+    }
+}
+
+static void aes128_cmac_init(aes128_cmac_ctx* ctx, const uint8_t* key)
+{
+    aes128_init(&ctx->key, key);
+    memset(ctx->last, 0, 16);
+    ctx->size = 0;
+}
+
+static void aes128_cmac_update(
+        aes128_cmac_ctx* ctx, const uint8_t* buffer, uint32_t size)
+{
+    if (ctx->size + size <= 16)
+    {
+        memcpy(ctx->block + ctx->size, buffer, size);
+        ctx->size += size;
+        return;
+    }
+
+    if (ctx->size != 0)
+    {
+        uint32_t avail = 16 - ctx->size;
+        memcpy(ctx->block + ctx->size, buffer, avail < size ? avail : size);
+        buffer += avail;
+        size -= avail;
+
+        aes128_cmac_process(&ctx->key, ctx->last, ctx->block, 16);
+    }
+
+    if (size >= 16)
+    {
+        uint32_t full = (size - 1) & ~15;
+        aes128_cmac_process(&ctx->key, ctx->last, buffer, full);
+        buffer += full;
+        size -= full;
+    }
+
+    memcpy(ctx->block, buffer, size);
+    ctx->size = size;
+}
+
+static void cmac_gfmul(uint8_t* block)
+{
+    uint8_t carry = 0;
+    for (int i = 15; i >= 0; i--)
+    {
+        uint8_t x = block[i];
+        block[i] = (block[i] << 1) | (carry >> 7);
+        carry = x;
+    }
+
+    block[15] ^= (carry & 0x80 ? 0x87 : 0);
+}
+
+static void aes128_cmac_done(aes128_cmac_ctx* ctx, uint8_t* mac)
+{
+    uint8_t zero[16] = {0};
+    aes128_encrypt(&ctx->key, zero, mac);
+
+    cmac_gfmul(mac);
+
+    if (ctx->size != 16)
+    {
+        cmac_gfmul(mac);
+
+        ctx->block[ctx->size] = 0x80;
+        memset(ctx->block + ctx->size + 1, 0, 16 - (ctx->size + 1));
+    }
+
+    for (size_t i = 0; i < 16; i++)
+    {
+        mac[i] ^= ctx->block[i];
+    }
+
+    aes128_cmac_process(&ctx->key, mac, ctx->last, 16);
+}
+
+void aes128_cmac(
+        const uint8_t* key, const uint8_t* buffer, uint32_t size, uint8_t* mac)
+{
+    aes128_cmac_ctx ctx;
+    aes128_cmac_init(&ctx, key);
+    aes128_cmac_update(&ctx, buffer, size);
+    aes128_cmac_done(&ctx, mac);
+}
+
+void aes128_psp_decrypt(
+        const aes128_ctx* ctx,
+        const uint8_t* iv,
+        uint32_t index,
+        uint8_t* buffer,
+        uint32_t size)
+{
+    assert(size % 16 == 0);
+
+    uint8_t GCC_ALIGN(16) prev[16];
+    uint8_t GCC_ALIGN(16) block[16];
+
+    if (index == 0)
+    {
+        memset(prev, 0, 16);
+    }
+    else
+    {
+        memcpy(prev, iv, 12);
+        set32le(prev + 12, index);
+    }
+
+    memcpy(block, iv, 16);
+    set32le(block + 12, index);
+
+    for (uint32_t i = 0; i < size; i += 16)
+    {
+        set32le(block + 12, get32le(block + 12) + 1);
+
+        uint8_t out[16];
+        aes128_decrypt(ctx, block, out);
+
+        for (size_t k = 0; k < 16; k++)
+        {
+            *buffer++ ^= prev[k] ^ out[k];
+        }
+        memcpy(prev, block, 16);
     }
 }
