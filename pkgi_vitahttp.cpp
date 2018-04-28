@@ -21,7 +21,9 @@ int64_t VitaHttp::read(uint8_t* buffer, uint64_t size)
 {
     const int64_t read = pkgi_http_read(_http, buffer, size);
     if (read < 0)
-        throw HttpError(fmt::format("HTTP download error 0x%08x", read));
+        throw HttpError(fmt::format(
+                "HTTP download error {:#08x}",
+                static_cast<uint32_t>(static_cast<int32_t>(read))));
     return read;
 }
 

@@ -2,6 +2,11 @@ extern "C" {
 #include "pkgi.h"
 #include "pkgi_style.h"
 }
+#include "pkgi_http.hpp"
+
+#include <fmt/format.h>
+
+#include <boost/scope_exit.hpp>
 
 #include <string>
 
@@ -1048,10 +1053,7 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
     }
 
     if (!http)
-    {
-        LOG("too many simultaneous http requests");
-        return NULL;
-    }
+        throw HttpError("internal error: too many simultaneous http requests");
 
     pkgi_http* result = NULL;
 
@@ -1122,24 +1124,36 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
 
         if ((tmpl = sceHttpCreateTemplate(
                      PKGI_USER_AGENT, SCE_HTTP_VERSION_1_1, SCE_TRUE)) < 0)
+            throw HttpError(fmt::format(
+                    "sceHttpCreateTemplate failed: {:#08x}",
+                    static_cast<uint32_t>(tmpl)));
+        BOOST_SCOPE_EXIT_ALL(&)
         {
-            LOG("sceHttpCreateTemplate failed: 0x%08x", tmpl);
-            goto bail;
-        }
+            if (tmpl < 0)
+                sceHttpDeleteTemplate(tmpl);
+        };
         // sceHttpSetRecvTimeOut(tmpl, 10 * 1000 * 1000);
 
         if ((conn = sceHttpCreateConnectionWithURL(tmpl, url, SCE_FALSE)) < 0)
+            throw HttpError(fmt::format(
+                    "sceHttpCreateConnectionWithURL failed: {:#08x}",
+                    static_cast<uint32_t>(conn)));
+        BOOST_SCOPE_EXIT_ALL(&)
         {
-            LOG("sceHttpCreateConnectionWithURL failed: 0x%08x", conn);
-            goto bail;
-        }
+            if (conn < 0)
+                sceHttpDeleteConnection(conn);
+        };
 
         if ((req = sceHttpCreateRequestWithURL(
                      conn, SCE_HTTP_METHOD_GET, url, 0)) < 0)
+            throw HttpError(fmt::format(
+                    "sceHttpCreateRequestWithURL failed: {:#08x}",
+                    static_cast<uint32_t>(req)));
+        BOOST_SCOPE_EXIT_ALL(&)
         {
-            LOG("sceHttpCreateRequestWithURL failed: 0x%08x", req);
-            goto bail;
-        }
+            if (req < 0)
+                sceHttpDeleteRequest(req);
+        };
 
         int err;
 
@@ -1149,17 +1163,15 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
             pkgi_snprintf(range, sizeof(range), "bytes=%llu-", offset);
             if ((err = sceHttpAddRequestHeader(
                          req, "Range", range, SCE_HTTP_HEADER_ADD)) < 0)
-            {
-                LOG("sceHttpAddRequestHeader failed: 0x%08x", err);
-                goto bail;
-            }
+                throw HttpError(fmt::format(
+                        "sceHttpAddRequestHeader failed: {:#08x}",
+                        static_cast<uint32_t>(err)));
         }
 
         if ((err = sceHttpSendRequest(req, NULL, 0)) < 0)
-        {
-            LOG("sceHttpSendRequest failed: 0x%08x", err);
-            goto bail;
-        }
+            throw HttpError(fmt::format(
+                    "sceHttpSendRequest failed: {:#08x}",
+                    static_cast<uint32_t>(err)));
 
         http->used = 1;
         http->local = 0;
@@ -1169,14 +1181,6 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
         tmpl = conn = req = -1;
 
         result = http;
-
-    bail:
-        if (req < 0)
-            sceHttpDeleteRequest(req);
-        if (conn < 0)
-            sceHttpDeleteConnection(conn);
-        if (tmpl < 0)
-            sceHttpDeleteTemplate(tmpl);
     }
 
     return result;
