@@ -5,9 +5,11 @@ extern "C" {
 #include "pkgi_utils.h"
 }
 #include "pkgi_config.hpp"
+#include "pkgi_vitahttp.hpp"
 
 #include <algorithm>
 #include <cstring>
+#include <stdexcept>
 #include <string>
 
 #include <stddef.h>
@@ -206,8 +208,7 @@ static void parse_tsv_file()
     db_item_count = db_count;
 }
 
-int pkgi_db_update(
-        const char* update_url, char* error, uint32_t error_size, Mode amode)
+void pkgi_db_update(const char* update_url, Mode amode)
 {
     db_data.resize(MAX_DB_SIZE);
     db_total = 0;
@@ -230,78 +231,37 @@ int pkgi_db_update(
     {
         LOG("loading update from %s", update_url);
 
-        pkgi_http* http = pkgi_http_get(update_url, NULL, 0);
-        if (!http)
-        {
-            pkgi_snprintf(error, error_size, "failed to download list");
-            return 0;
-        }
+        VitaHttp http;
+        http.start(update_url, 0);
 
-        int64_t length;
-        if (!pkgi_http_response_length(http, &length))
-        {
-            pkgi_snprintf(error, error_size, "failed to download list");
-            return 0;
-        }
+        const auto length = http.get_length();
 
         if (length > (int64_t)db_data.size() - 1)
-        {
-            pkgi_snprintf(
-                    error,
-                    sizeof(error_size),
-                    "list is too large... check for newer pkgi "
-                    "version!");
-            return 0;
-        }
+            throw std::runtime_error(
+                    "list is too large... check for newer pkgj version");
 
         if (length != 0)
-        {
             db_total = (uint32_t)length;
-        }
-
-        error[0] = 0;
 
         for (;;)
         {
             uint32_t want =
                     (uint32_t)min64(1 << 16, db_data.size() - 1 - db_size);
-            int read = pkgi_http_read(http, db_data.data() + db_size, want);
+            int read = http.read(
+                    reinterpret_cast<uint8_t*>(db_data.data()) + db_size, want);
             if (read == 0)
-            {
                 break;
-            }
-            else if (read < 0)
-            {
-                pkgi_snprintf(
-                        error, sizeof(error_size), "HTTP error 0x%08x", read);
-                db_size = 0;
-                break;
-            }
             db_size += read;
         }
 
-        if (error[0] == 0 && db_size == 0)
-        {
-            pkgi_snprintf(
-                    error,
-                    sizeof(error_size),
-                    "list is empty... check for newer pkgi version!");
-        }
-
-        pkgi_http_close(http);
-
         if (db_size == 0)
-        {
-            return 0;
-        }
+            throw std::runtime_error(
+                    "list is empty... check for newer pkgi version");
     }
     else
     {
-        pkgi_snprintf(
-                error,
-                error_size,
-                "ERROR: pkgi.txt file missing or bad config.txt file?");
-        return 0;
+        throw std::runtime_error(
+                "pkgi.txt file missing or bad config.txt file?");
     }
 
     LOG("parsing items");
@@ -310,7 +270,6 @@ int pkgi_db_update(
     parse_tsv_file();
 
     LOG("finished parsing, %u total items", db_count);
-    return 1;
 }
 
 static void swap(uint32_t a, uint32_t b)

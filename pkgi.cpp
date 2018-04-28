@@ -59,15 +59,21 @@ static void pkgi_refresh_thread(void)
 {
     LOG("starting update");
     const char* url = current_url;
-    if (pkgi_db_update(url, error_state, sizeof(error_state), mode))
+    try
     {
+        pkgi_db_update(url, mode);
         first_item = 0;
         selected_item = 0;
         state = StateUpdateDone;
     }
-    else
+    catch (const std::exception& e)
     {
         state = StateError;
+        snprintf(
+                error_state,
+                sizeof(error_state),
+                "can't get list: %s",
+                e.what());
     }
 }
 
