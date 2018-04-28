@@ -252,9 +252,18 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                 else
                     item->presence = PresenceMissing;
             }
-            else if (
-                    pkgi_db_get_mode() == ModePsxGames ||
-                    pkgi_db_get_mode() == ModePspGames)
+            else if (pkgi_db_get_mode() == ModePspGames)
+            {
+                if (pkgi_psp_is_installed(item->content))
+                    item->presence = PresenceInstalled;
+                else if (downloader.is_in_queue(item->content))
+                    item->presence = PresenceInstalling;
+                else if (pkgi_is_incomplete(item->content))
+                    item->presence = PresenceIncomplete;
+                else
+                    item->presence = PresenceMissing;
+            }
+            else if (pkgi_db_get_mode() == ModePsxGames)
             {
                 if (pkgi_psx_is_installed(item->content))
                     item->presence = PresenceInstalled;

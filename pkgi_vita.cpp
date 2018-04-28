@@ -687,6 +687,15 @@ int pkgi_dlc_is_installed(const char* content)
     return sceIoGetstat(path, &stat) >= 0;
 }
 
+int pkgi_psp_is_installed(const char* content)
+{
+    char path[128];
+    snprintf(path, sizeof(path), "ux0:pspemu/ISO/%.9s.iso", content + 7);
+
+    SceIoStat stat;
+    return sceIoGetstat(path, &stat) >= 0;
+}
+
 int pkgi_psx_is_installed(const char* content)
 {
     char path[128];
@@ -784,6 +793,35 @@ int pkgi_install_update(const char* contentid)
     if (res == 0)
     {
         LOG("rename succeeded");
+    }
+    else
+    {
+        LOG("rename failed: %x", res);
+    }
+    return res == 0;
+}
+
+int pkgi_install_pspgame(const char* contentid)
+{
+    char path[128];
+    snprintf(
+            path,
+            sizeof(path),
+            "%s/%s/EBOOT.PBP",
+            pkgi_get_temp_folder(),
+            contentid);
+
+    char dest[128];
+    snprintf(dest, sizeof(dest), "ux0:pspemu/ISO/%.9s.iso", contentid + 7);
+
+    LOG("installing psp game at %s", path);
+    int res = sceIoRename(path, dest);
+    if (res == 0)
+    {
+        LOG("rename succeeded");
+        snprintf(
+                path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
+        pkgi_delete_dir(path);
     }
     else
     {

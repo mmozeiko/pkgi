@@ -159,6 +159,9 @@ void Downloader::do_download(const DownloadItem& item)
             return;
         break;
     case PspGame:
+        if (!pkgi_install_pspgame(item.content.c_str()))
+            return;
+        break;
     case PsxGame:
         if (!pkgi_install_psxgame(item.content.c_str()))
             return;
