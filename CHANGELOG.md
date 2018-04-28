@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.14
+
+What's new:
+
+- Added support for PSP games
+- Improved HTTP error reporting
+
 ## 0.13
 
 Bug fixes:
