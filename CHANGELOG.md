@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.15
+
+What's new:
+
+- Further improved HTTP error reporting
+
 ## 0.14
 
 What's new:
