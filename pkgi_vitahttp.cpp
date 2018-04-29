@@ -30,10 +30,7 @@ int64_t VitaHttp::read(uint8_t* buffer, uint64_t size)
 int64_t VitaHttp::get_length()
 {
     int64_t http_length;
-    if (!pkgi_http_response_length(_http, &http_length))
-    {
-        throw HttpError("failed to get respose length");
-    }
+    pkgi_http_response_length(_http, &http_length);
     return http_length;
 }
 

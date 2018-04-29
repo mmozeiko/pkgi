@@ -1186,57 +1186,51 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
     return result;
 }
 
-int pkgi_http_response_length(pkgi_http* http, int64_t* length)
+void pkgi_http_response_length(pkgi_http* http, int64_t* length)
 {
     if (http->local)
     {
         *length = (int64_t)http->size;
-        return 1;
+        return;
+    }
+
+    int res;
+    int status;
+    if ((res = sceHttpGetStatusCode(http->req, &status)) < 0)
+        throw HttpError(fmt::format(
+                "sceHttpGetStatusCode failed: {:#08x}",
+                static_cast<uint32_t>(res)));
+
+    LOG("http status code = %d", status);
+
+    if (status != 200 && status != 206)
+        throw HttpError(fmt::format("bad http status: {}", status));
+
+    char* headers;
+    unsigned int size;
+    if (sceHttpGetAllResponseHeaders(http->req, &headers, &size) >= 0)
+    {
+        LOG("response headers:");
+        LOG("%.*s", (int)size, headers);
+    }
+
+    uint64_t content_length;
+    res = sceHttpGetResponseContentLength(http->req, &content_length);
+    if (res < 0)
+        throw HttpError(fmt::format(
+                "sceHttpGetResponseContentLength failed: {:#08x}",
+                static_cast<uint32_t>(res)));
+    if (res == (int)SCE_HTTP_ERROR_NO_CONTENT_LENGTH ||
+        res == (int)SCE_HTTP_ERROR_CHUNK_ENC)
+    {
+        LOG("http response has no content length (or chunked "
+            "encoding)");
+        *length = 0;
     }
     else
     {
-        int res;
-        int status;
-        if ((res = sceHttpGetStatusCode(http->req, &status)) < 0)
-        {
-            LOG("sceHttpGetStatusCode failed: 0x%08x", res);
-            return 0;
-        }
-
-        LOG("http status code = %d", status);
-
-        if (status == 200 || status == 206)
-        {
-            char* headers;
-            unsigned int size;
-            if (sceHttpGetAllResponseHeaders(http->req, &headers, &size) >= 0)
-            {
-                LOG("response headers:");
-                LOG("%.*s", (int)size, headers);
-            }
-
-            uint64_t content_length;
-            res = sceHttpGetResponseContentLength(http->req, &content_length);
-            if (res == (int)SCE_HTTP_ERROR_NO_CONTENT_LENGTH ||
-                res == (int)SCE_HTTP_ERROR_CHUNK_ENC)
-            {
-                LOG("http response has no content length (or chunked "
-                    "encoding)");
-                *length = 0;
-            }
-            else if (res < 0)
-            {
-                LOG("sceHttpGetResponseContentLength failed: 0x%08x", res);
-                return 0;
-            }
-            else
-            {
-                LOG("http response length = %llu", content_length);
-                *length = (int64_t)content_length;
-            }
-            return 1;
-        }
-        return 0;
+        LOG("http response length = %llu", content_length);
+        *length = (int64_t)content_length;
     }
 }
 

@@ -106,7 +106,7 @@ int pkgi_check_free_space(uint64_t http_length);
 typedef struct pkgi_http pkgi_http;
 
 pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset);
-int pkgi_http_response_length(pkgi_http* http, int64_t* length);
+void pkgi_http_response_length(pkgi_http* http, int64_t* length);
 int pkgi_http_read(pkgi_http* http, void* buffer, uint32_t size);
 void pkgi_http_close(pkgi_http* http);
 
