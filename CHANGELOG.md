@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.16
+
+What's new:
+
+- Added automatic creation of PSP and PSX directories
+- Improved installation error reporting
+
 ## 0.15
 
 What's new:
