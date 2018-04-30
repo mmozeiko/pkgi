@@ -710,22 +710,17 @@ int pkgi_psx_is_installed(const char* content)
     return sceIoGetstat(path, &stat) >= 0;
 }
 
-int pkgi_install(const char* contentid)
+void pkgi_install(const char* contentid)
 {
     char path[128];
     snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
 
     LOG("calling scePromoterUtilityPromotePkgWithRif on %s", path);
     int res = scePromoterUtilityPromotePkgWithRif(path, 1);
-    if (res == 0)
-    {
-        LOG("scePromoterUtilityPromotePkgWithRif succeeded");
-    }
-    else
-    {
-        LOG("scePromoterUtilityPromotePkgWithRif failed: %x", res);
-    }
-    return res == 0;
+    if (res < 0)
+        throw std::runtime_error(fmt::format(
+                "scePromoterUtilityPromotePkgWithRif failed: {:#08x}",
+                static_cast<uint32_t>(res)));
 }
 
 static int pkgi_delete_dir(const std::string& path)
@@ -781,7 +776,7 @@ static int pkgi_delete_dir(const std::string& path)
     return 1;
 }
 
-int pkgi_install_update(const char* contentid)
+void pkgi_install_update(const char* contentid)
 {
     char path[128];
     snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
@@ -791,22 +786,17 @@ int pkgi_install_update(const char* contentid)
 
     LOG("deleting previous patch");
     if (!pkgi_delete_dir(dest))
-        return 0;
+        throw std::runtime_error(
+                fmt::format("can't delete previous patch to install this one"));
 
     LOG("installing update at %s", path);
     int res = sceIoRename(path, dest);
-    if (res == 0)
-    {
-        LOG("rename succeeded");
-    }
-    else
-    {
-        LOG("rename failed: %x", res);
-    }
-    return res == 0;
+    if (res < 0)
+        throw std::runtime_error(fmt::format(
+                "failed to rename: {:#08x}", static_cast<uint32_t>(res)));
 }
 
-int pkgi_install_pspgame(const char* contentid)
+void pkgi_install_pspgame(const char* contentid)
 {
     char path[128];
     snprintf(
@@ -824,21 +814,15 @@ int pkgi_install_pspgame(const char* contentid)
 
     LOG("installing psp game at %s", path);
     int res = sceIoRename(path, dest);
-    if (res == 0)
-    {
-        LOG("rename succeeded");
-        snprintf(
-                path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
-        pkgi_delete_dir(path);
-    }
-    else
-    {
-        LOG("rename failed: %x", res);
-    }
-    return res == 0;
+    if (res < 0)
+        throw std::runtime_error(fmt::format(
+                "failed to rename: {:#08x}", static_cast<uint32_t>(res)));
+
+    snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
+    pkgi_delete_dir(path);
 }
 
-int pkgi_install_psxgame(const char* contentid)
+void pkgi_install_psxgame(const char* contentid)
 {
     char path[128];
     snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
@@ -851,15 +835,9 @@ int pkgi_install_psxgame(const char* contentid)
 
     LOG("installing psx game at %s", path);
     int res = sceIoRename(path, dest);
-    if (res == 0)
-    {
-        LOG("rename succeeded");
-    }
-    else
-    {
-        LOG("rename failed: %x", res);
-    }
-    return res == 0;
+    if (res < 0)
+        throw std::runtime_error(fmt::format(
+                "failed to rename: {:#08x}", static_cast<uint32_t>(res)));
 }
 
 uint32_t pkgi_time_msec()

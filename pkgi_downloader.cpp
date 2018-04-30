@@ -151,20 +151,16 @@ void Downloader::do_download(const DownloadItem& item)
     {
     case Game:
     case Dlc:
-        if (!pkgi_install(item.content.c_str()))
-            return;
+        pkgi_install(item.content.c_str());
         break;
     case Update:
-        if (!pkgi_install_update(item.content.c_str()))
-            return;
+        pkgi_install_update(item.content.c_str());
         break;
     case PspGame:
-        if (!pkgi_install_pspgame(item.content.c_str()))
-            return;
+        pkgi_install_pspgame(item.content.c_str());
         break;
     case PsxGame:
-        if (!pkgi_install_psxgame(item.content.c_str()))
-            return;
+        pkgi_install_psxgame(item.content.c_str());
         break;
     }
     LOG("install of %s completed!", item.name.c_str());
