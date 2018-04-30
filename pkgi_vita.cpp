@@ -817,6 +817,9 @@ int pkgi_install_pspgame(const char* contentid)
             contentid);
 
     char dest[128];
+    snprintf(dest, sizeof(dest), "ux0:pspemu/ISO");
+    pkgi_mkdirs(dest);
+
     snprintf(dest, sizeof(dest), "ux0:pspemu/ISO/%.9s.iso", contentid + 7);
 
     LOG("installing psp game at %s", path);
@@ -841,6 +844,9 @@ int pkgi_install_psxgame(const char* contentid)
     snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
 
     char dest[128];
+    snprintf(dest, sizeof(dest), "ux0:pspemu/PSP/GAME");
+    pkgi_mkdirs(dest);
+
     snprintf(dest, sizeof(dest), "ux0:pspemu/PSP/GAME/%.9s", contentid + 7);
 
     LOG("installing psx game at %s", path);
