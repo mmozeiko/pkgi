@@ -3,10 +3,13 @@ extern "C" {
 #include "pkgi_style.h"
 }
 
+#include <fmt/format.h>
+
 #include <cerrno>
 #include <cstring>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <stdexcept>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -92,30 +95,24 @@ const char* pkgi_get_temp_folder(void)
     return "tmp";
 }
 
-int pkgi_mkdirs(char* path)
+void pkgi_mkdirs(char* path)
 {
     char* ptr = path;
     while (*ptr)
     {
         while (*ptr && *ptr != '/')
-        {
             ptr++;
-        }
+
         char last = *ptr;
         *ptr = 0;
         int ok = mkdir(path, 0755);
         if (ok < 0 && errno != EEXIST)
-        {
-            return 0;
-        }
+            throw std::runtime_error(
+                    fmt::format("mkdir({}) failed: {}", path, strerror(errno)));
         if (last == 0)
-        {
             break;
-        }
         *ptr++ = last;
     }
-
-    return 1;
 }
 
 void pkgi_rm(const char* file)

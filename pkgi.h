@@ -110,7 +110,7 @@ void pkgi_http_response_length(pkgi_http* http, int64_t* length);
 int pkgi_http_read(pkgi_http* http, void* buffer, uint32_t size);
 void pkgi_http_close(pkgi_http* http);
 
-int pkgi_mkdirs(char* path);
+void pkgi_mkdirs(char* path);
 void pkgi_rm(const char* file);
 int64_t pkgi_get_size(const char* path);
 

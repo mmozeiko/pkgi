@@ -444,12 +444,7 @@ int Download::create_file(void)
     char* last = pkgi_strrchr(folder, '/');
     *last = 0;
 
-    if (!pkgi_mkdirs(folder))
-    {
-        char error[256];
-        pkgi_snprintf(error, sizeof(error), "cannot create folder %s", folder);
-        throw DownloadError(error);
-    }
+    pkgi_mkdirs(folder);
 
     LOG("creating %s file", item_name);
     item_file = pkgi_create(item_path);

@@ -1255,38 +1255,27 @@ void pkgi_http_close(pkgi_http* http)
     http->used = 0;
 }
 
-int pkgi_mkdirs(char* path)
+void pkgi_mkdirs(char* path)
 {
-    // LOG("pkgi_mkdirs enter %llu", sceKernelGetProcessTimeWide() / 1000);
     char* ptr = path;
     while (*ptr)
     {
         while (*ptr && *ptr != '/')
-        {
             ptr++;
-        }
+
         char last = *ptr;
         *ptr = 0;
         LOG("mkdir %s", path);
-        // LOG("BEFORE MKDIR %llu", sceKernelGetProcessTimeWide() / 1000);
         int err = sceIoMkdir(path, 0777);
-        // LOG("AFTER MKDIR %llu", sceKernelGetProcessTimeWide() / 1000);
         if (err < 0 && err != PKGI_ERRNO_EEXIST)
-        {
-            LOG("sceIoMkdir %s err=0x%08x", path, (uint32_t)err);
-            // LOG("pkgi_mkdirs exit %llu", sceKernelGetProcessTimeWide() /
-            // 1000);
-            return 0;
-        }
+            throw std::runtime_error(fmt::format(
+                    "sceIoMkdir({}) failed: {:#08x}",
+                    path,
+                    static_cast<uint32_t>(err)));
         *ptr++ = last;
         if (last == 0)
-        {
             break;
-        }
     }
-
-    // LOG("pkgi_mkdirs exit %llu", sceKernelGetProcessTimeWide() / 1000);
-    return 1;
 }
 
 void pkgi_rm(const char* file)
