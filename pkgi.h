@@ -68,9 +68,14 @@ int pkgi_bettery_get_level();
 int pkgi_battery_is_low();
 int pkgi_battery_is_charging();
 
-uint64_t pkgi_get_free_space(void);
+void pkgi_set_partition_ux0(void);
+void pkgi_set_partition_ur0(void);
+void pkgi_set_partition_uma0(void);
+
+uint64_t pkgi_get_free_space(const char*);
 const char* pkgi_get_config_folder(void);
 const char* pkgi_get_temp_folder(void);
+const char* pkgi_get_partition(void);
 const char* pkgi_get_app_folder(void);
 int pkgi_is_incomplete(const char* titleid);
 int pkgi_is_installed(const char* titleid);
@@ -110,7 +115,7 @@ void pkgi_http_response_length(pkgi_http* http, int64_t* length);
 int pkgi_http_read(pkgi_http* http, void* buffer, uint32_t size);
 void pkgi_http_close(pkgi_http* http);
 
-void pkgi_mkdirs(char* path);
+int pkgi_mkdirs(char* path);
 void pkgi_rm(const char* file);
 int64_t pkgi_get_size(const char* path);
 
