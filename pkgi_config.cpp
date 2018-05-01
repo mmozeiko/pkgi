@@ -1,5 +1,7 @@
-#include "pkgi_config.h"
+extern "C" {
 #include "pkgi.h"
+}
+#include "pkgi_config.hpp"
 
 static char* skipnonws(char* text, char* end)
 {
@@ -59,7 +61,7 @@ static DbSortOrder parse_order(const char* value, DbSortOrder order)
     }
 }
 
-static DbSortOrder parse_filter(char* value, uint32_t filter)
+static DbFilter parse_filter(char* value, uint32_t filter)
 {
     uint32_t result = 0;
 
@@ -88,7 +90,7 @@ static DbSortOrder parse_filter(char* value, uint32_t filter)
             }
             else
             {
-                return filter;
+                return static_cast<DbFilter>(filter);
             }
             if (ch == 0)
             {
@@ -103,20 +105,22 @@ static DbSortOrder parse_filter(char* value, uint32_t filter)
         }
     }
 
-    return result;
+    return static_cast<DbFilter>(result);
 }
 
-void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
+Config pkgi_load_config()
 {
-    refresh_url[0] = 0;
-    config->sort = SortByName;
-    config->order = SortAscending;
-    config->filter = DbFilterAll;
-    config->no_version_check = 0;
+    Config config;
+
+    config.sort = SortByName;
+    config.order = SortAscending;
+    config.filter = DbFilterAll;
+    config.no_version_check = 0;
 
     char data[4096];
     char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/config.txt", pkgi_get_config_folder());
+    pkgi_snprintf(
+            path, sizeof(path), "%s/config.txt", pkgi_get_config_folder());
     LOG("config location: %s", path);
 
     int loaded = pkgi_load(path, data, sizeof(data) - 1);
@@ -128,7 +132,8 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
         char* text = data;
         char* end = data + loaded + 1;
 
-        if (loaded > 3 && (uint8_t)text[0] == 0xef && (uint8_t)text[1] == 0xbb && (uint8_t)text[2] == 0xbf)
+        if (loaded > 3 && (uint8_t)text[0] == 0xef &&
+            (uint8_t)text[1] == 0xbb && (uint8_t)text[2] == 0xbf)
         {
             text += 3;
         }
@@ -138,59 +143,67 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
             char* key = text;
 
             text = skipnonws(text, end);
-            if (text == end) break;
+            if (text == end)
+                break;
 
             *text++ = 0;
 
             text = skipws(text, end);
-            if (text == end) break;
+            if (text == end)
+                break;
 
             char* value = text;
 
             text = skipnonws(text, end);
-            if (text == end) break;
+            if (text == end)
+                break;
 
             *text++ = 0;
 
             text = skipws(text, end);
 
-            if (pkgi_stricmp(key, "url") == 0)
-            {
-                pkgi_strncpy(refresh_url, refresh_len, value);
-            }
+            if (pkgi_stricmp(key, "url") == 0 ||
+                pkgi_stricmp(key, "url_games") == 0)
+                config.games_url = value;
+            else if (pkgi_stricmp(key, "url_updates") == 0)
+                config.updates_url = value;
+            else if (pkgi_stricmp(key, "url_dlcs") == 0)
+                config.dlcs_url = value;
+            else if (pkgi_stricmp(key, "url_psx_games") == 0)
+                config.psx_games_url = value;
+            else if (pkgi_stricmp(key, "url_psp_games") == 0)
+                config.psp_games_url = value;
             else if (pkgi_stricmp(key, "sort") == 0)
-            {
-                config->sort = parse_sort(value, SortByName);
-            }
+                config.sort = parse_sort(value, SortByName);
             else if (pkgi_stricmp(key, "order") == 0)
-            {
-                config->order = parse_order(value, SortAscending);
-            }
+                config.order = parse_order(value, SortAscending);
             else if (pkgi_stricmp(key, "filter") == 0)
-            {
-                config->filter = parse_filter(value, DbFilterAll);
-            }
+                config.filter = parse_filter(value, DbFilterAll);
             else if (pkgi_stricmp(key, "no_version_check") == 0)
-            {
-                config->no_version_check = 1;
-            }
+                config.no_version_check = 1;
         }
     }
     else
     {
         LOG("config.txt cannot be loaded, using default values");
     }
+    return config;
 }
 
 static const char* sort_str(DbSort sort)
 {
     switch (sort)
     {
-    case SortByTitle: return "title";
-    case SortByRegion: return "region";
-    case SortByName: return "name";
-    case SortBySize: return "size";
-    default: return "";
+    case SortByTitle:
+        return "title";
+    case SortByRegion:
+        return "region";
+    case SortByName:
+        return "name";
+    case SortBySize:
+        return "size";
+    default:
+        return "";
     }
 }
 
@@ -198,53 +211,89 @@ static const char* order_str(DbSortOrder order)
 {
     switch (order)
     {
-    case SortAscending: return "asc";
-    case SortDescending: return "desc";
-    default: return "";
+    case SortAscending:
+        return "asc";
+    case SortDescending:
+        return "desc";
+    default:
+        return "";
     }
 }
 
-void pkgi_save_config(const Config* config, const char* update_url)
+void pkgi_save_config(const Config& config)
 {
     char data[4096];
     int len = 0;
-    if (update_url && update_url[0] != 0)
-    {
-        len += pkgi_snprintf(data + len, sizeof(data) - len, "url %s\n", update_url);
-    }
-    len += pkgi_snprintf(data + len, sizeof(data) - len, "sort %s\n", sort_str(config->sort));
-    len += pkgi_snprintf(data + len, sizeof(data) - len, "order %s\n", order_str(config->order));
+    if (!config.games_url.empty())
+        len += pkgi_snprintf(
+                data + len,
+                sizeof(data) - len,
+                "url_games %s\n",
+                config.games_url.c_str());
+    if (!config.updates_url.empty())
+        len += pkgi_snprintf(
+                data + len,
+                sizeof(data) - len,
+                "url_updates %s\n",
+                config.updates_url.c_str());
+    if (!config.dlcs_url.empty())
+        len += pkgi_snprintf(
+                data + len,
+                sizeof(data) - len,
+                "url_dlcs %s\n",
+                config.dlcs_url.c_str());
+    if (!config.psx_games_url.empty())
+        len += pkgi_snprintf(
+                data + len,
+                sizeof(data) - len,
+                "url_psx_games %s\n",
+                config.psx_games_url.c_str());
+    if (!config.psp_games_url.empty())
+        len += pkgi_snprintf(
+                data + len,
+                sizeof(data) - len,
+                "url_psp_games %s\n",
+                config.psp_games_url.c_str());
+    len += pkgi_snprintf(
+            data + len, sizeof(data) - len, "sort %s\n", sort_str(config.sort));
+    len += pkgi_snprintf(
+            data + len,
+            sizeof(data) - len,
+            "order %s\n",
+            order_str(config.order));
     len += pkgi_snprintf(data + len, sizeof(data) - len, "filter ");
     const char* sep = "";
-    if (config->filter & DbFilterRegionASA)
+    if (config.filter & DbFilterRegionASA)
     {
         len += pkgi_snprintf(data + len, sizeof(data) - len, "%sASA", sep);
         sep = ",";
     }
-    if (config->filter & DbFilterRegionEUR)
+    if (config.filter & DbFilterRegionEUR)
     {
         len += pkgi_snprintf(data + len, sizeof(data) - len, "%sEUR", sep);
         sep = ",";
     }
-    if (config->filter & DbFilterRegionJPN)
+    if (config.filter & DbFilterRegionJPN)
     {
         len += pkgi_snprintf(data + len, sizeof(data) - len, "%sJPN", sep);
         sep = ",";
     }
-    if (config->filter & DbFilterRegionUSA)
+    if (config.filter & DbFilterRegionUSA)
     {
         len += pkgi_snprintf(data + len, sizeof(data) - len, "%sUSA", sep);
         sep = ",";
     }
     len += pkgi_snprintf(data + len, sizeof(data) - len, "\n");
 
-    if (config->no_version_check)
+    if (config.no_version_check)
     {
-        len += pkgi_snprintf(data + len, sizeof(data) - len, "no_version_check 1\n");
+        len += pkgi_snprintf(
+                data + len, sizeof(data) - len, "no_version_check 1\n");
     }
 
     char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/config.txt", pkgi_get_config_folder());
+    pkgi_snprintf(
+            path, sizeof(path), "%s/config.txt", pkgi_get_config_folder());
 
     if (pkgi_save(path, data, len))
     {

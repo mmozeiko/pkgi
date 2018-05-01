@@ -1,16 +1,16 @@
 #pragma once
 
-#include <stdint.h>
 #include <stdarg.h>
+#include <stdint.h>
 
 // values compatible with psp2/ctrl.h header
 #define PKGI_BUTTON_SELECT 0x00000001
-#define PKGI_BUTTON_START  0x00000008
+#define PKGI_BUTTON_START 0x00000008
 
-#define PKGI_BUTTON_UP    0x00000010
+#define PKGI_BUTTON_UP 0x00000010
 #define PKGI_BUTTON_RIGHT 0x00000020
-#define PKGI_BUTTON_DOWN  0x00000040
-#define PKGI_BUTTON_LEFT  0x00000080
+#define PKGI_BUTTON_DOWN 0x00000040
+#define PKGI_BUTTON_LEFT 0x00000080
 
 #define PKGI_BUTTON_LT 0x00000100
 #define PKGI_BUTTON_RT 0x00000200
@@ -22,18 +22,20 @@
 
 #define PKGI_UNUSED(x) (void)(x)
 
-typedef struct pkgi_input {
+typedef struct pkgi_input
+{
     uint64_t delta; // microseconds from previous frame
 
     uint32_t pressed; // button pressed in last frame
     uint32_t down;    // button is currently down
-    uint32_t active;  // button is pressed in last frame, or held down for a long time (10 frames)
+    uint32_t active; // button is pressed in last frame, or held down for a long
+                     // time (10 frames)
 } pkgi_input;
 
-#define PKGI_COUNTOF(arr) (sizeof(arr)/sizeof(0[arr]))
+#define PKGI_COUNTOF(arr) (sizeof(arr) / sizeof(0 [arr]))
 
 #ifdef PKGI_ENABLE_LOGGING
-#define LOG(msg, ...) pkgi_log(msg, ## __VA_ARGS__)
+#define LOG(msg, ...) pkgi_log(msg, ##__VA_ARGS__)
 #else
 #define LOG(...)
 #endif
@@ -66,13 +68,24 @@ int pkgi_bettery_get_level();
 int pkgi_battery_is_low();
 int pkgi_battery_is_charging();
 
-uint64_t pkgi_get_free_space(void);
+void pkgi_set_partition_ux0(void);
+void pkgi_set_partition_ur0(void);
+void pkgi_set_partition_uma0(void);
+
+uint64_t pkgi_get_free_space(const char*);
 const char* pkgi_get_config_folder(void);
 const char* pkgi_get_temp_folder(void);
+const char* pkgi_get_partition(void);
 const char* pkgi_get_app_folder(void);
 int pkgi_is_incomplete(const char* titleid);
 int pkgi_is_installed(const char* titleid);
-int pkgi_install(const char* titleid);
+int pkgi_dlc_is_installed(const char* content);
+int pkgi_psp_is_installed(const char* content);
+int pkgi_psx_is_installed(const char* content);
+void pkgi_install(const char* titleid);
+void pkgi_install_update(const char* contentid);
+void pkgi_install_pspgame(const char* contentid);
+void pkgi_install_psxgame(const char* contentid);
 
 uint32_t pkgi_time_msec();
 
@@ -98,11 +111,11 @@ int pkgi_check_free_space(uint64_t http_length);
 typedef struct pkgi_http pkgi_http;
 
 pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset);
-int pkgi_http_response_length(pkgi_http* http, int64_t* length);
+void pkgi_http_response_length(pkgi_http* http, int64_t* length);
 int pkgi_http_read(pkgi_http* http, void* buffer, uint32_t size);
 void pkgi_http_close(pkgi_http* http);
 
-int pkgi_mkdirs(char* path);
+void pkgi_mkdirs(char* path);
 void pkgi_rm(const char* file);
 int64_t pkgi_get_size(const char* path);
 
@@ -121,14 +134,17 @@ int pkgi_write(void* f, const void* buffer, uint32_t size);
 // UI stuff
 typedef void* pkgi_texture;
 #ifdef _MSC_VER
-#define pkgi_load_png(name) \
-    pkgi_load_png_raw(# name ## ".png", 0)
+#define pkgi_load_png(name) pkgi_load_png_raw(#name##".png", 0)
 #else
-#define pkgi_load_png(name) \
-    ({ extern uint8_t _binary_assets_##name##_png_start; \
-       extern uint8_t _binary_assets_##name##_png_end; \
-       pkgi_load_png_raw((void*)&_binary_assets_##name##_png_start, \
-           (uint32_t)(&_binary_assets_##name##_png_end - &_binary_assets_##name##_png_start)); \
+#define pkgi_load_png(name)                                   \
+    ({                                                        \
+        extern uint8_t _binary_assets_##name##_png_start;     \
+        extern uint8_t _binary_assets_##name##_png_end;       \
+        pkgi_load_png_raw(                                    \
+                (void*)&_binary_assets_##name##_png_start,    \
+                (uint32_t)(                                   \
+                        &_binary_assets_##name##_png_end -    \
+                        &_binary_assets_##name##_png_start)); \
     })
 #endif
 

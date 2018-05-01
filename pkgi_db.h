@@ -5,8 +5,10 @@
 typedef enum {
     PresenceUnknown,
     PresenceIncomplete,
+    PresenceInstalling,
     PresenceInstalled,
     PresenceMissing,
+    PresenceGamePresent,
 } DbPresence;
 
 typedef enum {
@@ -29,13 +31,15 @@ typedef enum {
 
     // TODO: implement these two
     DbFilterInstalled = 0x10,
-    DbFilterMissing   = 0x20,
+    DbFilterMissing = 0x20,
 
-    DbFilterAllRegions = DbFilterRegionUSA | DbFilterRegionEUR | DbFilterRegionJPN | DbFilterRegionASA,
+    DbFilterAllRegions = DbFilterRegionUSA | DbFilterRegionEUR |
+                         DbFilterRegionJPN | DbFilterRegionASA,
     DbFilterAll = DbFilterAllRegions | DbFilterInstalled | DbFilterMissing,
 } DbFilter;
 
-typedef struct {
+typedef struct
+{
     DbPresence presence;
     const char* content;
     uint32_t flags;
@@ -47,7 +51,6 @@ typedef struct {
     int64_t size;
 } DbItem;
 
-
 typedef enum {
     RegionASA,
     RegionEUR,
@@ -56,9 +59,17 @@ typedef enum {
     RegionUnknown,
 } GameRegion;
 
+typedef enum {
+    ModeGames,
+    ModeUpdates,
+    ModeDlcs,
+    ModePsxGames,
+    ModePspGames,
+} Mode;
+
 typedef struct Config Config;
 
-int pkgi_db_update(const char* update_url, char* error, uint32_t error_size);
+void pkgi_db_update(const char* update_url, Mode mode);
 void pkgi_db_get_update_status(uint32_t* updated, uint32_t* total);
 
 void pkgi_db_configure(const char* search, const Config* config);
@@ -66,5 +77,7 @@ void pkgi_db_configure(const char* search, const Config* config);
 uint32_t pkgi_db_count(void);
 uint32_t pkgi_db_total(void);
 DbItem* pkgi_db_get(uint32_t index);
+DbItem* pkgi_db_get_by_content(const char* content);
 
 GameRegion pkgi_get_region(const char* content);
+Mode pkgi_db_get_mode();
