@@ -4,25 +4,15 @@ extern "C" {
 }
 #include "pkgi_download.hpp"
 
-#include <fmt/format.h>
-
 #include <boost/scope_exit.hpp>
 
 #include <stddef.h>
-
-static constexpr auto ISO_SECTOR_SIZE = 2048;
 
 // clang-format off
 static const uint8_t pkg_psp_key[] = { 0x07, 0xf2, 0xc6, 0x82, 0x90, 0xb5, 0x0d, 0x2c, 0x33, 0x81, 0x8d, 0x70, 0x9b, 0x60, 0xe6, 0x2b };
 static const uint8_t pkg_vita_2[] = { 0xe3, 0x1a, 0x70, 0xc9, 0xce, 0x1d, 0xd7, 0x2b, 0xf3, 0xc0, 0x62, 0x29, 0x63, 0xf2, 0xec, 0xcb };
 static const uint8_t pkg_vita_3[] = { 0x42, 0x3a, 0xca, 0x3a, 0x2b, 0xd5, 0x64, 0x9f, 0x96, 0x86, 0xab, 0xad, 0x6f, 0xd8, 0x80, 0x1f };
 static const uint8_t pkg_vita_4[] = { 0xaf, 0x07, 0xfd, 0x59, 0x65, 0x25, 0x27, 0xba, 0xf1, 0x33, 0x89, 0x66, 0x8b, 0x17, 0xd9, 0xea };
-static const uint8_t kirk7_key38[] = { 0x12, 0x46, 0x8d, 0x7e, 0x1c, 0x42, 0x20, 0x9b, 0xba, 0x54, 0x26, 0x83, 0x5e, 0xb0, 0x33, 0x03 };
-static const uint8_t kirk7_key39[] = { 0xc4, 0x3b, 0xb6, 0xd6, 0x53, 0xee, 0x67, 0x49, 0x3e, 0xa9, 0x5f, 0xbc, 0x0c, 0xed, 0x6f, 0x8a };
-static const uint8_t kirk7_key63[] = { 0x9c, 0x9b, 0x13, 0x72, 0xf8, 0xc6, 0x40, 0xcf, 0x1c, 0x62, 0xf5, 0xd5, 0x92, 0xdd, 0xb5, 0x82 };
-static const uint8_t amctl_hashkey_3[] = { 0xe3, 0x50, 0xed, 0x1d, 0x91, 0x0a, 0x1f, 0xd0, 0x29, 0xbb, 0x1c, 0x3e, 0xf3, 0x40, 0x77, 0xfb };
-static const uint8_t amctl_hashkey_4[] = { 0x13, 0x5f, 0xa4, 0x7c, 0xab, 0x39, 0x5b, 0xa4, 0x76, 0xb8, 0xcc, 0xa9, 0x8f, 0x3a, 0x04, 0x45 };
-static const uint8_t amctl_hashkey_5[] = { 0x67, 0x8d, 0x7f, 0xa3, 0x2a, 0x9c, 0xa0, 0xd1, 0x50, 0x8a, 0xd8, 0x38, 0x5e, 0x4b, 0x01, 0x7e };
 // clang-format on
 
 Download::Download(std::unique_ptr<Http> http) : _http(std::move(http))
@@ -46,326 +36,13 @@ void Download::update_progress()
     }
 }
 
-// lzrc decompression code from libkirk by tpu
-typedef struct
-{
-    // input stream
-    const uint8_t* input;
-    uint32_t in_ptr;
-    uint32_t in_len;
-
-    // output stream
-    uint8_t* output;
-    uint32_t out_ptr;
-    uint32_t out_len;
-
-    // range decode
-    uint32_t range;
-    uint32_t code;
-    uint32_t out_code;
-    uint8_t lc;
-
-    uint8_t bm_literal[8][256];
-    uint8_t bm_dist_bits[8][39];
-    uint8_t bm_dist[18][8];
-    uint8_t bm_match[8][8];
-    uint8_t bm_len[8][31];
-} lzrc_decode;
-
-static void rc_init(
-        lzrc_decode* rc, void* out, int out_len, const void* in, int in_len)
-{
-    if (in_len < 5)
-    {
-        throw DownloadError(
-                "internal error - lzrc input underflow! pkg may be corrupted");
-    }
-
-    rc->input = static_cast<const uint8_t*>(in);
-    rc->in_len = in_len;
-    rc->in_ptr = 5;
-
-    rc->output = static_cast<uint8_t*>(out);
-    rc->out_len = out_len;
-    rc->out_ptr = 0;
-
-    rc->range = 0xffffffff;
-    rc->lc = rc->input[0];
-    rc->code = get32be(rc->input + 1);
-    rc->out_code = 0xffffffff;
-
-    memset(rc->bm_literal, 0x80, sizeof(rc->bm_literal));
-    memset(rc->bm_dist_bits, 0x80, sizeof(rc->bm_dist_bits));
-    memset(rc->bm_dist, 0x80, sizeof(rc->bm_dist));
-    memset(rc->bm_match, 0x80, sizeof(rc->bm_match));
-    memset(rc->bm_len, 0x80, sizeof(rc->bm_len));
-}
-
-static void normalize(lzrc_decode* rc)
-{
-    if (rc->range < 0x01000000)
-    {
-        rc->range <<= 8;
-        rc->code = (rc->code << 8) + rc->input[rc->in_ptr];
-        rc->in_ptr++;
-    }
-}
-
-static int rc_bit(lzrc_decode* rc, uint8_t* prob)
-{
-    uint32_t bound;
-
-    normalize(rc);
-
-    bound = (rc->range >> 8) * (*prob);
-    *prob -= *prob >> 3;
-
-    if (rc->code < bound)
-    {
-        rc->range = bound;
-        *prob += 31;
-        return 1;
-    }
-    else
-    {
-        rc->code -= bound;
-        rc->range -= bound;
-        return 0;
-    }
-}
-
-static int rc_bittree(lzrc_decode* rc, uint8_t* probs, int limit)
-{
-    int number = 1;
-
-    do
-    {
-        number = (number << 1) + rc_bit(rc, probs + number);
-    } while (number < limit);
-
-    return number;
-}
-
-static int rc_number(lzrc_decode* rc, uint8_t* prob, uint32_t n)
-{
-    int number = 1;
-
-    if (n > 3)
-    {
-        number = (number << 1) + rc_bit(rc, prob + 3);
-        if (n > 4)
-        {
-            number = (number << 1) + rc_bit(rc, prob + 3);
-            if (n > 5)
-            {
-                // direct bits
-                normalize(rc);
-
-                for (uint32_t i = 0; i < n - 5; i++)
-                {
-                    rc->range >>= 1;
-                    number <<= 1;
-                    if (rc->code < rc->range)
-                    {
-                        number += 1;
-                    }
-                    else
-                    {
-                        rc->code -= rc->range;
-                    }
-                }
-            }
-        }
-    }
-
-    if (n > 0)
-    {
-        number = (number << 1) + rc_bit(rc, prob);
-        if (n > 1)
-        {
-            number = (number << 1) + rc_bit(rc, prob + 1);
-            if (n > 2)
-            {
-                number = (number << 1) + rc_bit(rc, prob + 2);
-            }
-        }
-    }
-
-    return number;
-}
-
-static int lzrc_decompress(void* out, int out_len, const void* in, int in_len)
-{
-    lzrc_decode rc;
-    rc_init(&rc, out, out_len, in, in_len);
-
-    if (rc.lc & 0x80)
-    {
-        // plain text
-        memcpy(rc.output, rc.input + 5, rc.code);
-        return rc.code;
-    }
-
-    int rc_state = 0;
-    uint8_t last_byte = 0;
-
-    for (;;)
-    {
-        uint32_t match_step = 0;
-
-        int bit = rc_bit(&rc, &rc.bm_match[rc_state][match_step]);
-        if (bit == 0) // literal
-        {
-            if (rc_state > 0)
-            {
-                rc_state -= 1;
-            }
-
-            int byte = rc_bittree(
-                    &rc,
-                    &rc.bm_literal[((last_byte >> rc.lc) & 0x07)][0],
-                    0x100);
-            byte -= 0x100;
-
-            if (rc.out_ptr == rc.out_len)
-            {
-                throw DownloadError(
-                        "internal error - lzrc output overflow! pkg may be "
-                        "corrupted");
-            }
-            rc.output[rc.out_ptr++] = (uint8_t)byte;
-            last_byte = (uint8_t)byte;
-        }
-        else // match
-        {
-            // find bits of match length
-            uint32_t len_bits = 0;
-            for (int i = 0; i < 7; i++)
-            {
-                match_step += 1;
-                bit = rc_bit(&rc, &rc.bm_match[rc_state][match_step]);
-                if (bit == 0)
-                {
-                    break;
-                }
-                len_bits += 1;
-            }
-
-            // find match length
-            uint32_t match_len;
-            if (len_bits == 0)
-            {
-                match_len = 1;
-            }
-            else
-            {
-                uint32_t len_state = ((len_bits - 1) << 2) +
-                                     ((rc.out_ptr << (len_bits - 1)) & 0x03);
-                match_len = rc_number(
-                        &rc, &rc.bm_len[rc_state][len_state], len_bits);
-                if (match_len == 0xFF)
-                {
-                    // end of stream
-                    return rc.out_ptr;
-                }
-            }
-
-            // find number of bits of match distance
-            uint32_t dist_state = 0;
-            uint32_t limit = 8;
-            if (match_len > 2)
-            {
-                dist_state += 7;
-                limit = 44;
-            }
-            int dist_bits = rc_bittree(
-                    &rc, &rc.bm_dist_bits[len_bits][dist_state], limit);
-            dist_bits -= limit;
-
-            // find match distance
-            uint32_t match_dist;
-            if (dist_bits > 0)
-            {
-                match_dist =
-                        rc_number(&rc, &rc.bm_dist[dist_bits][0], dist_bits);
-            }
-            else
-            {
-                match_dist = 1;
-            }
-
-            // copy match bytes
-            if (match_dist > rc.out_ptr)
-            {
-                throw DownloadError(
-                        "internal error - lzrc match_dist out of range! pkg "
-                        "may be corrupted");
-            }
-
-            if (rc.out_ptr + match_len + 1 > rc.out_len)
-            {
-                throw DownloadError(
-                        "internal error - lzrc output overflow! pkg may be "
-                        "corrupted");
-            }
-
-            const uint8_t* match_src = rc.output + rc.out_ptr - match_dist;
-            for (uint32_t i = 0; i <= match_len; i++)
-            {
-                rc.output[rc.out_ptr++] = *match_src++;
-            }
-            last_byte = match_src[-1];
-
-            rc_state = 6 + ((rc.out_ptr + 1) & 1);
-        }
-    }
-}
-static void init_psp_decrypt(
-        aes128_ctx* key,
-        uint8_t* iv,
-        int eboot,
-        const uint8_t* mac,
-        const uint8_t* header,
-        uint32_t offset1,
-        uint32_t offset2)
-{
-    uint8_t tmp[16];
-    aes128_init_dec(key, kirk7_key63);
-    if (eboot)
-    {
-        aes128_decrypt(key, header + offset1, tmp);
-    }
-    else
-    {
-        memcpy(tmp, header + offset1, 16);
-    }
-
-    aes128_ctx aes;
-    aes128_init_dec(&aes, kirk7_key38);
-    aes128_decrypt(&aes, tmp, tmp);
-
-    for (size_t i = 0; i < 16; i++)
-    {
-        iv[i] = mac[i] ^ tmp[i] ^ header[offset2 + i] ^ amctl_hashkey_3[i] ^
-                amctl_hashkey_5[i];
-    }
-    aes128_init_dec(&aes, kirk7_key39);
-    aes128_decrypt(&aes, iv, iv);
-
-    for (size_t i = 0; i < 16; i++)
-    {
-        iv[i] ^= amctl_hashkey_4[i];
-    }
-}
-
 int Download::download_data(
         uint8_t* buffer, uint32_t size, int encrypted, int save)
 {
     if (is_canceled())
+    {
         return 0;
-
-    if (size == 0)
-        return 0;
+    }
 
     update_progress();
 
@@ -663,151 +340,6 @@ int Download::download_head(const uint8_t* rif)
     return 1;
 }
 
-void Download::download_normal_file(uint64_t encrypted_size)
-{
-    while (encrypted_offset != encrypted_size)
-    {
-        uint32_t read = (uint32_t)min64(
-                sizeof(down), encrypted_size - encrypted_offset);
-        int size = download_data(down, read, 1, 1);
-        if (size <= 0)
-            throw DownloadError("unspecified download failure");
-    }
-}
-
-void Download::download_psp_file(uint64_t item_size)
-{
-    if (item_size < 0x28)
-        throw DownloadError("eboot.pbp file is too small");
-
-    uint8_t eboot_header[0x28];
-    download_data(eboot_header, sizeof(eboot_header), 1, 0);
-
-    if (memcmp(eboot_header, "\x00PBP", 4) != 0)
-        throw DownloadError("wrong eboot.pbp header magic");
-
-    uint32_t const psar_offset = get32le(eboot_header + 0x24);
-    if (psar_offset + 256 > item_size)
-        throw DownloadError("eboot.pbp file is to short");
-    if (psar_offset % 16 != 0)
-        throw DownloadError("psar_offset is not aligned");
-
-    {
-        if (psar_offset < encrypted_offset)
-            throw DownloadError("can't seek backward to psar_offset");
-        std::vector<uint8_t> tmp(psar_offset - encrypted_offset);
-        download_data(tmp.data(), tmp.size(), 1, 0);
-    }
-
-    std::vector<uint8_t> psar_header(256);
-    download_data(psar_header.data(), psar_header.size(), 1, 0);
-
-    if (memcmp(psar_header.data(), "NPUMDIMG", 8) != 0)
-        throw DownloadError("wrong data.psar header magic");
-
-    uint32_t const iso_block = get32le(psar_header.data() + 0x0c);
-    if (iso_block > 16)
-        throw DownloadError(fmt::format(
-                "unsupported data.psar block size %u, max %u supported",
-                iso_block,
-                16));
-
-    uint8_t mac[16];
-    aes128_cmac(kirk7_key38, psar_header.data(), 0xc0, mac);
-
-    aes128_ctx psp_key;
-    uint8_t psp_iv[16];
-    init_psp_decrypt(&psp_key, psp_iv, 1, mac, psar_header.data(), 0xc0, 0xa0);
-    aes128_psp_decrypt(&psp_key, psp_iv, 0, psar_header.data() + 0x40, 0x60);
-
-    uint32_t iso_start = get32le(psar_header.data() + 0x54);
-    uint32_t iso_end = get32le(psar_header.data() + 0x64);
-    uint32_t iso_total = iso_end - iso_start - 1;
-    uint32_t block_count = (iso_total + iso_block - 1) / iso_block;
-
-    uint32_t iso_table = get32le(psar_header.data() + 0x6c);
-
-    if (iso_table + block_count * 32 > item_size)
-        throw DownloadError("offset table in data.psar file is too large");
-
-    uint64_t const table_offset = psar_offset + iso_table;
-    {
-        if (table_offset < encrypted_offset)
-            throw DownloadError("can't seek backward to table_offset");
-        std::vector<uint8_t> tmp(table_offset - encrypted_offset);
-        download_data(tmp.data(), tmp.size(), 1, 0);
-    }
-
-    std::vector<std::array<uint8_t, 32>> tables(block_count);
-    for (auto& table : tables)
-        download_data(table.data(), table.size(), 1, 0);
-
-    for (uint32_t i = 0; i < block_count; i++)
-    {
-        auto const& table = tables[i];
-
-        uint32_t t[8];
-        for (size_t k = 0; k < 8; k++)
-            t[k] = get32le(table.data() + k * 4);
-
-        uint32_t block_offset = t[4] ^ t[2] ^ t[3];
-        uint32_t block_size = t[5] ^ t[1] ^ t[2];
-        uint32_t block_flags = t[6] ^ t[0] ^ t[3];
-
-        if (psar_offset + block_size > item_size)
-            throw DownloadError(fmt::format(
-                    "iso block size/offset is to large: {} > {}",
-                    psar_offset + block_size,
-                    item_size));
-
-        std::vector<uint8_t> data(16 * ISO_SECTOR_SIZE);
-
-        uint64_t abs_offset = psar_offset + block_offset;
-        {
-            if (abs_offset < encrypted_offset)
-                throw DownloadError("can't seek backward to abs_offset");
-            std::vector<uint8_t> tmp(abs_offset - encrypted_offset);
-            download_data(tmp.data(), tmp.size(), 1, 0);
-        }
-        download_data(data.data(), block_size, 1, 0);
-
-        if ((block_flags & 4) == 0)
-        {
-            aes128_psp_decrypt(
-                    &psp_key,
-                    psp_iv,
-                    block_offset / 16,
-                    data.data(),
-                    block_size);
-        }
-
-        if (block_size == iso_block * ISO_SECTOR_SIZE)
-        {
-            if (!pkgi_write(item_file, data.data(), block_size))
-                throw DownloadError(
-                        fmt::format("failed to write to %s", item_path));
-        }
-        else
-        {
-            std::vector<uint8_t> uncompressed(16 * ISO_SECTOR_SIZE);
-            auto const out_size = lzrc_decompress(
-                    uncompressed.data(),
-                    uncompressed.size(),
-                    data.data(),
-                    block_size);
-            if (out_size != int(iso_block) * ISO_SECTOR_SIZE)
-            {
-                throw DownloadError(
-                        "internal error - lzrc decompression failed! "
-                        "pkg may be corrupted");
-            }
-            if (!pkgi_write(item_file, uncompressed.data(), out_size))
-                throw DownloadError(
-                        fmt::format("failed to write to %s", item_path));
-        }
-    }
-}
-
 int Download::download_files(void)
 {
     LOG("downloading encrypted files");
@@ -864,6 +396,12 @@ int Download::download_files(void)
             if (std::string(item_name) == "USRDIR/CONTENT/DOCUMENT.DAT")
                 pkgi_snprintf(
                         item_path, sizeof(item_path), "%s/DOCUMENT.DAT", root);
+            else if (std::string(item_name) == "USRDIR/CONTENT/CONTENT.DAT")
+                pkgi_snprintf(
+                        item_path, sizeof(item_path), "%s/CONTENT.DAT", root);
+            else if (std::string(item_name) == "USRDIR/CONTENT/PSP-KEY.EDAT")
+                pkgi_snprintf(
+                        item_path, sizeof(item_path), "%s/PSP-KEY.EDAT", root);
             else if (std::string(item_name) == "USRDIR/CONTENT/EBOOT.PBP")
                 pkgi_snprintf(
                         item_path, sizeof(item_path), "%s/EBOOT.PBP", root);
@@ -918,11 +456,16 @@ int Download::download_files(void)
             throw DownloadError("pkg file is too small or corrupted");
         }
 
-        if (content_type == 7 &&
-            std::string(item_name) == "USRDIR/CONTENT/EBOOT.PBP")
-            download_psp_file(item_size);
-        else
-            download_normal_file(encrypted_size);
+        while (encrypted_offset != encrypted_size)
+        {
+            uint32_t read = (uint32_t)min64(
+                    sizeof(down), encrypted_size - encrypted_offset);
+            int size = download_data(down, read, 1, 1);
+            if (size <= 0)
+            {
+                return 0;
+            }
+        }
 
         pkgi_close(item_file);
         item_file = NULL;

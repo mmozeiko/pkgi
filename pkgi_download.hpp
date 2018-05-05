@@ -101,8 +101,6 @@ public:
     int download_data(uint8_t* buffer, uint32_t size, int encrypted, int save);
     int create_file(void);
     int download_head(const uint8_t* rif);
-    void download_normal_file(uint64_t encrypted_size);
-    void download_psp_file(uint64_t item_size);
     int download_files(void);
     int download_tail(void);
     int create_stat();
