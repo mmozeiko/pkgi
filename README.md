@@ -69,6 +69,10 @@ Press left or right button to move page up or down.
   have and WiFi signal strength. But sometimes speed will drop down to only few hundred KB/s. This happens for pkg files that
   contains many small files or many folders. Creating a new file or a new folder takes extra time which slows down the download.
 
+5. I can't play PSP games, it says "The game could not be started (80010087)".
+
+  You need to install the [npdrm_free][] plugin in VSH.
+
 # Building
 
 You need to have [Vita SDK][vitasdk] with [libvita2d][] installed.
@@ -83,15 +87,14 @@ UDP multicast address 239.255.0.100:30000. To receive them you can use [socat][]
 
     $ socat udp4-recv:30000,ip-add-membership=239.255.0.100:0.0.0.0 -
 
-For easer debugging on Windows you can build pkgj in "simulator" mode - use Visual Studio 2017 solution from simulator folder.
-
 # License
 
 This software is released under the 2-clause BSD license.
 
 puff.h and puff.c files are under [zlib][] license.
 
-[NoNpDrm]: https://github.com/TheOfficialFloW/NoNpDrm
+[NoNpDrm]: https://github.com/TheOfficialFloW/NoNpDrm/releases
+[npdrm_free]: https://github.com/kyleatlast/npdrm_free/releases
 [zrif_online_converter]: https://rawgit.com/mmozeiko/pkg2zip/online/zrif.html
 [pkg_dec]: https://github.com/weaknespase/PkgDecrypt
 [pkg_releases]: https://github.com/blastrock/pkgj/releases
