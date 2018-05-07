@@ -7,6 +7,7 @@ What's new:
 - PSP games are now installed as EBOOT.pbp files. They are smaller and faster
   to install. You will need to install the npdrm_free plugin in VSH to make
   them work.
+- Added support for PSP-Mini games
 - Increased menu size
 
 ## 0.16
