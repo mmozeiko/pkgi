@@ -79,7 +79,6 @@ int pkgi_psp_is_installed(const char* content);
 int pkgi_psx_is_installed(const char* content);
 void pkgi_install(const char* titleid);
 void pkgi_install_update(const char* contentid);
-void pkgi_install_pspgame(const char* contentid);
 void pkgi_install_psxgame(const char* contentid);
 
 uint32_t pkgi_time_msec();

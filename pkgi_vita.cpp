@@ -695,10 +695,17 @@ int pkgi_dlc_is_installed(const char* content)
 int pkgi_psp_is_installed(const char* content)
 {
     char path[128];
-    snprintf(path, sizeof(path), "ux0:pspemu/ISO/%.9s.iso", content + 7);
-
     SceIoStat stat;
-    return sceIoGetstat(path, &stat) >= 0;
+
+    snprintf(path, sizeof(path), "ux0:pspemu/ISO/%.9s.iso", content + 7);
+    if (sceIoGetstat(path, &stat) >= 0)
+        return 1;
+
+    snprintf(path, sizeof(path), "ux0:pspemu/PSP/GAME/%.9s", content + 7);
+    if (sceIoGetstat(path, &stat) >= 0)
+        return 1;
+
+    return 0;
 }
 
 int pkgi_psx_is_installed(const char* content)
@@ -794,32 +801,6 @@ void pkgi_install_update(const char* contentid)
     if (res < 0)
         throw std::runtime_error(fmt::format(
                 "failed to rename: {:#08x}", static_cast<uint32_t>(res)));
-}
-
-void pkgi_install_pspgame(const char* contentid)
-{
-    char path[128];
-    snprintf(
-            path,
-            sizeof(path),
-            "%s/%s/EBOOT.PBP",
-            pkgi_get_temp_folder(),
-            contentid);
-
-    char dest[128];
-    snprintf(dest, sizeof(dest), "ux0:pspemu/ISO");
-    pkgi_mkdirs(dest);
-
-    snprintf(dest, sizeof(dest), "ux0:pspemu/ISO/%.9s.iso", contentid + 7);
-
-    LOG("installing psp game at %s", path);
-    int res = sceIoRename(path, dest);
-    if (res < 0)
-        throw std::runtime_error(fmt::format(
-                "failed to rename: {:#08x}", static_cast<uint32_t>(res)));
-
-    snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
-    pkgi_delete_dir(path);
 }
 
 void pkgi_install_psxgame(const char* contentid)

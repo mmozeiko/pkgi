@@ -157,8 +157,6 @@ void Downloader::do_download(const DownloadItem& item)
         pkgi_install_update(item.content.c_str());
         break;
     case PspGame:
-        pkgi_install_pspgame(item.content.c_str());
-        break;
     case PsxGame:
         pkgi_install_psxgame(item.content.c_str());
         break;
