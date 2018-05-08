@@ -821,6 +821,32 @@ void pkgi_install_pspgame(const char* contentid)
                 "failed to rename: {:#08x}", static_cast<uint32_t>(res)));
 }
 
+void pkgi_install_pspgame_as_iso(const char* contentid)
+{
+    char path[128];
+    snprintf(
+            path,
+            sizeof(path),
+            "%s/%s/EBOOT.PBP",
+            pkgi_get_temp_folder(),
+            contentid);
+
+    char dest[128];
+    snprintf(dest, sizeof(dest), "ux0:pspemu/ISO");
+    pkgi_mkdirs(dest);
+
+    snprintf(dest, sizeof(dest), "ux0:pspemu/ISO/%.9s.iso", contentid + 7);
+
+    LOG("installing psp game at %s", path);
+    int res = sceIoRename(path, dest);
+    if (res < 0)
+        throw std::runtime_error(fmt::format(
+                "failed to rename: {:#08x}", static_cast<uint32_t>(res)));
+
+    snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
+    pkgi_delete_dir(path);
+}
+
 uint32_t pkgi_time_msec()
 {
     return sceKernelGetProcessTimeLow() / 1000;
