@@ -28,6 +28,7 @@ int main(int argc, char* argv[])
 
     Download d(std::make_unique<FileHttp>());
 
+    d.save_as_iso = false;
     d.update_progress_cb = [](const Download& d) {};
     d.update_status = [](auto&&) {};
     d.is_canceled = [] { return false; };

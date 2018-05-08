@@ -135,6 +135,7 @@ void Downloader::do_download(const DownloadItem& item)
     ScopeProcessLock _;
     LOG("downloading %s", item.name.c_str());
     auto download = std::make_unique<Download>(std::make_unique<VitaHttp>());
+    download->save_as_iso = item.save_as_iso;
     download->update_progress_cb = [this](const Download& d) {
         _progress = float(d.download_offset) / float(d.download_size);
     };

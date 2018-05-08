@@ -100,7 +100,8 @@ static void pkgi_start_download(Downloader& downloader)
                         ? std::vector<uint8_t>{}
                         : std::vector<uint8_t>(
                                   item->digest,
-                                  item->digest + SHA256_DIGEST_SIZE)});
+                                  item->digest + SHA256_DIGEST_SIZE),
+                false});
     }
     else
     {

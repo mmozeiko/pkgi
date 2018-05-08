@@ -320,6 +320,7 @@ static int lzrc_decompress(void* out, int out_len, const void* in, int in_len)
         }
     }
 }
+
 static void init_psp_decrypt(
         aes128_ctx* key,
         uint8_t* iv,
@@ -664,7 +665,7 @@ int Download::download_head(const uint8_t* rif)
     return 1;
 }
 
-void Download::download_normal_file(uint64_t encrypted_size)
+void Download::download_file_content(uint64_t encrypted_size)
 {
     while (encrypted_offset != encrypted_size)
     {
@@ -676,7 +677,7 @@ void Download::download_normal_file(uint64_t encrypted_size)
     }
 }
 
-void Download::download_psp_file(uint64_t item_size)
+void Download::download_file_content_to_iso(uint64_t item_size)
 {
     if (item_size < 0x28)
         throw DownloadError("eboot.pbp file is too small");
@@ -919,11 +920,11 @@ int Download::download_files(void)
             throw DownloadError("pkg file is too small or corrupted");
         }
 
-        if (content_type == 7 &&
+        if (save_as_iso && (content_type == 7 || content_type == 15) &&
             std::string(item_name) == "USRDIR/CONTENT/EBOOT.PBP")
-            download_psp_file(item_size);
+            download_file_content_to_iso(item_size);
         else
-            download_normal_file(encrypted_size);
+            download_file_content(encrypted_size);
 
         pkgi_close(item_file);
         item_file = NULL;

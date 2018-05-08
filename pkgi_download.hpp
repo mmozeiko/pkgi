@@ -48,6 +48,8 @@ public:
 
     // private:
     // temporary unpack folder ux0:pkgi/TITLE
+    bool save_as_iso{false};
+
     char root[256];
 
     std::unique_ptr<Http> _http;
@@ -101,8 +103,8 @@ public:
     int download_data(uint8_t* buffer, uint32_t size, int encrypted, int save);
     int create_file(void);
     int download_head(const uint8_t* rif);
-    void download_normal_file(uint64_t encrypted_size);
-    void download_psp_file(uint64_t item_size);
+    void download_file_content(uint64_t encrypted_size);
+    void download_file_content_to_iso(uint64_t item_size);
     int download_files(void);
     int download_tail(void);
     int create_stat();

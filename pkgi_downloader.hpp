@@ -25,6 +25,7 @@ struct DownloadItem
     std::string url;
     std::vector<uint8_t> rif;
     std::vector<uint8_t> digest;
+    bool save_as_iso;
 };
 
 std::string type_to_string(Type type);
