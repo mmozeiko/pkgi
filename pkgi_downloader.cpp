@@ -159,7 +159,7 @@ void Downloader::do_download(const DownloadItem& item)
         break;
     case PspGame:
     case PsxGame:
-        pkgi_install_psxgame(item.content.c_str());
+        pkgi_install_pspgame(item.content.c_str());
         break;
     }
     LOG("install of %s completed!", item.name.c_str());

@@ -803,7 +803,7 @@ void pkgi_install_update(const char* contentid)
                 "failed to rename: {:#08x}", static_cast<uint32_t>(res)));
 }
 
-void pkgi_install_psxgame(const char* contentid)
+void pkgi_install_pspgame(const char* contentid)
 {
     char path[128];
     snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
