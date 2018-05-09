@@ -115,6 +115,7 @@ void pkgi_rm(const char* file);
 int64_t pkgi_get_size(const char* path);
 
 int pkgi_file_exists(const char* path);
+void pkgi_rename(const char* from, const char* to);
 
 // creates file (if it exists, truncates size to 0)
 void* pkgi_create(const char* path);

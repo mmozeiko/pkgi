@@ -795,28 +795,38 @@ void pkgi_install_pspgame(const char* contentid)
 
 void pkgi_install_pspgame_as_iso(const char* contentid)
 {
-    char path[128];
-    snprintf(
-            path,
-            sizeof(path),
-            "%s/%s/EBOOT.PBP",
-            pkgi_get_temp_folder(),
-            contentid);
+    const auto path = fmt::format("{}/{}", pkgi_get_temp_folder(), contentid);
+    const auto dest = fmt::format("ux0:pspemu/PSP/GAME/{:.9}", contentid + 7);
 
-    char dest[128];
-    snprintf(dest, sizeof(dest), "ux0:pspemu/ISO");
-    pkgi_mkdirs(dest);
+    // this is actually a misnamed ISO file
+    const auto eboot = fmt::format("{}/EBOOT.PBP", path);
+    const auto content = fmt::format("{}/CONTENT.DAT", path);
+    const auto pspkey = fmt::format("{}/PSP-KEY.EDAT", path);
+    const auto isodest = fmt::format("ux0:pspemu/ISO/{:.9}.iso", contentid + 7);
 
-    snprintf(dest, sizeof(dest), "ux0:pspemu/ISO/%.9s.iso", contentid + 7);
+    char dir[] = "ux0:pspemu/ISO";
+    pkgi_mkdirs(dir);
 
-    LOG("installing psp game at %s", path);
-    int res = sceIoRename(path, dest);
-    if (res < 0)
-        throw std::runtime_error(fmt::format(
-                "failed to rename: {:#08x}", static_cast<uint32_t>(res)));
+    LOG("installing psp game at %s", eboot.c_str());
+    pkgi_rename(eboot.c_str(), isodest.c_str());
 
-    snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
-    pkgi_delete_dir(path);
+    const auto content_exists = pkgi_file_exists(content.c_str());
+    const auto pspkey_exists = pkgi_file_exists(pspkey.c_str());
+    if (content_exists || pspkey_exists)
+    {
+        char dir[128];
+        strncpy(dir, dest.c_str(), sizeof(dir));
+        pkgi_mkdirs(dir);
+    }
+
+    if (content_exists)
+        pkgi_rename(
+                content.c_str(), fmt::format("{}/CONTENT.DAT", dest).c_str());
+    if (pspkey_exists)
+        pkgi_rename(
+                pspkey.c_str(), fmt::format("{}/PSP-KEY.EDAT", dest).c_str());
+
+    pkgi_delete_dir(path.c_str());
 }
 
 uint32_t pkgi_time_msec()
@@ -1282,6 +1292,17 @@ int pkgi_file_exists(const char* path)
 {
     SceIoStat stat;
     return sceIoGetstat(path, &stat) >= 0;
+}
+
+void pkgi_rename(const char* from, const char* to)
+{
+    int res = sceIoRename(from, to);
+    if (res < 0)
+        throw std::runtime_error(fmt::format(
+                "failed to rename from {} to {}: {:#08x}",
+                from,
+                to,
+                static_cast<uint32_t>(res)));
 }
 
 void* pkgi_create(const char* path)
