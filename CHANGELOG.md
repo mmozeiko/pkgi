@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.18
+
+What's new:
+
+- PSP games now default to an ISO installation. Add `install_psp_as_pbp 1` in
+  your config.txt to install EBOOT.PBP files.
+- Added support for PC Engine games.
+
 ## 0.17
 
 What's new:

@@ -69,9 +69,23 @@ Press left or right button to move page up or down.
   have and WiFi signal strength. But sometimes speed will drop down to only few hundred KB/s. This happens for pkg files that
   contains many small files or many folders. Creating a new file or a new folder takes extra time which slows down the download.
 
+4. I want to install PSP games as EBOOT file.
+
+  Installing PSP games as EBOOT files is possible. It allows to install games
+  faster and make them take less space. However, you will need to install
+  the [npdrm_free][] plugin to make them work.
+
+  To install PSP games as EBOOT files, just add the following line to your
+  config:
+
+    install_psp_as_pbp 1
+
+  If you want to switch back to the other mode, simply remove the line. Writing
+  0 is not sufficient.
+
 5. I can't play PSP games, it says "The game could not be started (80010087)".
 
-  You need to install the [npdrm_free][] plugin in VSH.
+  You need to install the [npdrm_free][] plugin in VSH, or install games as ISO.
 
 # Building
 
