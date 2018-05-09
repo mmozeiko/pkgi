@@ -802,6 +802,51 @@ void Download::download_file_content_to_iso(uint64_t item_size)
                         fmt::format("failed to write to %s", item_path));
         }
     }
+
+    skip_data(item_size);
+}
+
+void Download::download_file_content_to_pspkey(uint64_t item_size)
+{
+    if (item_size < 0x90 + 0xa0)
+        throw DownloadError("PSP-KEY.EDAT file is too short");
+
+    skip_data(0x90);
+
+    uint8_t key_header[0xa0];
+    download_data(key_header, sizeof(key_header), 1, 0);
+
+    if (memcmp(key_header, "\x00PGD", 4) != 0)
+        throw DownloadError("wrong PSP-KEY.EDAT header magic");
+
+    uint32_t key_index = get32le(key_header + 4);
+    uint32_t drm_type = get32le(key_header + 8);
+    if (key_index != 1 || drm_type != 1)
+        throw DownloadError(
+                "unsupported PSP-KEY.EDAT file, key/drm type is wrong");
+
+    uint8_t mac[16];
+    aes128_cmac(kirk7_key38, key_header, 0x70, mac);
+
+    aes128_ctx psp_key;
+    uint8_t psp_iv[16];
+    init_psp_decrypt(&psp_key, psp_iv, 0, mac, key_header, 0x70, 0x10);
+    aes128_psp_decrypt(&psp_key, psp_iv, 0, key_header + 0x30, 0x30);
+
+    uint32_t data_size = get32le(key_header + 0x44);
+    uint32_t data_offset = get32le(key_header + 0x4c);
+
+    if (data_size != 0x10 || data_offset != 0x90)
+        throw DownloadError(
+                "unsupported PSP-KEY.EDAT file, data/offset is wrong");
+
+    init_psp_decrypt(&psp_key, psp_iv, 0, mac, key_header, 0x70, 0x30);
+    aes128_psp_decrypt(&psp_key, psp_iv, 0, key_header + 0x90, 0x10);
+
+    if (!pkgi_write(item_file, key_header + 0x90, 0x10))
+        throw DownloadError(fmt::format("failed to write to %s", item_path));
+
+    skip_data(item_size);
 }
 
 int Download::download_files(void)
@@ -863,6 +908,12 @@ int Download::download_files(void)
             else if (std::string(item_name) == "USRDIR/CONTENT/EBOOT.PBP")
                 pkgi_snprintf(
                         item_path, sizeof(item_path), "%s/EBOOT.PBP", root);
+            else if (std::string(item_name) == "USRDIR/CONTENT/CONTENT.DAT")
+                pkgi_snprintf(
+                        item_path, sizeof(item_path), "%s/CONTENT.DAT", root);
+            else if (std::string(item_name) == "USRDIR/CONTENT/PSP-KEY.EDAT")
+                pkgi_snprintf(
+                        item_path, sizeof(item_path), "%s/PSP-KEY.EDAT", root);
             else
             {
                 while (encrypted_offset != encrypted_size)
@@ -914,9 +965,16 @@ int Download::download_files(void)
             throw DownloadError("pkg file is too small or corrupted");
         }
 
-        if (save_as_iso && (content_type == 7 || content_type == 15) &&
-            std::string(item_name) == "USRDIR/CONTENT/EBOOT.PBP")
-            download_file_content_to_iso(item_size);
+        if (content_type == 7 || content_type == 15)
+        {
+            if (save_as_iso &&
+                std::string(item_name) == "USRDIR/CONTENT/EBOOT.PBP")
+                download_file_content_to_iso(item_size);
+            else if (std::string(item_name) == "USRDIR/CONTENT/PSP-KEY.EDAT")
+                download_file_content_to_pspkey(item_size);
+            else
+                download_file_content(encrypted_size);
+        }
         else
             download_file_content(encrypted_size);
 

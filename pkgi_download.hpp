@@ -106,6 +106,7 @@ public:
     int download_head(const uint8_t* rif);
     void download_file_content(uint64_t encrypted_size);
     void download_file_content_to_iso(uint64_t item_size);
+    void download_file_content_to_pspkey(uint64_t item_size);
     int download_files(void);
     int download_tail(void);
     int create_stat();
