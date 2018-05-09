@@ -780,17 +780,14 @@ void pkgi_install_update(const char* contentid)
 
 void pkgi_install_pspgame(const char* contentid)
 {
-    char path[128];
-    snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
+    const auto path = fmt::format("{}/{}", pkgi_get_temp_folder(), contentid);
+    const auto dest = fmt::format("ux0:pspemu/PSP/GAME/{:.9}", contentid + 7);
 
-    char dest[128];
-    snprintf(dest, sizeof(dest), "ux0:pspemu/PSP/GAME");
-    pkgi_mkdirs(dest);
+    char dir[] = "ux0:pspemu/PSP/GAME";
+    pkgi_mkdirs(dir);
 
-    snprintf(dest, sizeof(dest), "ux0:pspemu/PSP/GAME/%.9s", contentid + 7);
-
-    LOG("installing psx game at %s", path);
-    int res = sceIoRename(path, dest);
+    LOG("installing psx game at %s", path.c_str());
+    int res = sceIoRename(path.c_str(), dest.c_str());
     if (res < 0)
         throw std::runtime_error(fmt::format(
                 "failed to rename: {:#08x}", static_cast<uint32_t>(res)));
