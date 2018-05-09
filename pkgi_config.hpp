@@ -10,6 +10,7 @@ typedef struct Config
     DbSortOrder order;
     uint32_t filter;
     int no_version_check;
+    int install_psp_as_pbp;
 
     std::string games_url;
     std::string updates_url;

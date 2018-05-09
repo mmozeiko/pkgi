@@ -116,6 +116,7 @@ Config pkgi_load_config()
     config.order = SortAscending;
     config.filter = DbFilterAll;
     config.no_version_check = 0;
+    config.install_psp_as_pbp = 0;
 
     char data[4096];
     char path[256];
@@ -181,6 +182,8 @@ Config pkgi_load_config()
                 config.filter = parse_filter(value, DbFilterAll);
             else if (pkgi_stricmp(key, "no_version_check") == 0)
                 config.no_version_check = 1;
+            else if (pkgi_stricmp(key, "install_psp_as_pbp") == 0)
+                config.install_psp_as_pbp = 1;
         }
     }
     else
@@ -289,6 +292,12 @@ void pkgi_save_config(const Config& config)
     {
         len += pkgi_snprintf(
                 data + len, sizeof(data) - len, "no_version_check 1\n");
+    }
+
+    if (config.install_psp_as_pbp)
+    {
+        len += pkgi_snprintf(
+                data + len, sizeof(data) - len, "install_psp_as_pbp 1\n");
     }
 
     char path[256];

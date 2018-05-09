@@ -101,7 +101,7 @@ static void pkgi_start_download(Downloader& downloader)
                         : std::vector<uint8_t>(
                                   item->digest,
                                   item->digest + SHA256_DIGEST_SIZE),
-                false});
+                !config.install_psp_as_pbp});
     }
     else
     {
