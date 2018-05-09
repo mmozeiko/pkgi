@@ -114,6 +114,8 @@ void pkgi_mkdirs(char* path);
 void pkgi_rm(const char* file);
 int64_t pkgi_get_size(const char* path);
 
+int pkgi_file_exists(const char* path);
+
 // creates file (if it exists, truncates size to 0)
 void* pkgi_create(const char* path);
 // open existing file in read/write, fails if file does not exist

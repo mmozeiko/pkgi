@@ -656,17 +656,9 @@ const char* pkgi_get_app_folder(void)
 
 int pkgi_is_incomplete(const char* contentid)
 {
-    char path[256];
-    pkgi_snprintf(
-            path,
-            sizeof(path),
-            "%s/%s.resume",
-            pkgi_get_temp_folder(),
-            contentid);
-
-    SceIoStat stat;
-    int res = sceIoGetstat(path, &stat);
-    return res == 0;
+    return pkgi_file_exists(
+            fmt::format("{}/{}.resume", pkgi_get_temp_folder(), contentid)
+                    .c_str());
 }
 
 int pkgi_is_installed(const char* titleid)
@@ -680,41 +672,24 @@ int pkgi_is_installed(const char* titleid)
 
 int pkgi_dlc_is_installed(const char* content)
 {
-    char path[128];
-    snprintf(
-            path,
-            sizeof(path),
-            "ux0:addcont/%.9s/%.16s",
-            content + 7,
-            content + 20);
-
-    SceIoStat stat;
-    return sceIoGetstat(path, &stat) >= 0;
+    return pkgi_file_exists(
+            fmt::format("ux0:addcont/{:.9}/{:.16}", content + 7, content + 20)
+                    .c_str());
 }
 
 int pkgi_psp_is_installed(const char* content)
 {
-    char path[128];
-    SceIoStat stat;
-
-    snprintf(path, sizeof(path), "ux0:pspemu/ISO/%.9s.iso", content + 7);
-    if (sceIoGetstat(path, &stat) >= 0)
-        return 1;
-
-    snprintf(path, sizeof(path), "ux0:pspemu/PSP/GAME/%.9s", content + 7);
-    if (sceIoGetstat(path, &stat) >= 0)
-        return 1;
-
-    return 0;
+    return pkgi_file_exists(fmt::format("ux0:pspemu/ISO/{:.9}.iso", content + 7)
+                                    .c_str()) ||
+           pkgi_file_exists(
+                   fmt::format("ux0:pspemu/PSP/GAME/{:.9}", content + 7)
+                           .c_str());
 }
 
 int pkgi_psx_is_installed(const char* content)
 {
-    char path[128];
-    snprintf(path, sizeof(path), "ux0:pspemu/PSP/GAME/%.9s", content + 7);
-
-    SceIoStat stat;
-    return sceIoGetstat(path, &stat) >= 0;
+    return pkgi_file_exists(
+            fmt::format("ux0:pspemu/PSP/GAME/{:.9}", content + 7).c_str());
 }
 
 void pkgi_install(const char* contentid)
@@ -1304,6 +1279,12 @@ int64_t pkgi_get_size(const char* path)
         return -1;
     }
     return stat.st_size;
+}
+
+int pkgi_file_exists(const char* path)
+{
+    SceIoStat stat;
+    return sceIoGetstat(path, &stat) >= 0;
 }
 
 void* pkgi_create(const char* path)
