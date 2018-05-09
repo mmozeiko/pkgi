@@ -436,6 +436,15 @@ int Download::download_data(
     return read;
 }
 
+void Download::skip_data(uint64_t to_offset)
+{
+    if (to_offset < encrypted_offset)
+        throw DownloadError(
+                fmt::format("can't seek backward to {}", to_offset));
+    std::vector<uint8_t> tmp(to_offset - encrypted_offset);
+    download_data(tmp.data(), tmp.size(), 1, 0);
+}
+
 // this includes creating of all the parent folders necessary to actually
 // create file
 int Download::create_file(void)
@@ -694,12 +703,7 @@ void Download::download_file_content_to_iso(uint64_t item_size)
     if (psar_offset % 16 != 0)
         throw DownloadError("psar_offset is not aligned");
 
-    {
-        if (psar_offset < encrypted_offset)
-            throw DownloadError("can't seek backward to psar_offset");
-        std::vector<uint8_t> tmp(psar_offset - encrypted_offset);
-        download_data(tmp.data(), tmp.size(), 1, 0);
-    }
+    skip_data(psar_offset);
 
     std::vector<uint8_t> psar_header(256);
     download_data(psar_header.data(), psar_header.size(), 1, 0);
@@ -733,12 +737,7 @@ void Download::download_file_content_to_iso(uint64_t item_size)
         throw DownloadError("offset table in data.psar file is too large");
 
     uint64_t const table_offset = psar_offset + iso_table;
-    {
-        if (table_offset < encrypted_offset)
-            throw DownloadError("can't seek backward to table_offset");
-        std::vector<uint8_t> tmp(table_offset - encrypted_offset);
-        download_data(tmp.data(), tmp.size(), 1, 0);
-    }
+    skip_data(table_offset);
 
     std::vector<std::array<uint8_t, 32>> tables(block_count);
     for (auto& table : tables)
@@ -765,12 +764,7 @@ void Download::download_file_content_to_iso(uint64_t item_size)
         std::vector<uint8_t> data(16 * ISO_SECTOR_SIZE);
 
         uint64_t abs_offset = psar_offset + block_offset;
-        {
-            if (abs_offset < encrypted_offset)
-                throw DownloadError("can't seek backward to abs_offset");
-            std::vector<uint8_t> tmp(abs_offset - encrypted_offset);
-            download_data(tmp.data(), tmp.size(), 1, 0);
-        }
+        skip_data(abs_offset);
         download_data(data.data(), block_size, 1, 0);
 
         if ((block_flags & 4) == 0)
