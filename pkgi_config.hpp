@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pkgi_db.h"
+#include "pkgi_db.hpp"
 
 #include <string>
 

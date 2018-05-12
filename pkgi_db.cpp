@@ -1,5 +1,6 @@
+#include "pkgi_db.hpp"
+
 extern "C" {
-#include "pkgi_db.h"
 #include "pkgi.h"
 #include "pkgi_sha256.h"
 #include "pkgi_utils.h"
