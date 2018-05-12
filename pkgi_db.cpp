@@ -15,20 +15,6 @@ extern "C" {
 
 #include <stddef.h>
 
-#define MAX_DB_SIZE (4 * 1024 * 1024)
-#define MAX_DB_ITEMS 8192
-
-static Mode mode;
-static std::string db_data;
-static uint32_t db_total;
-static uint32_t db_size;
-
-static DbItem db[MAX_DB_ITEMS];
-static uint32_t db_count;
-
-static DbItem* db_item[MAX_DB_SIZE];
-static uint32_t db_item_count;
-
 static int64_t pkgi_strtoll(const char* str)
 {
     int64_t res = 0;
@@ -82,7 +68,7 @@ static uint8_t* pkgi_hexbytes(const char* digest, uint32_t length)
     return result;
 }
 
-static void parse_tsv_file()
+void TitleDatabase::parse_tsv_file()
 {
     char* ptr = db_data.data();
     char* end = db_data.data() + db_data.size();
@@ -209,7 +195,7 @@ static void parse_tsv_file()
     db_item_count = db_count;
 }
 
-void pkgi_db_update(const char* update_url, Mode amode)
+void TitleDatabase::update(const char* update_url, Mode amode)
 {
     db_data.resize(MAX_DB_SIZE);
     db_total = 0;
@@ -273,7 +259,7 @@ void pkgi_db_update(const char* update_url, Mode amode)
     LOG("finished parsing, %u total items", db_count);
 }
 
-static void swap(uint32_t a, uint32_t b)
+void TitleDatabase::swap(uint32_t a, uint32_t b)
 {
     DbItem* temp = db_item[a];
     db_item[a] = db_item[b];
@@ -335,7 +321,7 @@ static int lower(
     }
 }
 
-static void heapify(
+void TitleDatabase::heapify(
         uint32_t n,
         uint32_t index,
         DbSort sort,
@@ -364,7 +350,7 @@ static void heapify(
     }
 }
 
-void pkgi_db_configure(const char* search, const Config* config)
+void TitleDatabase::configure(const char* search, const Config* config)
 {
     uint32_t search_count;
     if (!search)
@@ -436,33 +422,38 @@ void pkgi_db_configure(const char* search, const Config* config)
     }
 }
 
-void pkgi_db_get_update_status(uint32_t* updated, uint32_t* total)
+void TitleDatabase::get_update_status(uint32_t* updated, uint32_t* total)
 {
     *updated = db_size;
     *total = db_total;
 }
 
-uint32_t pkgi_db_count(void)
+uint32_t TitleDatabase::count(void)
 {
     return db_item_count;
 }
 
-uint32_t pkgi_db_total(void)
+uint32_t TitleDatabase::total(void)
 {
     return db_count;
 }
 
-DbItem* pkgi_db_get(uint32_t index)
+DbItem* TitleDatabase::get(uint32_t index)
 {
     return index < db_item_count ? db_item[index] : NULL;
 }
 
-DbItem* pkgi_db_get_by_content(const char* content)
+DbItem* TitleDatabase::get_by_content(const char* content)
 {
     for (size_t i = 0; i < db_item_count; ++i)
         if (pkgi_stricmp(db_item[i]->content, content) == 0)
             return db_item[i];
     return NULL;
+}
+
+Mode TitleDatabase::get_mode()
+{
+    return mode;
 }
 
 GameRegion pkgi_get_region(const char* content)
@@ -528,11 +519,5 @@ GameRegion pkgi_get_region(const char* content)
     default:
         return RegionUnknown;
     }
-
 #undef ID
-}
-
-Mode pkgi_db_get_mode()
-{
-    return mode;
 }

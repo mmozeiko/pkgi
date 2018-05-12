@@ -47,6 +47,8 @@ static int bottom_y;
 static char search_text[256];
 static char error_state[256];
 
+static TitleDatabase db;
+
 static const char* pkgi_get_ok_str(void)
 {
     return pkgi_ok_button() == PKGI_BUTTON_X ? PKGI_UTF8_X : PKGI_UTF8_O;
@@ -63,7 +65,7 @@ static void pkgi_refresh_thread(void)
     const char* url = current_url;
     try
     {
-        pkgi_db_update(url, mode);
+        db.update(url, mode);
         first_item = 0;
         selected_item = 0;
         state = StateUpdateDone;
@@ -81,15 +83,14 @@ static void pkgi_refresh_thread(void)
 
 static const char* pkgi_get_mode_partition()
 {
-    return pkgi_db_get_mode() == ModePspGames ||
-                           pkgi_db_get_mode() == ModePsxGames
+    return db.get_mode() == ModePspGames || db.get_mode() == ModePsxGames
                    ? config.install_psp_psx_location.c_str()
                    : "ux0:";
 }
 
 static void pkgi_start_download(Downloader& downloader)
 {
-    DbItem* item = pkgi_db_get(selected_item);
+    DbItem* item = db.get(selected_item);
 
     LOG("decoding zRIF");
 
@@ -99,7 +100,7 @@ static void pkgi_start_download(Downloader& downloader)
         pkgi_zrif_decode(item->zrif, rif, message, sizeof(message)))
     {
         downloader.add(DownloadItem{
-                static_cast<Type>(pkgi_db_get_mode()),
+                static_cast<Type>(db.get_mode()),
                 item->name,
                 item->content,
                 item->url,
@@ -170,7 +171,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
     int col_name = col_installed + pkgi_text_width(PKGI_UTF8_INSTALLED) +
                    PKGI_MAIN_COLUMN_PADDING;
 
-    uint32_t db_count = pkgi_db_count();
+    uint32_t db_count = db.count();
 
     if (input)
     {
@@ -257,7 +258,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
     int line_height = font_height + PKGI_MAIN_ROW_PADDING;
     for (uint32_t i = first_item; i < db_count; i++)
     {
-        DbItem* item = pkgi_db_get(i);
+        DbItem* item = db.get(i);
 
         uint32_t color = PKGI_COLOR_TEXT;
 
@@ -267,14 +268,14 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 
         if (item->presence == PresenceUnknown)
         {
-            if (pkgi_db_get_mode() == ModeGames)
+            if (db.get_mode() == ModeGames)
             {
                 if (pkgi_is_installed(titleid))
                     item->presence = PresenceInstalled;
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
             }
-            else if (pkgi_db_get_mode() == ModePspGames)
+            else if (db.get_mode() == ModePspGames)
             {
                 if (pkgi_psp_is_installed(
                             pkgi_get_mode_partition(), item->content))
@@ -282,7 +283,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
             }
-            else if (pkgi_db_get_mode() == ModePsxGames)
+            else if (db.get_mode() == ModePsxGames)
             {
                 if (pkgi_psx_is_installed(
                             pkgi_get_mode_partition(), item->content))
@@ -295,7 +296,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                 if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
                 else if (
-                        pkgi_db_get_mode() == ModeDlcs &&
+                        db.get_mode() == ModeDlcs &&
                         pkgi_dlc_is_installed(item->content))
                     item->presence = PresenceInstalled;
                 else if (pkgi_is_installed(titleid))
@@ -442,7 +443,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
     {
         input->pressed &= ~pkgi_ok_button();
 
-        DbItem* item = pkgi_db_get(selected_item);
+        DbItem* item = db.get(selected_item);
 
         if (downloader.is_in_queue(item->content))
         {
@@ -451,7 +452,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
             return;
         }
 
-        switch (pkgi_db_get_mode())
+        switch (db.get_mode())
         {
         case ModeGames:
         case ModePsxGames:
@@ -507,7 +508,7 @@ static void pkgi_do_refresh(void)
 
     uint32_t updated;
     uint32_t total;
-    pkgi_db_get_update_status(&updated, &total);
+    db.get_update_status(&updated, &total);
 
     if (total == 0)
     {
@@ -631,8 +632,8 @@ static void pkgi_do_tail(Downloader& downloader)
 
     const auto second_line = bottom_y + font_height + PKGI_MAIN_ROW_PADDING;
 
-    uint32_t count = pkgi_db_count();
-    uint32_t total = pkgi_db_total();
+    uint32_t count = db.count();
+    uint32_t total = db.total();
 
     if (count == total)
     {
@@ -647,8 +648,7 @@ static void pkgi_do_tail(Downloader& downloader)
     // get free space of partition only if looking at psx or psp games else show
     // ux0:
     char size[64];
-    if (pkgi_db_get_mode() == ModePsxGames ||
-        pkgi_db_get_mode() == ModePspGames)
+    if (db.get_mode() == ModePsxGames || db.get_mode() == ModePspGames)
     {
         pkgi_friendly_size(
                 size,
@@ -684,7 +684,7 @@ static void pkgi_do_tail(Downloader& downloader)
     }
     else
     {
-        DbItem* item = pkgi_db_get(selected_item);
+        DbItem* item = db.get(selected_item);
         pkgi_snprintf(
                 text,
                 sizeof(text),
@@ -718,7 +718,7 @@ static void pkgi_do_error(void)
 
 static void reposition(void)
 {
-    uint32_t count = pkgi_db_count();
+    uint32_t count = db.count();
     if (first_item + selected_item < count)
     {
         return;
@@ -748,7 +748,7 @@ int main()
 
     downloader.refresh = [](const std::string& content) {
         // FIXME this runs on the wrong thread
-        const auto item = pkgi_db_get_by_content(content.c_str());
+        const auto item = db.get_by_content(content.c_str());
         if (!item)
         {
             LOG("couldn't find %s", content.c_str());
@@ -799,7 +799,7 @@ int main()
                 // pkgi_start_thread("update_thread", &pkgi_check_for_update);
             }
 
-            pkgi_db_configure(NULL, &config);
+            db.configure(NULL, &config);
             state = StateMain;
         }
 
@@ -837,7 +837,7 @@ int main()
         {
             search_active = 1;
             pkgi_dialog_input_get_text(search_text, sizeof(search_text));
-            pkgi_db_configure(search_text, &config);
+            db.configure(search_text, &config);
             reposition();
         }
 
@@ -852,7 +852,7 @@ int main()
                     config_temp.filter != new_config.filter)
                 {
                     config_temp = new_config;
-                    pkgi_db_configure(
+                    db.configure(
                             search_active ? search_text : NULL, &config_temp);
                     reposition();
                 }
@@ -868,14 +868,14 @@ int main()
                 case MenuResultSearchClear:
                     search_active = 0;
                     search_text[0] = 0;
-                    pkgi_db_configure(NULL, &config);
+                    db.configure(NULL, &config);
                     break;
                 case MenuResultCancel:
                     if (config_temp.sort != config.sort ||
                         config_temp.order != config.order ||
                         config_temp.filter != config.filter)
                     {
-                        pkgi_db_configure(
+                        db.configure(
                                 search_active ? search_text : NULL, &config);
                         reposition();
                     }
