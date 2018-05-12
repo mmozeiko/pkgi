@@ -1,5 +1,6 @@
+#include "pkgi_menu.hpp"
+
 extern "C" {
-#include "pkgi_menu.h"
 #include "pkgi.h"
 #include "pkgi_style.h"
 }
