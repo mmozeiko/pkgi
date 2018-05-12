@@ -205,51 +205,36 @@ void TitleDatabase::update(const char* update_url, Mode amode)
 
     mode = amode;
 
-    char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/pkgi.txt", pkgi_get_config_folder());
+    if (update_url[0] == 0)
+        throw std::runtime_error("no update url");
 
-    LOG("loading update from %s", path);
-    int loaded = pkgi_load(path, db_data.data(), db_data.size() - 1);
-    if (loaded > 0)
-    {
-        db_size = loaded;
-    }
-    else if (update_url[0] != 0)
-    {
-        LOG("loading update from %s", update_url);
+    LOG("loading update from %s", update_url);
 
-        VitaHttp http;
-        http.start(update_url, 0);
+    VitaHttp http;
+    http.start(update_url, 0);
 
-        const auto length = http.get_length();
+    const auto length = http.get_length();
 
-        if (length > (int64_t)db_data.size() - 1)
-            throw std::runtime_error(
-                    "list is too large... check for newer pkgj version");
-
-        if (length != 0)
-            db_total = (uint32_t)length;
-
-        for (;;)
-        {
-            uint32_t want =
-                    (uint32_t)min64(1 << 16, db_data.size() - 1 - db_size);
-            int read = http.read(
-                    reinterpret_cast<uint8_t*>(db_data.data()) + db_size, want);
-            if (read == 0)
-                break;
-            db_size += read;
-        }
-
-        if (db_size == 0)
-            throw std::runtime_error(
-                    "list is empty... check for newer pkgi version");
-    }
-    else
-    {
+    if (length > (int64_t)db_data.size() - 1)
         throw std::runtime_error(
-                "pkgi.txt file missing or bad config.txt file?");
+                "list is too large... check for newer pkgj version");
+
+    if (length != 0)
+        db_total = (uint32_t)length;
+
+    for (;;)
+    {
+        uint32_t want = (uint32_t)min64(1 << 16, db_data.size() - 1 - db_size);
+        int read = http.read(
+                reinterpret_cast<uint8_t*>(db_data.data()) + db_size, want);
+        if (read == 0)
+            break;
+        db_size += read;
     }
+
+    if (db_size == 0)
+        throw std::runtime_error(
+                "list is empty... check for newer pkgi version");
 
     LOG("parsing items");
 
