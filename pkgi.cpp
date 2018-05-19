@@ -276,14 +276,16 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
             }
             else if (pkgi_db_get_mode() == ModePspGames)
             {
-                if (pkgi_psp_is_installed(item->content))
+                if (pkgi_psp_is_installed(
+                            pkgi_get_mode_partition(), item->content))
                     item->presence = PresenceInstalled;
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
             }
             else if (pkgi_db_get_mode() == ModePsxGames)
             {
-                if (pkgi_psx_is_installed(item->content))
+                if (pkgi_psx_is_installed(
+                            pkgi_get_mode_partition(), item->content))
                     item->presence = PresenceInstalled;
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;

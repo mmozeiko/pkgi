@@ -699,27 +699,23 @@ int pkgi_dlc_is_installed(const char* content)
                     .c_str());
 }
 
-int pkgi_psp_is_installed(const char* content)
+int pkgi_psp_is_installed(const char* psppartition, const char* content)
 {
-    return pkgi_file_exists(fmt::format(
-                                    "{}pspemu/ISO/{:.9}.iso",
-                                    pkgi_get_partition(),
-                                    content + 7)
-                                    .c_str()) ||
-           pkgi_file_exists(fmt::format(
-                                    "{}pspemu/PSP/GAME/{:.9}",
-                                    pkgi_get_partition(),
-                                    content + 7)
-                                    .c_str());
+    return pkgi_file_exists(
+                   fmt::format(
+                           "{}pspemu/ISO/{:.9}.iso", psppartition, content + 7)
+                           .c_str()) ||
+           pkgi_file_exists(
+                   fmt::format(
+                           "{}pspemu/PSP/GAME/{:.9}", psppartition, content + 7)
+                           .c_str());
 }
 
-int pkgi_psx_is_installed(const char* content)
+int pkgi_psx_is_installed(const char* psppartition, const char* content)
 {
-    return pkgi_file_exists(fmt::format(
-                                    "{}pspemu/PSP/GAME/{:.9}",
-                                    pkgi_get_partition(),
-                                    content + 7)
-                                    .c_str());
+    return pkgi_file_exists(
+            fmt::format("{}pspemu/PSP/GAME/{:.9}", psppartition, content + 7)
+                    .c_str());
 }
 
 void pkgi_install(const char* contentid)
