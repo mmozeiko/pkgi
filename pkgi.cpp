@@ -83,7 +83,7 @@ static const char* pkgi_get_mode_partition()
 {
     return pkgi_db_get_mode() == ModePspGames ||
                            pkgi_db_get_mode() == ModePsxGames
-                   ? pkgi_get_partition()
+                   ? config.install_psp_psx_location.c_str()
                    : "ux0:";
 }
 
@@ -651,7 +651,9 @@ static void pkgi_do_tail(Downloader& downloader)
         pkgi_db_get_mode() == ModePspGames)
     {
         pkgi_friendly_size(
-                size, sizeof(size), pkgi_get_free_space(pkgi_get_partition()));
+                size,
+                sizeof(size),
+                pkgi_get_free_space(pkgi_get_mode_partition()));
     }
     else
     {
