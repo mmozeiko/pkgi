@@ -1106,12 +1106,13 @@ int Download::create_rif(const uint8_t* rif)
 }
 
 int Download::pkgi_download(
+        const char* partition,
         const char* content,
         const char* url,
         const uint8_t* rif,
         const uint8_t* digest)
 {
-    pkgi_snprintf(root, sizeof(root), "%s/%s", pkgi_get_temp_folder(), content);
+    pkgi_snprintf(root, sizeof(root), "%spkgi/%s", partition, content);
     LOG("temp installation folder: %s", root);
 
     update_status("Downloading");

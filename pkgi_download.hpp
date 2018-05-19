@@ -41,6 +41,7 @@ public:
     Download(std::unique_ptr<Http> http);
 
     int pkgi_download(
+            const char* partition,
             const char* content,
             const char* url,
             const uint8_t* rif,

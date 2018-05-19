@@ -142,6 +142,7 @@ void Downloader::do_download(const DownloadItem& item)
     download->update_status = [](auto&&) {};
     download->is_canceled = [this] { return _cancel_current || _dying; };
     if (!download->pkgi_download(
+                item.partition.c_str(),
                 item.content.c_str(),
                 item.url.c_str(),
                 item.rif.empty() ? nullptr : item.rif.data(),

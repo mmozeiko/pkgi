@@ -103,7 +103,11 @@ static void pkgi_start_download(Downloader& downloader)
                         : std::vector<uint8_t>(
                                   item->digest,
                                   item->digest + SHA256_DIGEST_SIZE),
-                !config.install_psp_as_pbp});
+                !config.install_psp_as_pbp,
+                pkgi_db_get_mode() == ModePspGames ||
+                                pkgi_db_get_mode() == ModePsxGames
+                        ? pkgi_get_partition()
+                        : "ux0:"});
     }
     else
     {
