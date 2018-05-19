@@ -672,37 +672,6 @@ const char* pkgi_get_config_folder(void)
     return g_pkgi_folder;
 }
 
-const char* pkgi_get_temp_folder(void)
-{
-    if (pkgi_db_get_mode() == ModePsxGames ||
-        pkgi_db_get_mode() == ModePspGames)
-    {
-        // cant find a proper way to return pkgi_get_partition() + "pkgi" as it
-        // goes null when accesed by Download::pkgi_download on
-        // pkgi_download.cpp
-        LOG("pkgi_get_partition(): %s", pkgi_get_partition());
-        if (strcmp(pkgi_get_partition(), "ux0:") == 0)
-        {
-            return "ux0:pkgi";
-        }
-        else if (strcmp(pkgi_get_partition(), "ur0:") == 0)
-        {
-            return "ur0:pkgi";
-        }
-        else if (strcmp(pkgi_get_partition(), "uma0:") == 0)
-        {
-            return "uma0:pkgi";
-        }
-        else
-        {
-            return "ux0:pkgi";
-        }
-    }
-    else
-    {
-        return "ux0:pkgi";
-    }
-}
 const char* pkgi_get_app_folder(void)
 {
     return "ux0:app";
