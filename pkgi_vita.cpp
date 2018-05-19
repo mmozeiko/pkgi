@@ -1094,135 +1094,75 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
     if (!http)
         throw HttpError("internal error: too many simultaneous http requests");
 
-    pkgi_http* result = NULL;
-
     char path[256];
 
-    if (content)
+    http->fd = -1;
+
+    int tmpl = -1;
+    int conn = -1;
+    int req = -1;
+
+    LOG("starting http GET request for %s", url);
+
+    if ((tmpl = sceHttpCreateTemplate(
+                 PKGI_USER_AGENT, SCE_HTTP_VERSION_1_1, SCE_TRUE)) < 0)
+        throw HttpError(fmt::format(
+                "sceHttpCreateTemplate failed: {:#08x}",
+                static_cast<uint32_t>(tmpl)));
+    BOOST_SCOPE_EXIT_ALL(&)
     {
-        strcpy(path, pkgi_get_temp_folder());
-        const char* lastslash = strrchr(url, '/');
-        if (lastslash)
-            strcat(path, lastslash);
-        else
-        {
-            strcat(path, "/");
-            strcat(path, url);
-        }
+        if (tmpl < 0)
+            sceHttpDeleteTemplate(tmpl);
+    };
+    // sceHttpSetRecvTimeOut(tmpl, 10 * 1000 * 1000);
 
-        http->fd = sceIoOpen(path, SCE_O_RDONLY, 0777);
-        if (http->fd < 0)
-        {
-            LOG("%s not found, trying shorter path", path);
-            pkgi_snprintf(
-                    path,
-                    sizeof(path),
-                    "%s/%s.pkg",
-                    pkgi_get_temp_folder(),
-                    content);
-        }
-
-        http->fd = sceIoOpen(path, SCE_O_RDONLY, 0777);
-    }
-    else
+    if ((conn = sceHttpCreateConnectionWithURL(tmpl, url, SCE_FALSE)) < 0)
+        throw HttpError(fmt::format(
+                "sceHttpCreateConnectionWithURL failed: {:#08x}",
+                static_cast<uint32_t>(conn)));
+    BOOST_SCOPE_EXIT_ALL(&)
     {
-        http->fd = -1;
-    }
+        if (conn < 0)
+            sceHttpDeleteConnection(conn);
+    };
 
-    if (http->fd >= 0)
+    if ((req = sceHttpCreateRequestWithURL(conn, SCE_HTTP_METHOD_GET, url, 0)) <
+        0)
+        throw HttpError(fmt::format(
+                "sceHttpCreateRequestWithURL failed: {:#08x}",
+                static_cast<uint32_t>(req)));
+    BOOST_SCOPE_EXIT_ALL(&)
     {
-        LOG("%s found, using it", path);
+        if (req < 0)
+            sceHttpDeleteRequest(req);
+    };
 
-        SceIoStat stat;
-        if (sceIoGetstatByFd(http->fd, &stat) < 0)
-        {
-            LOG("cannot get size of file %s", path);
-            sceIoClose(http->fd);
-            return NULL;
-        }
+    int err;
 
-        http->used = 1;
-        http->local = 1;
-        http->offset = 0;
-        http->size = stat.st_size;
-
-        result = http;
-    }
-    else
+    if (offset != 0)
     {
-        if (content)
-        {
-            LOG("%s not found, downloading url", path);
-        }
-
-        int tmpl = -1;
-        int conn = -1;
-        int req = -1;
-
-        LOG("starting http GET request for %s", url);
-
-        if ((tmpl = sceHttpCreateTemplate(
-                     PKGI_USER_AGENT, SCE_HTTP_VERSION_1_1, SCE_TRUE)) < 0)
+        char range[64];
+        pkgi_snprintf(range, sizeof(range), "bytes=%llu-", offset);
+        if ((err = sceHttpAddRequestHeader(
+                     req, "Range", range, SCE_HTTP_HEADER_ADD)) < 0)
             throw HttpError(fmt::format(
-                    "sceHttpCreateTemplate failed: {:#08x}",
-                    static_cast<uint32_t>(tmpl)));
-        BOOST_SCOPE_EXIT_ALL(&)
-        {
-            if (tmpl < 0)
-                sceHttpDeleteTemplate(tmpl);
-        };
-        // sceHttpSetRecvTimeOut(tmpl, 10 * 1000 * 1000);
-
-        if ((conn = sceHttpCreateConnectionWithURL(tmpl, url, SCE_FALSE)) < 0)
-            throw HttpError(fmt::format(
-                    "sceHttpCreateConnectionWithURL failed: {:#08x}",
-                    static_cast<uint32_t>(conn)));
-        BOOST_SCOPE_EXIT_ALL(&)
-        {
-            if (conn < 0)
-                sceHttpDeleteConnection(conn);
-        };
-
-        if ((req = sceHttpCreateRequestWithURL(
-                     conn, SCE_HTTP_METHOD_GET, url, 0)) < 0)
-            throw HttpError(fmt::format(
-                    "sceHttpCreateRequestWithURL failed: {:#08x}",
-                    static_cast<uint32_t>(req)));
-        BOOST_SCOPE_EXIT_ALL(&)
-        {
-            if (req < 0)
-                sceHttpDeleteRequest(req);
-        };
-
-        int err;
-
-        if (offset != 0)
-        {
-            char range[64];
-            pkgi_snprintf(range, sizeof(range), "bytes=%llu-", offset);
-            if ((err = sceHttpAddRequestHeader(
-                         req, "Range", range, SCE_HTTP_HEADER_ADD)) < 0)
-                throw HttpError(fmt::format(
-                        "sceHttpAddRequestHeader failed: {:#08x}",
-                        static_cast<uint32_t>(err)));
-        }
-
-        if ((err = sceHttpSendRequest(req, NULL, 0)) < 0)
-            throw HttpError(fmt::format(
-                    "sceHttpSendRequest failed: {:#08x}",
+                    "sceHttpAddRequestHeader failed: {:#08x}",
                     static_cast<uint32_t>(err)));
-
-        http->used = 1;
-        http->local = 0;
-        http->tmpl = tmpl;
-        http->conn = conn;
-        http->req = req;
-        tmpl = conn = req = -1;
-
-        result = http;
     }
 
-    return result;
+    if ((err = sceHttpSendRequest(req, NULL, 0)) < 0)
+        throw HttpError(fmt::format(
+                "sceHttpSendRequest failed: {:#08x}",
+                static_cast<uint32_t>(err)));
+
+    http->used = 1;
+    http->local = 0;
+    http->tmpl = tmpl;
+    http->conn = conn;
+    http->req = req;
+    tmpl = conn = req = -1;
+
+    return http;
 }
 
 void pkgi_http_response_length(pkgi_http* http, int64_t* length)
