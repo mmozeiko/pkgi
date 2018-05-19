@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.19
+
+What's new:
+
+- Added option `install_psp_psx_location` to install games to other partitions
+  than `ux0:`
+
+Removed features:
+
+- pkgj will not try to load pkgi.txt anymore
+
 ## 0.18
 
 What's new:
