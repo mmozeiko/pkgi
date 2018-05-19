@@ -79,6 +79,14 @@ static void pkgi_refresh_thread(void)
     }
 }
 
+static const char* pkgi_get_mode_partition()
+{
+    return pkgi_db_get_mode() == ModePspGames ||
+                           pkgi_db_get_mode() == ModePsxGames
+                   ? pkgi_get_partition()
+                   : "ux0:";
+}
+
 static void pkgi_start_download(Downloader& downloader)
 {
     DbItem* item = pkgi_db_get(selected_item);
@@ -104,10 +112,7 @@ static void pkgi_start_download(Downloader& downloader)
                                   item->digest,
                                   item->digest + SHA256_DIGEST_SIZE),
                 !config.install_psp_as_pbp,
-                pkgi_db_get_mode() == ModePspGames ||
-                                pkgi_db_get_mode() == ModePsxGames
-                        ? pkgi_get_partition()
-                        : "ux0:"});
+                pkgi_get_mode_partition()});
     }
     else
     {
@@ -268,7 +273,8 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                     item->presence = PresenceInstalled;
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
-                else if (pkgi_is_incomplete(item->content))
+                else if (pkgi_is_incomplete(
+                                 pkgi_get_mode_partition(), item->content))
                     item->presence = PresenceIncomplete;
                 else
                     item->presence = PresenceMissing;
@@ -279,7 +285,8 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                     item->presence = PresenceInstalled;
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
-                else if (pkgi_is_incomplete(item->content))
+                else if (pkgi_is_incomplete(
+                                 pkgi_get_mode_partition(), item->content))
                     item->presence = PresenceIncomplete;
                 else
                     item->presence = PresenceMissing;
@@ -290,7 +297,8 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                     item->presence = PresenceInstalled;
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
-                else if (pkgi_is_incomplete(item->content))
+                else if (pkgi_is_incomplete(
+                                 pkgi_get_mode_partition(), item->content))
                     item->presence = PresenceIncomplete;
                 else
                     item->presence = PresenceMissing;
@@ -305,7 +313,8 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                     item->presence = PresenceInstalled;
                 else if (pkgi_is_installed(titleid))
                     item->presence = PresenceGamePresent;
-                else if (pkgi_is_incomplete(item->content))
+                else if (pkgi_is_incomplete(
+                                 pkgi_get_mode_partition(), item->content))
                     item->presence = PresenceIncomplete;
                 else
                     item->presence = PresenceMissing;

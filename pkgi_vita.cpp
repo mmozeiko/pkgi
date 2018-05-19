@@ -708,11 +708,10 @@ const char* pkgi_get_app_folder(void)
     return "ux0:app";
 }
 
-int pkgi_is_incomplete(const char* contentid)
+int pkgi_is_incomplete(const char* partition, const char* contentid)
 {
     return pkgi_file_exists(
-            fmt::format("{}/{}.resume", pkgi_get_temp_folder(), contentid)
-                    .c_str());
+            fmt::format("{}pkgi/{}.resume", partition, contentid).c_str());
 }
 
 int pkgi_is_installed(const char* titleid)

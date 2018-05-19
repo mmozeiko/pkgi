@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
     d.is_canceled = [] { return false; };
 
     d.pkgi_download(
-            argv[1], argv[1], argv[2][0] ? rif : nullptr, digest.data());
+            "tmp", argv[1], argv[1], argv[2][0] ? rif : nullptr, digest.data());
 
     return 0;
 }

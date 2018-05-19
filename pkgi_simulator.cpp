@@ -90,11 +90,6 @@ int pkgi_is_unsafe_mode(void)
     return 1;
 }
 
-const char* pkgi_get_temp_folder(void)
-{
-    return "tmp";
-}
-
 void pkgi_mkdirs(char* path)
 {
     char* ptr = path;
