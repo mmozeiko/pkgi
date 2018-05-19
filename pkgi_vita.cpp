@@ -49,8 +49,6 @@ static uint32_t g_button_frame_count;
 
 static SceUInt64 g_time;
 
-static char g_pkgi_folder[32];
-
 #ifdef PKGI_ENABLE_LOGGING
 static int g_log_socket;
 #endif
@@ -489,16 +487,6 @@ void pkgi_start(void)
         g_cancel_button = PKGI_BUTTON_O;
     }
 
-    SceIoStat stat;
-    if (sceIoGetstat("ur0:pkgi", &stat) >= 0 && SCE_S_ISDIR(stat.st_mode))
-    {
-        pkgi_strncpy(g_pkgi_folder, sizeof(g_pkgi_folder), "ur0:pkgi");
-    }
-    else
-    {
-        pkgi_strncpy(g_pkgi_folder, sizeof(g_pkgi_folder), "ux0:pkgi");
-    }
-
     if (scePromoterUtilityInit() < 0)
     {
         LOG("cannot initialize promoter utility");
@@ -645,7 +633,10 @@ uint64_t pkgi_get_free_space(const char* requested_partition)
 
 const char* pkgi_get_config_folder(void)
 {
-    return g_pkgi_folder;
+    if (pkgi_file_exists("ur0:pkgi/config.txt"))
+        return "ur0:pkgi";
+    else
+        return "ux0:pkgi";
 }
 
 const char* pkgi_get_app_folder(void)
