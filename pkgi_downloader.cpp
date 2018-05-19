@@ -160,12 +160,13 @@ void Downloader::do_download(const DownloadItem& item)
         break;
     case PspGame:
         if (item.save_as_iso)
-            pkgi_install_pspgame_as_iso(item.content.c_str());
+            pkgi_install_pspgame_as_iso(
+                    item.partition.c_str(), item.content.c_str());
         else
-            pkgi_install_pspgame(item.content.c_str());
+            pkgi_install_pspgame(item.partition.c_str(), item.content.c_str());
         break;
     case PsxGame:
-        pkgi_install_pspgame(item.content.c_str());
+        pkgi_install_pspgame(item.partition.c_str(), item.content.c_str());
         break;
     }
     LOG("install of %s completed!", item.name.c_str());

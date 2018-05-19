@@ -757,7 +757,7 @@ int pkgi_psx_is_installed(const char* content)
 void pkgi_install(const char* contentid)
 {
     char path[128];
-    snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
+    snprintf(path, sizeof(path), "ux0:pkgi/%s", contentid);
 
     LOG("calling scePromoterUtilityPromotePkgWithRif on %s", path);
     int res = scePromoterUtilityPromotePkgWithRif(path, 1);
@@ -823,7 +823,7 @@ static int pkgi_delete_dir(const std::string& path)
 void pkgi_install_update(const char* contentid)
 {
     char path[128];
-    snprintf(path, sizeof(path), "%s/%s", pkgi_get_temp_folder(), contentid);
+    snprintf(path, sizeof(path), "ux0:pkgi/%s", contentid);
 
     char dest[128];
     snprintf(dest, sizeof(dest), "ux0:patch/%.9s", contentid + 7);
@@ -840,14 +840,14 @@ void pkgi_install_update(const char* contentid)
                 "failed to rename: {:#08x}", static_cast<uint32_t>(res)));
 }
 
-void pkgi_install_pspgame(const char* contentid)
+void pkgi_install_pspgame(const char* partition, const char* contentid)
 {
     LOG("Installing a PSP/PSX game");
-    const auto path = fmt::format("{}/{}", pkgi_get_temp_folder(), contentid);
-    const auto dest = fmt::format(
-            "{}pspemu/PSP/GAME/{:.9}", pkgi_get_partition(), contentid + 7);
+    const auto path = fmt::format("{}pkgi/{}", partition, contentid);
+    const auto dest =
+            fmt::format("{}pspemu/PSP/GAME/{:.9}", partition, contentid + 7);
 
-    auto dir = fmt::format("{}pspemu/PSP/GAME", pkgi_get_partition());
+    auto dir = fmt::format("{}pspemu/PSP/GAME", partition);
     pkgi_mkdirs(&dir[0]);
 
     LOG("installing psx game at %s to %s", path.c_str(), dest.c_str());
@@ -857,20 +857,20 @@ void pkgi_install_pspgame(const char* contentid)
                 "failed to rename: {:#08x}", static_cast<uint32_t>(res)));
 }
 
-void pkgi_install_pspgame_as_iso(const char* contentid)
+void pkgi_install_pspgame_as_iso(const char* partition, const char* contentid)
 {
-    const auto path = fmt::format("{}/{}", pkgi_get_temp_folder(), contentid);
-    const auto dest = fmt::format(
-            "{}pspemu/PSP/GAME/{:.9}", pkgi_get_partition(), contentid + 7);
+    const auto path = fmt::format("{}pkgi/{}", partition, contentid);
+    const auto dest =
+            fmt::format("{}pspemu/PSP/GAME/{:.9}", partition, contentid + 7);
 
     // this is actually a misnamed ISO file
     const auto eboot = fmt::format("{}/EBOOT.PBP", path);
     const auto content = fmt::format("{}/CONTENT.DAT", path);
     const auto pspkey = fmt::format("{}/PSP-KEY.EDAT", path);
-    const auto isodest = fmt::format(
-            "{}pspemu/ISO/{:.9}.iso", pkgi_get_partition(), contentid + 7);
+    const auto isodest =
+            fmt::format("{}pspemu/ISO/{:.9}.iso", partition, contentid + 7);
 
-    auto dir = fmt::format("{}pspemu/ISO", pkgi_get_partition());
+    auto dir = fmt::format("{}pspemu/ISO", partition);
     pkgi_mkdirs(&dir[0]);
 
     LOG("installing psp game at %s to %s", path.c_str(), dest.c_str());
