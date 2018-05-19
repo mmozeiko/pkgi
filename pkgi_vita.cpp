@@ -1111,7 +1111,7 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
                 static_cast<uint32_t>(tmpl)));
     BOOST_SCOPE_EXIT_ALL(&)
     {
-        if (tmpl < 0)
+        if (tmpl > 0)
             sceHttpDeleteTemplate(tmpl);
     };
     // sceHttpSetRecvTimeOut(tmpl, 10 * 1000 * 1000);
@@ -1122,7 +1122,7 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
                 static_cast<uint32_t>(conn)));
     BOOST_SCOPE_EXIT_ALL(&)
     {
-        if (conn < 0)
+        if (conn > 0)
             sceHttpDeleteConnection(conn);
     };
 
@@ -1133,7 +1133,7 @@ pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)
                 static_cast<uint32_t>(req)));
     BOOST_SCOPE_EXIT_ALL(&)
     {
-        if (req < 0)
+        if (req > 0)
             sceHttpDeleteRequest(req);
     };
 
