@@ -273,11 +273,6 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                     item->presence = PresenceInstalled;
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
-                else if (pkgi_is_incomplete(
-                                 pkgi_get_mode_partition(), item->content))
-                    item->presence = PresenceIncomplete;
-                else
-                    item->presence = PresenceMissing;
             }
             else if (pkgi_db_get_mode() == ModePspGames)
             {
@@ -285,11 +280,6 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                     item->presence = PresenceInstalled;
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
-                else if (pkgi_is_incomplete(
-                                 pkgi_get_mode_partition(), item->content))
-                    item->presence = PresenceIncomplete;
-                else
-                    item->presence = PresenceMissing;
             }
             else if (pkgi_db_get_mode() == ModePsxGames)
             {
@@ -297,11 +287,6 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                     item->presence = PresenceInstalled;
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
-                else if (pkgi_is_incomplete(
-                                 pkgi_get_mode_partition(), item->content))
-                    item->presence = PresenceIncomplete;
-                else
-                    item->presence = PresenceMissing;
             }
             else
             {
@@ -313,8 +298,11 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                     item->presence = PresenceInstalled;
                 else if (pkgi_is_installed(titleid))
                     item->presence = PresenceGamePresent;
-                else if (pkgi_is_incomplete(
-                                 pkgi_get_mode_partition(), item->content))
+            }
+            if (item->presence == PresenceUnknown)
+            {
+                if (pkgi_is_incomplete(
+                            pkgi_get_mode_partition(), item->content))
                     item->presence = PresenceIncomplete;
                 else
                     item->presence = PresenceMissing;
