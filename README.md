@@ -87,6 +87,15 @@ Press left or right button to move page up or down.
 
   You need to install the [npdrm_free][] plugin in VSH, or install games as ISO.
 
+6. I want to install PSP and PSX games on another partition.
+
+  You can change the partitions these games are installed to with the following
+  configuration line:
+
+    install_psp_psx_location uma0:
+
+  The default value is `ux0:`
+
 # Building
 
 You need to have [Vita SDK][vitasdk] with [libvita2d][] installed.
