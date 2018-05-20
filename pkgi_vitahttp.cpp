@@ -14,11 +14,6 @@
 struct pkgi_http
 {
     int used;
-    int local;
-
-    SceUID fd;
-    uint64_t size;
-    uint64_t offset;
 
     int tmpl;
     int conn;
@@ -35,16 +30,9 @@ VitaHttp::~VitaHttp()
     if (_http)
     {
         LOG("http close");
-        if (_http->local)
-        {
-            sceIoClose(_http->fd);
-        }
-        else
-        {
-            sceHttpDeleteRequest(_http->req);
-            sceHttpDeleteConnection(_http->conn);
-            sceHttpDeleteTemplate(_http->tmpl);
-        }
+        sceHttpDeleteRequest(_http->req);
+        sceHttpDeleteConnection(_http->conn);
+        sceHttpDeleteTemplate(_http->tmpl);
         _http->used = 0;
     }
 }
@@ -68,10 +56,6 @@ void VitaHttp::start(const std::string& url, uint64_t offset)
 
     if (!http)
         throw HttpError("internal error: too many simultaneous http requests");
-
-    char path[256];
-
-    http->fd = -1;
 
     int tmpl = -1;
     int conn = -1;
@@ -132,7 +116,6 @@ void VitaHttp::start(const std::string& url, uint64_t offset)
                 static_cast<uint32_t>(err)));
 
     http->used = 1;
-    http->local = 0;
     http->tmpl = tmpl;
     http->conn = conn;
     http->req = req;
@@ -143,31 +126,16 @@ void VitaHttp::start(const std::string& url, uint64_t offset)
 
 int64_t VitaHttp::read(uint8_t* buffer, uint64_t size)
 {
-    if (_http->local)
-    {
-        int read = sceIoPread(_http->fd, buffer, size, _http->offset);
-        _http->offset += read;
-        return read;
-    }
-    else
-    {
-        int read = sceHttpReadData(_http->req, buffer, size);
-        if (read < 0)
-            throw HttpError(fmt::format(
-                    "HTTP download error {:#08x}",
-                    static_cast<uint32_t>(static_cast<int32_t>(read))));
-        return read;
-    }
+    int read = sceHttpReadData(_http->req, buffer, size);
+    if (read < 0)
+        throw HttpError(fmt::format(
+                "HTTP download error {:#08x}",
+                static_cast<uint32_t>(static_cast<int32_t>(read))));
+    return read;
 }
 
 int64_t VitaHttp::get_length()
 {
-    int length;
-    if (_http->local)
-    {
-        return (int64_t)_http->size;
-    }
-
     int res;
     int status;
     if ((res = sceHttpGetStatusCode(_http->req, &status)) < 0)
@@ -199,15 +167,11 @@ int64_t VitaHttp::get_length()
     {
         LOG("http response has no content length (or chunked "
             "encoding)");
-        length = 0;
-    }
-    else
-    {
-        LOG("http response length = %llu", content_length);
-        length = (int64_t)content_length;
+        return 0;
     }
 
-    return length;
+    LOG("http response length = %llu", content_length);
+    return content_length;
 }
 
 VitaHttp::operator bool() const
