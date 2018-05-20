@@ -449,12 +449,10 @@ void Download::skip_data(uint64_t to_offset)
 // create file
 int Download::create_file(void)
 {
-    char folder[256];
-    pkgi_strncpy(folder, sizeof(folder), item_path);
-    char* last = pkgi_strrchr(folder, '/');
-    *last = 0;
+    std::string folder = item_path;
+    folder.erase(folder.rfind('/'));
 
-    pkgi_mkdirs(folder);
+    pkgi_mkdirs(folder.c_str());
 
     LOG("creating %s file", item_name);
     item_file = pkgi_create(item_path);

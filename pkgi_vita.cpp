@@ -764,8 +764,7 @@ void pkgi_install_pspgame(const char* partition, const char* contentid)
     const auto dest =
             fmt::format("{}pspemu/PSP/GAME/{:.9}", partition, contentid + 7);
 
-    auto dir = fmt::format("{}pspemu/PSP/GAME", partition);
-    pkgi_mkdirs(&dir[0]);
+    pkgi_mkdirs(fmt::format("{}pspemu/PSP/GAME", partition).c_str());
 
     LOG("installing psx game at %s to %s", path.c_str(), dest.c_str());
     int res = sceIoRename(path.c_str(), dest.c_str());
@@ -787,8 +786,7 @@ void pkgi_install_pspgame_as_iso(const char* partition, const char* contentid)
     const auto isodest =
             fmt::format("{}pspemu/ISO/{:.9}.iso", partition, contentid + 7);
 
-    auto dir = fmt::format("{}pspemu/ISO", partition);
-    pkgi_mkdirs(&dir[0]);
+    pkgi_mkdirs(fmt::format("{}pspemu/ISO", partition).c_str());
 
     LOG("installing psp game at %s to %s", path.c_str(), dest.c_str());
     pkgi_rename(eboot.c_str(), isodest.c_str());
@@ -796,11 +794,7 @@ void pkgi_install_pspgame_as_iso(const char* partition, const char* contentid)
     const auto content_exists = pkgi_file_exists(content.c_str());
     const auto pspkey_exists = pkgi_file_exists(pspkey.c_str());
     if (content_exists || pspkey_exists)
-    {
-        char dir[128];
-        strncpy(dir, dest.c_str(), sizeof(dir));
-        pkgi_mkdirs(dir);
-    }
+        pkgi_mkdirs(dest.c_str());
 
     if (content_exists)
         pkgi_rename(
