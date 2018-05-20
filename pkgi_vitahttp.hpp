@@ -6,6 +6,8 @@ extern "C" {
 #include "pkgi.h"
 }
 
+struct pkgi_http;
+
 class VitaHttp : public Http
 {
 public:

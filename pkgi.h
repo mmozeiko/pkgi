@@ -102,13 +102,6 @@ void pkgi_dialog_input_get_text(char* text, uint32_t size);
 
 int pkgi_check_free_space(uint64_t http_length);
 
-typedef struct pkgi_http pkgi_http;
-
-pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset);
-void pkgi_http_response_length(pkgi_http* http, int64_t* length);
-int pkgi_http_read(pkgi_http* http, void* buffer, uint32_t size);
-void pkgi_http_close(pkgi_http* http);
-
 void pkgi_mkdirs(char* path);
 void pkgi_rm(const char* file);
 int64_t pkgi_get_size(const char* path);
