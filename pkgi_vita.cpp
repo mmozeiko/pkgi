@@ -612,21 +612,9 @@ int pkgi_battery_is_charging()
 
 uint64_t pkgi_get_free_space(const char* requested_partition)
 {
-
-    if (pkgi_is_unsafe_mode())
-    {
-        SceIoDevInfo info{};
-        sceIoDevctl(requested_partition, 0x3001, NULL, 0, &info, sizeof(info));
-        return info.free_size;
-    }
-    else
-    {
-        uint64_t free, max;
-        char dev[16];
-        strncpy(dev, requested_partition, sizeof(dev));
-        sceAppMgrGetDevInfo(dev, &max, &free);
-        return free;
-    }
+    SceIoDevInfo info{};
+    sceIoDevctl(requested_partition, 0x3001, NULL, 0, &info, sizeof(info));
+    return info.free_size;
 }
 
 const char* pkgi_get_config_folder(void)
