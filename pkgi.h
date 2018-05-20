@@ -102,7 +102,7 @@ void pkgi_dialog_input_get_text(char* text, uint32_t size);
 
 int pkgi_check_free_space(uint64_t http_length);
 
-void pkgi_mkdirs(char* path);
+void pkgi_mkdirs(const char* path);
 void pkgi_rm(const char* file);
 int64_t pkgi_get_size(const char* path);
 

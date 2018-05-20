@@ -5,6 +5,7 @@ extern "C" {
 
 #include <fmt/format.h>
 
+#include <algorithm>
 #include <cerrno>
 #include <cstring>
 #include <fcntl.h>
@@ -90,23 +91,28 @@ int pkgi_is_unsafe_mode(void)
     return 1;
 }
 
-void pkgi_mkdirs(char* path)
+void pkgi_mkdirs(const char* ppath)
 {
-    char* ptr = path;
-    while (*ptr)
+    std::string path = ppath;
+    path.push_back('/');
+    auto ptr = path.begin();
+    while (true)
     {
-        while (*ptr && *ptr != '/')
-            ptr++;
+        ptr = std::find(ptr, path.end(), '/');
+        if (ptr == path.end())
+            break;
 
         char last = *ptr;
         *ptr = 0;
-        int ok = mkdir(path, 0755);
-        if (ok < 0 && errno != EEXIST)
-            throw std::runtime_error(
-                    fmt::format("mkdir({}) failed: {}", path, strerror(errno)));
-        if (last == 0)
-            break;
-        *ptr++ = last;
+        LOG("mkdir %s", path.c_str());
+        int err = mkdir(path.c_str(), 0777);
+        if (err < 0 && err != EEXIST)
+            throw std::runtime_error(fmt::format(
+                    "sceIoMkdir({}) failed: {:#08x}",
+                    path.c_str(),
+                    static_cast<uint32_t>(err)));
+        *ptr = last;
+        ++ptr;
     }
 }
 

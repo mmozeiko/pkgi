@@ -976,26 +976,28 @@ int pkgi_text_height(const char* text)
     return 23;
 }
 
-void pkgi_mkdirs(char* path)
+void pkgi_mkdirs(const char* ppath)
 {
-    char* ptr = path;
-    while (*ptr)
+    std::string path = ppath;
+    path.push_back('/');
+    auto ptr = path.begin();
+    while (true)
     {
-        while (*ptr && *ptr != '/')
-            ptr++;
+        ptr = std::find(ptr, path.end(), '/');
+        if (ptr == path.end())
+            break;
 
         char last = *ptr;
         *ptr = 0;
-        LOG("mkdir %s", path);
-        int err = sceIoMkdir(path, 0777);
+        LOG("mkdir %s", path.c_str());
+        int err = sceIoMkdir(path.c_str(), 0777);
         if (err < 0 && err != PKGI_ERRNO_EEXIST)
             throw std::runtime_error(fmt::format(
                     "sceIoMkdir({}) failed: {:#08x}",
-                    path,
+                    path.c_str(),
                     static_cast<uint32_t>(err)));
-        *ptr++ = last;
-        if (last == 0)
-            break;
+        *ptr = last;
+        ++ptr;
     }
 }
 
