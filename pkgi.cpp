@@ -98,22 +98,21 @@ static void pkgi_start_download(Downloader& downloader)
 
     uint8_t rif[PKGI_RIF_SIZE];
     char message[256];
-    if (item->zrif == NULL ||
-        pkgi_zrif_decode(item->zrif, rif, message, sizeof(message)))
+    if (item->zrif.empty() ||
+        pkgi_zrif_decode(item->zrif.c_str(), rif, message, sizeof(message)))
     {
         downloader.add(DownloadItem{
                 static_cast<Type>(db.get_mode()),
                 item->name,
                 item->content,
                 item->url,
-                item->zrif == NULL
+                item->zrif.empty()
                         ? std::vector<uint8_t>{}
                         : std::vector<uint8_t>(rif, rif + PKGI_RIF_SIZE),
-                item->digest == NULL
+                item->has_digest
                         ? std::vector<uint8_t>{}
                         : std::vector<uint8_t>(
-                                  item->digest,
-                                  item->digest + SHA256_DIGEST_SIZE),
+                                  item->digest.begin(), item->digest.end()),
                 !config.install_psp_as_pbp,
                 pkgi_get_mode_partition()});
     }
@@ -278,7 +277,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
             else if (db.get_mode() == ModePspGames)
             {
                 if (pkgi_psp_is_installed(
-                            pkgi_get_mode_partition(), item->content))
+                            pkgi_get_mode_partition(), item->content.c_str()))
                     item->presence = PresenceInstalled;
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
@@ -286,7 +285,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
             else if (db.get_mode() == ModePsxGames)
             {
                 if (pkgi_psx_is_installed(
-                            pkgi_get_mode_partition(), item->content))
+                            pkgi_get_mode_partition(), item->content.c_str()))
                     item->presence = PresenceInstalled;
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
@@ -297,7 +296,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                     item->presence = PresenceInstalling;
                 else if (
                         db.get_mode() == ModeDlcs &&
-                        pkgi_dlc_is_installed(item->content))
+                        pkgi_dlc_is_installed(item->content.c_str()))
                     item->presence = PresenceInstalled;
                 else if (pkgi_is_installed(titleid))
                     item->presence = PresenceGamePresent;
@@ -305,7 +304,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
             if (item->presence == PresenceUnknown)
             {
                 if (pkgi_is_incomplete(
-                            pkgi_get_mode_partition(), item->content))
+                            pkgi_get_mode_partition(), item->content.c_str()))
                     item->presence = PresenceIncomplete;
                 else
                     item->presence = PresenceMissing;
@@ -383,7 +382,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                 VITA_WIDTH - PKGI_MAIN_SCROLL_WIDTH - PKGI_MAIN_SCROLL_PADDING -
                         PKGI_MAIN_COLUMN_PADDING - sizew - col_name,
                 line_height);
-        pkgi_draw_text(col_name, y, color, item->name);
+        pkgi_draw_text(col_name, y, color, item->name.c_str());
         pkgi_clip_remove();
 
         y += font_height + PKGI_MAIN_ROW_PADDING;

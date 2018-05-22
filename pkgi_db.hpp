@@ -2,7 +2,9 @@
 
 #include "pkgi_http.hpp"
 
+#include <array>
 #include <string>
+#include <vector>
 
 #include <cstdint>
 
@@ -46,13 +48,14 @@ typedef struct
 {
     DbPresence presence;
     std::string titleid;
-    const char* content;
+    std::string content;
     uint32_t flags;
-    const char* name;
-    const char* name_org;
-    const char* zrif;
-    const char* url;
-    const uint8_t* digest;
+    std::string name;
+    std::string name_org;
+    std::string zrif;
+    std::string url;
+    bool has_digest;
+    std::array<uint8_t, 32> digest;
     int64_t size;
 } DbItem;
 
@@ -98,8 +101,7 @@ private:
     uint32_t db_total;
     uint32_t db_size;
 
-    DbItem db[MAX_DB_ITEMS];
-    uint32_t db_count;
+    std::vector<DbItem> db;
 
     unsigned int db_item[MAX_DB_SIZE];
     uint32_t db_item_count;

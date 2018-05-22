@@ -48,18 +48,17 @@ static uint8_t hexvalue(char ch)
     return 0;
 }
 
-static uint8_t* pkgi_hexbytes(const char* digest, uint32_t length)
+static std::array<uint8_t, 32> pkgi_hexbytes(
+        const char* digest, uint32_t length)
 {
-    uint8_t* result = (uint8_t*)digest;
+    std::array<uint8_t, 32> result;
 
     for (uint32_t i = 0; i < length; i++)
     {
         char ch1 = digest[2 * i];
         char ch2 = digest[2 * i + 1];
         if (ch1 == 0 || ch2 == 0)
-        {
-            return NULL;
-        }
+            return result;
 
         result[i] = hexvalue(ch1) * 16 + hexvalue(ch2);
     }
@@ -77,6 +76,8 @@ void TitleDatabase::parse_tsv_file()
         ptr++;
     ptr++; // \r
     ptr++; // \n
+
+    unsigned int item_nb = 0;
 
     while (ptr < end && *ptr)
     {
@@ -174,25 +175,28 @@ void TitleDatabase::parse_tsv_file()
                 content = it.base();
         }
 
-        db[db_count].presence = PresenceUnknown;
-        db[db_count].titleid = std::string(content + 7, 9);
-        db[db_count].content = content;
-        db[db_count].flags = 0;
-        db[db_count].name = name;
-        db[db_count].name_org = name_org[0] == 0 ? name : name_org;
-        db[db_count].zrif = zrif[0] == 0 ? NULL : zrif;
-        db[db_count].url = url;
-        db[db_count].size = pkgi_strtoll(size);
-        db[db_count].digest = pkgi_hexbytes(digest, SHA256_DIGEST_SIZE);
-        db_item[db_count] = db_count;
-        db_count++;
-
-        if (db_count == MAX_DB_ITEMS)
-            break;
+        db.push_back(DbItem{
+                PresenceUnknown,
+                std::string(content + 7, 9),
+                content,
+                0,
+                name,
+                name_org[0] == 0 ? name : name_org,
+                zrif,
+                url,
+                std::all_of(
+                        digest,
+                        digest + 64,
+                        [](const auto c) { return c != 0; }),
+                pkgi_hexbytes(digest, SHA256_DIGEST_SIZE),
+                pkgi_strtoll(size),
+        });
+        db_item[item_nb] = item_nb;
+        ++item_nb;
 #undef NEXT_FIELD
     }
 
-    db_item_count = db_count;
+    db_item_count = item_nb;
 }
 
 void TitleDatabase::update(Http* http, const char* update_url, Mode amode)
@@ -200,7 +204,6 @@ void TitleDatabase::update(Http* http, const char* update_url, Mode amode)
     db_data.resize(MAX_DB_SIZE);
     db_total = 0;
     db_size = 0;
-    db_count = 0;
     db_item_count = 0;
 
     mode = amode;
@@ -240,7 +243,7 @@ void TitleDatabase::update(Http* http, const char* update_url, Mode amode)
     db_data.resize(db_size);
     parse_tsv_file();
 
-    LOG("finished parsing, %u total items", db_count);
+    LOG("finished parsing, %u total items", db.size());
 }
 
 void TitleDatabase::swap(uint32_t a, uint32_t b)
@@ -280,7 +283,7 @@ static int lower(
     }
     else if (sort == SortByName)
     {
-        cmp = pkgi_stricmp(a->name, b->name) < 0;
+        cmp = pkgi_stricmp(a->name.c_str(), b->name.c_str()) < 0;
     }
     else if (sort == SortBySize)
     {
@@ -339,14 +342,14 @@ void TitleDatabase::configure(const char* search, const Config* config)
     uint32_t search_count;
     if (!search)
     {
-        search_count = db_count;
+        search_count = db.size();
     }
     else
     {
         uint32_t write = 0;
-        for (uint32_t read = 0; read < db_count; read++)
+        for (uint32_t read = 0; read < db.size(); read++)
         {
-            if (pkgi_stricontains(db[db_item[read]].name, search))
+            if (pkgi_stricontains(db[db_item[read]].name.c_str(), search))
             {
                 if (write < read)
                 {
@@ -419,7 +422,7 @@ uint32_t TitleDatabase::count(void)
 
 uint32_t TitleDatabase::total(void)
 {
-    return db_count;
+    return db.size();
 }
 
 DbItem* TitleDatabase::get(uint32_t index)
@@ -430,7 +433,7 @@ DbItem* TitleDatabase::get(uint32_t index)
 DbItem* TitleDatabase::get_by_content(const char* content)
 {
     for (size_t i = 0; i < db_item_count; ++i)
-        if (pkgi_stricmp(db[db_item[i]].content, content) == 0)
+        if (db[db_item[i]].content == content)
             return &db[db_item[i]];
     return NULL;
 }
