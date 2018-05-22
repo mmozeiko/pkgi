@@ -106,7 +106,7 @@ void pkgi_mkdirs(const char* ppath)
         *ptr = 0;
         LOG("mkdir %s", path.c_str());
         int err = mkdir(path.c_str(), 0777);
-        if (err < 0 && err != EEXIST)
+        if (err < 0 && errno != EEXIST)
             throw std::runtime_error(fmt::format(
                     "sceIoMkdir({}) failed: {:#08x}",
                     path.c_str(),
