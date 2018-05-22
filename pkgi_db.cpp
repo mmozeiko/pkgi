@@ -175,6 +175,7 @@ void TitleDatabase::parse_tsv_file()
         }
 
         db[db_count].presence = PresenceUnknown;
+        db[db_count].titleid = std::string(content + 7, 9);
         db[db_count].content = content;
         db[db_count].flags = 0;
         db[db_count].name = name;
@@ -265,18 +266,17 @@ static int lower(
         DbSortOrder order,
         uint32_t filter)
 {
-    GameRegion reg_a = pkgi_get_region(a->content);
-    GameRegion reg_b = pkgi_get_region(b->content);
+    GameRegion reg_a = pkgi_get_region(a->titleid);
+    GameRegion reg_b = pkgi_get_region(b->titleid);
 
     int cmp = 0;
     if (sort == SortByTitle)
     {
-        cmp = pkgi_stricmp(a->content + 7, b->content + 7) < 0;
+        cmp = a->titleid < b->titleid;
     }
     else if (sort == SortByRegion)
     {
-        cmp = reg_a == reg_b ? pkgi_stricmp(a->content + 7, b->content + 7) < 0
-                             : reg_a < reg_b;
+        cmp = reg_a == reg_b ? a->titleid < b->titleid : reg_a < reg_b;
     }
     else if (sort == SortByName)
     {
@@ -388,7 +388,7 @@ void TitleDatabase::configure(const char* search, const Config* config)
             // this never overflows because of MAX_DB_ITEMS
             uint32_t middle = (low + high) / 2;
 
-            GameRegion region = pkgi_get_region(db[db_item[middle]].content);
+            GameRegion region = pkgi_get_region(db[db_item[middle]].titleid);
             if (matches(region, config->filter))
             {
                 low = middle + 1;
@@ -440,9 +440,12 @@ Mode TitleDatabase::get_mode()
     return mode;
 }
 
-GameRegion pkgi_get_region(const char* content)
+GameRegion pkgi_get_region(const std::string& titleid)
 {
-    uint32_t first = get32le((uint8_t*)content + 7);
+    if (titleid.size() < 4)
+        return RegionUnknown;
+
+    uint32_t first = get32le((uint8_t*)titleid.c_str());
 
 #define ID(a, b, c, d)                                    \
     (uint32_t)(                                           \

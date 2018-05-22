@@ -45,6 +45,7 @@ typedef enum {
 typedef struct
 {
     DbPresence presence;
+    std::string titleid;
     const char* content;
     uint32_t flags;
     const char* name;
@@ -113,4 +114,4 @@ private:
             uint32_t filter);
 };
 
-GameRegion pkgi_get_region(const char* content);
+GameRegion pkgi_get_region(const std::string& titleid);

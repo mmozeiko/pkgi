@@ -264,9 +264,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 
         uint32_t color = PKGI_COLOR_TEXT;
 
-        char titleid[10];
-        pkgi_memcpy(titleid, item->content + 7, 9);
-        titleid[9] = 0;
+        const auto titleid = item->titleid.c_str();
 
         if (item->presence == PresenceUnknown)
         {
@@ -332,7 +330,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 
         pkgi_draw_text(col_titleid, y, color, titleid);
         const char* region;
-        switch (pkgi_get_region(item->content))
+        switch (pkgi_get_region(item->titleid))
         {
         case RegionASA:
             region = "ASA";
@@ -461,8 +459,8 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         case ModePspGames:
             if (item->presence == PresenceInstalled)
             {
-                LOG("[%.9s] %s - alreay installed",
-                    item->content + 7,
+                LOG("[%s] %s - alreay installed",
+                    item->titleid.c_str(),
                     item->name);
                 pkgi_dialog_error("Already installed");
                 return;
@@ -479,8 +477,8 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         case ModeUpdates:
             if (item->presence != PresenceGamePresent)
             {
-                LOG("[%.9s] %s - game not installed",
-                    item->content + 7,
+                LOG("[%s] %s - game not installed",
+                    item->titleid.c_str(),
                     item->name);
                 pkgi_dialog_error("Corresponding game not installed");
                 return;
