@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pkgi_http.hpp"
+
 #include <string>
 
 #include <cstdint>
@@ -74,7 +76,7 @@ typedef struct Config Config;
 class TitleDatabase
 {
 public:
-    void update(const char* update_url, Mode mode);
+    void update(Http* http, const char* update_url, Mode mode);
     void get_update_status(uint32_t* updated, uint32_t* total);
 
     void configure(const char* search, const Config* config);

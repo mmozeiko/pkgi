@@ -1,4 +1,5 @@
 add_executable(pkgj_cli
+  pkgi_db.cpp
   pkgi_download.cpp
   pkgi_simulator.cpp
   pkgi_aes128.c

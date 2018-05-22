@@ -6,7 +6,6 @@ extern "C" {
 #include "pkgi_utils.h"
 }
 #include "pkgi_config.hpp"
-#include "pkgi_vitahttp.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -195,7 +194,7 @@ void TitleDatabase::parse_tsv_file()
     db_item_count = db_count;
 }
 
-void TitleDatabase::update(const char* update_url, Mode amode)
+void TitleDatabase::update(Http* http, const char* update_url, Mode amode)
 {
     db_data.resize(MAX_DB_SIZE);
     db_total = 0;
@@ -210,10 +209,9 @@ void TitleDatabase::update(const char* update_url, Mode amode)
 
     LOG("loading update from %s", update_url);
 
-    VitaHttp http;
-    http.start(update_url, 0);
+    http->start(update_url, 0);
 
-    const auto length = http.get_length();
+    const auto length = http->get_length();
 
     if (length > (int64_t)db_data.size() - 1)
         throw std::runtime_error(
@@ -225,7 +223,7 @@ void TitleDatabase::update(const char* update_url, Mode amode)
     for (;;)
     {
         uint32_t want = (uint32_t)min64(1 << 16, db_data.size() - 1 - db_size);
-        int read = http.read(
+        int read = http->read(
                 reinterpret_cast<uint8_t*>(db_data.data()) + db_size, want);
         if (read == 0)
             break;

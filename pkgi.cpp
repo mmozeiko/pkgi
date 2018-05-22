@@ -10,6 +10,7 @@ extern "C" {
 #include "pkgi_download.hpp"
 #include "pkgi_downloader.hpp"
 #include "pkgi_menu.hpp"
+#include "pkgi_vitahttp.hpp"
 
 #include <memory>
 
@@ -65,7 +66,8 @@ static void pkgi_refresh_thread(void)
     const char* url = current_url;
     try
     {
-        db.update(url, mode);
+        auto const http = std::make_unique<VitaHttp>();
+        db.update(http.get(), url, mode);
         first_item = 0;
         selected_item = 0;
         state = StateUpdateDone;

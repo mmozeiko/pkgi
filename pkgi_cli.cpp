@@ -1,3 +1,4 @@
+#include "pkgi_db.hpp"
 #include "pkgi_download.hpp"
 #include "pkgi_filehttp.hpp"
 extern "C" {
@@ -33,7 +34,7 @@ int extract(int argc, char* argv[])
     Download d(std::make_unique<FileHttp>());
 
     d.save_as_iso = false;
-    d.update_progress_cb = [](const Download& d) {};
+    d.update_progress_cb = [](const Download&) {};
     d.update_status = [](auto&&) {};
     d.is_canceled = [] { return false; };
 
@@ -50,6 +51,13 @@ int refreshlist(int argc, char* argv[])
         printf(USAGE, argv[0]);
         return 1;
     }
+
+    auto const http = std::make_unique<FileHttp>();
+
+    auto db = std::make_unique<TitleDatabase>();
+    db->update(http.get(), argv[3], ModeGames);
+
+    return 0;
 }
 
 int main(int argc, char* argv[])
