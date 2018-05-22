@@ -183,7 +183,7 @@ void TitleDatabase::parse_tsv_file()
         db[db_count].url = url;
         db[db_count].size = pkgi_strtoll(size);
         db[db_count].digest = pkgi_hexbytes(digest, SHA256_DIGEST_SIZE);
-        db_item[db_count] = db + db_count;
+        db_item[db_count] = db_count;
         db_count++;
 
         if (db_count == MAX_DB_ITEMS)
@@ -244,7 +244,7 @@ void TitleDatabase::update(Http* http, const char* update_url, Mode amode)
 
 void TitleDatabase::swap(uint32_t a, uint32_t b)
 {
-    DbItem* temp = db_item[a];
+    auto const temp = db_item[a];
     db_item[a] = db_item[b];
     db_item[b] = temp;
 }
@@ -315,13 +315,14 @@ void TitleDatabase::heapify(
     uint32_t left = 2 * index + 1;
     uint32_t right = 2 * index + 2;
 
-    if (left < n && lower(db_item[largest], db_item[left], sort, order, filter))
+    if (left < n &&
+        lower(&db[db_item[largest]], &db[db_item[left]], sort, order, filter))
     {
         largest = left;
     }
 
     if (right < n &&
-        lower(db_item[largest], db_item[right], sort, order, filter))
+        lower(&db[db_item[largest]], &db[db_item[right]], sort, order, filter))
     {
         largest = right;
     }
@@ -345,7 +346,7 @@ void TitleDatabase::configure(const char* search, const Config* config)
         uint32_t write = 0;
         for (uint32_t read = 0; read < db_count; read++)
         {
-            if (pkgi_stricontains(db_item[read]->name, search))
+            if (pkgi_stricontains(db[db_item[read]].name, search))
             {
                 if (write < read)
                 {
@@ -387,7 +388,7 @@ void TitleDatabase::configure(const char* search, const Config* config)
             // this never overflows because of MAX_DB_ITEMS
             uint32_t middle = (low + high) / 2;
 
-            GameRegion region = pkgi_get_region(db_item[middle]->content);
+            GameRegion region = pkgi_get_region(db[db_item[middle]].content);
             if (matches(region, config->filter))
             {
                 low = middle + 1;
@@ -423,14 +424,14 @@ uint32_t TitleDatabase::total(void)
 
 DbItem* TitleDatabase::get(uint32_t index)
 {
-    return index < db_item_count ? db_item[index] : NULL;
+    return index < db_item_count ? &db[db_item[index]] : NULL;
 }
 
 DbItem* TitleDatabase::get_by_content(const char* content)
 {
     for (size_t i = 0; i < db_item_count; ++i)
-        if (pkgi_stricmp(db_item[i]->content, content) == 0)
-            return db_item[i];
+        if (pkgi_stricmp(db[db_item[i]].content, content) == 0)
+            return &db[db_item[i]];
     return NULL;
 }
 

@@ -100,7 +100,7 @@ private:
     DbItem db[MAX_DB_ITEMS];
     uint32_t db_count;
 
-    DbItem* db_item[MAX_DB_SIZE];
+    unsigned int db_item[MAX_DB_SIZE];
     uint32_t db_item_count;
 
     void parse_tsv_file();
