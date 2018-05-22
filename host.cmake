@@ -1,4 +1,4 @@
-add_executable(extract
+add_executable(pkgj_cli
   pkgi_download.cpp
   pkgi_simulator.cpp
   pkgi_aes128.c
@@ -9,8 +9,8 @@ add_executable(extract
   extract.cpp
 )
 
-add_dependencies(extract Boost fmtproject)
+add_dependencies(pkgj_cli Boost fmtproject)
 
-target_link_libraries(extract
+target_link_libraries(pkgj_cli
   fmt
 )
