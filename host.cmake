@@ -6,7 +6,7 @@ add_executable(pkgj_cli
   pkgi_filehttp.cpp
   pkgi_zrif.c
   puff.c
-  extract.cpp
+  pkgi_cli.cpp
 )
 
 add_dependencies(pkgj_cli Boost fmtproject)
