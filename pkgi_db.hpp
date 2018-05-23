@@ -97,7 +97,6 @@ private:
     static constexpr auto MAX_DB_ITEMS = 8192;
 
     Mode mode;
-    std::string db_data;
     uint32_t db_total;
     uint32_t db_size;
 
@@ -106,7 +105,7 @@ private:
     unsigned int db_item[MAX_DB_SIZE];
     uint32_t db_item_count;
 
-    void parse_tsv_file();
+    void parse_tsv_file(std::string& db_data);
     void swap(uint32_t a, uint32_t b);
     void heapify(
             uint32_t n,

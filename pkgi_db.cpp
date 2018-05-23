@@ -66,7 +66,7 @@ static std::array<uint8_t, 32> pkgi_hexbytes(
     return result;
 }
 
-void TitleDatabase::parse_tsv_file()
+void TitleDatabase::parse_tsv_file(std::string& db_data)
 {
     char* ptr = db_data.data();
     char* end = db_data.data() + db_data.size();
@@ -201,6 +201,7 @@ void TitleDatabase::parse_tsv_file()
 
 void TitleDatabase::update(Http* http, const char* update_url, Mode amode)
 {
+    std::string db_data;
     db_data.resize(MAX_DB_SIZE);
     db_total = 0;
     db_size = 0;
@@ -241,7 +242,7 @@ void TitleDatabase::update(Http* http, const char* update_url, Mode amode)
     LOG("parsing items");
 
     db_data.resize(db_size);
-    parse_tsv_file();
+    parse_tsv_file(db_data);
 
     LOG("finished parsing, %u total items", db.size());
 }
