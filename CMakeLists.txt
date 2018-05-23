@@ -32,7 +32,7 @@ if(PKGI_ENABLE_LOGGING)
 endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPKGI_VERSION=\\\"${VITA_VERSION}\\\" -D_GNU_SOURCE -g -Wall -Wextra -fvisibility=hidden")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -flto")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPKGI_VERSION=\\\"${VITA_VERSION}\\\" -D_GNU_SOURCE -g -Wall -Wextra -fvisibility=hidden")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto")
 
@@ -57,6 +57,14 @@ set_property(TARGET fmt PROPERTY IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/f
 #set_property(TARGET fmt PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_BINARY_DIR}/fmtinst/include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/fmtinst/include)
 add_dependencies(fmt fmtproject)
+
+ExternalProject_Add(sqliteproject
+  URL https://www.sqlite.org/2018/sqlite-amalgamation-3230100.zip
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+  INSTALL_COMMAND ""
+)
+set(sqlitepath ${CMAKE_CURRENT_BINARY_DIR}/sqliteproject-prefix/src/sqliteproject)
 
 if(HOST_BUILD)
   include(host.cmake)

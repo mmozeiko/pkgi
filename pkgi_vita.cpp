@@ -14,6 +14,8 @@ extern "C" {
 
 #include <vita2d.h>
 
+#include <libsqlite/sqlite.h>
+
 #include <psp2/appmgr.h>
 #include <psp2/ctrl.h>
 #include <psp2/display.h>
@@ -434,6 +436,7 @@ void pkgi_start(void)
     sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
     sceSysmoduleLoadModule(SCE_SYSMODULE_HTTP);
     sceSysmoduleLoadModule(SCE_SYSMODULE_SSL);
+    sceSysmoduleLoadModule(SCE_SYSMODULE_SQLITE);
 
     static uint8_t netmem[1024 * 1024];
     SceNetInitParam net = {
@@ -510,6 +513,9 @@ void pkgi_start(void)
     g_font = vita2d_load_default_pgf();
 
     g_time = sceKernelGetProcessTimeWide();
+
+    sqlite3_rw_init();
+    LOG("start done");
 }
 
 int pkgi_update(pkgi_input* input)

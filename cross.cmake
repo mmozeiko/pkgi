@@ -1,3 +1,16 @@
+ExternalProject_Add(vitasqliteproject
+  GIT_REPOSITORY https://github.com/VitaSmith/libsqlite
+  GIT_TAG 7bf41a937d0358a1f0740950b30e8444ca8beea0
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+  INSTALL_COMMAND ""
+)
+set(vitasqlitepath ${CMAKE_CURRENT_BINARY_DIR}/vitasqliteproject-prefix/src/vitasqliteproject)
+add_library(vitasqlite STATIC ${vitasqlitepath}/libsqlite/sqlite.c)
+set_source_files_properties(${vitasqlitepath}/libsqlite/sqlite.c PROPERTIES GENERATED TRUE)
+target_include_directories(vitasqlite PUBLIC ${vitasqlitepath})
+add_dependencies(vitasqlite vitasqliteproject)
+
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 
 function(add_assets target)
@@ -37,7 +50,7 @@ add_executable(pkgj
   puff.c
 )
 
-add_dependencies(pkgj Boost fmtproject)
+add_dependencies(pkgj Boost fmtproject sqliteproject)
 
 target_link_libraries(pkgj
   vita2d
@@ -45,6 +58,7 @@ target_link_libraries(pkgj
   png
   z
   m
+  vitasqlite
   SceAppMgr_stub
   SceAppUtil_stub
   SceCommonDialog_stub
@@ -58,9 +72,12 @@ target_link_libraries(pkgj
   ScePower_stub
   ScePromoterUtil_stub
   SceShellSvc_stub
+  SceSqlite_stub
   SceSsl_stub
   SceSysmodule_stub
 )
+
+target_include_directories(pkgj PRIVATE ${sqlitepath})
 
 vita_create_self(eboot.bin pkgj UNSAFE)
 

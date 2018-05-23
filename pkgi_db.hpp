@@ -2,7 +2,10 @@
 
 #include "pkgi_http.hpp"
 
+#include <sqlite3.h>
+
 #include <array>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -77,10 +80,20 @@ typedef enum {
 
 typedef struct Config Config;
 
+struct SqliteClose
+{
+    void operator()(sqlite3* s)
+    {
+        sqlite3_close(s);
+    }
+};
+
 class TitleDatabase
 {
 public:
-    TitleDatabase(Mode mode);
+    TitleDatabase(Mode mode, std::string const& dbPath);
+
+    void reload();
 
     void update(Http* http, const char* update_url);
     void get_update_status(uint32_t* updated, uint32_t* total);
@@ -104,6 +117,8 @@ private:
 
     unsigned int db_item[MAX_DB_SIZE];
     uint32_t db_item_count;
+
+    std::unique_ptr<sqlite3, SqliteClose> _sqliteDb = nullptr;
 
     void parse_tsv_file(std::string& db_data);
     void swap(uint32_t a, uint32_t b);

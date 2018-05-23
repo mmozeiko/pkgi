@@ -7,29 +7,16 @@ extern "C" {
 }
 #include "pkgi_config.hpp"
 
+#include <fmt/format.h>
+
+#include <boost/scope_exit.hpp>
+
 #include <algorithm>
 #include <cstring>
 #include <stdexcept>
 #include <string>
 
 #include <stddef.h>
-
-static int64_t pkgi_strtoll(const char* str)
-{
-    int64_t res = 0;
-    const char* s = str;
-    if (*s && *s == '-')
-    {
-        s++;
-    }
-    while (*s)
-    {
-        res = res * 10 + (*s - '0');
-        s++;
-    }
-
-    return str[0] == '-' ? -res : res;
-}
 
 static uint8_t hexvalue(char ch)
 {
@@ -66,12 +53,80 @@ static std::array<uint8_t, 32> pkgi_hexbytes(
     return result;
 }
 
-TitleDatabase::TitleDatabase(Mode mode) : mode(mode)
+#define SQLITE_CHECK(call, errstr)                                     \
+    do                                                                 \
+    {                                                                  \
+        auto err = call;                                               \
+        if (err != SQLITE_OK)                                          \
+            throw std::runtime_error(fmt::format(errstr ": {}", err)); \
+    } while (false)
+
+#define SQLITE_EXEC(handle, statement, errstr)                            \
+    do                                                                    \
+    {                                                                     \
+        char* errmsg;                                                     \
+        auto err = sqlite3_exec(                                          \
+                handle.get(), statement, nullptr, nullptr, &errmsg);      \
+        if (err != SQLITE_OK)                                             \
+            throw std::runtime_error(fmt::format(errstr ": {}", errmsg)); \
+    } while (false)
+
+TitleDatabase::TitleDatabase(Mode mode, std::string const& dbPath) : mode(mode)
 {
+    LOG("opening database %s", dbPath.c_str());
+    sqlite3* db;
+    SQLITE_CHECK(sqlite3_open(dbPath.c_str(), &db), "can't open database");
+    _sqliteDb.reset(db);
+
+    SQLITE_EXEC(_sqliteDb, R"(
+        CREATE TABLE IF NOT EXISTS titles (
+            id INT PRIMARY KEY,
+            content TEXT NOT NULL,
+            name TEXT NOT NULL,
+            name_org TEXT,
+            zrif TEXT,
+            url TEXT NOT NULL,
+            digest BLOB,
+            size INT
+        ))", "can't create table");
 }
 
 void TitleDatabase::parse_tsv_file(std::string& db_data)
 {
+    SQLITE_EXEC(_sqliteDb, "BEGIN", "can't begin transaction");
+
+    BOOST_SCOPE_EXIT_ALL(&)
+    {
+        if (!std::uncaught_exception())
+            SQLITE_EXEC(_sqliteDb, "END", "can't end transaction");
+        else
+        {
+            char* errmsg;
+            auto err = sqlite3_exec(
+                    _sqliteDb.get(), "ROLLBACK", nullptr, nullptr, &errmsg);
+            if (err != SQLITE_OK)
+                LOG("sqlite error: %s", errmsg);
+        }
+    };
+
+    SQLITE_EXEC(_sqliteDb, "DELETE FROM titles", "can't truncate table");
+
+    sqlite3_stmt* stmt;
+    SQLITE_CHECK(
+            sqlite3_prepare_v2(
+                    _sqliteDb.get(),
+                    R"(INSERT INTO titles
+                    (content, name, name_org, zrif, url, digest, size)
+                    VALUES (?, ?, ?, ?, ?, ?, ?))",
+                    -1,
+                    &stmt,
+                    nullptr),
+            "can't prepare SQL statement");
+    BOOST_SCOPE_EXIT_ALL(&)
+    {
+        sqlite3_finalize(stmt);
+    };
+
     char* ptr = db_data.data();
     char* end = db_data.data() + db_data.size();
 
@@ -80,8 +135,6 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
         ptr++;
     ptr++; // \r
     ptr++; // \n
-
-    unsigned int item_nb = 0;
 
     while (ptr < end && *ptr)
     {
@@ -179,28 +232,30 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
                 content = it.base();
         }
 
-        db.push_back(DbItem{
-                PresenceUnknown,
-                std::string(content + 7, 9),
-                content,
-                0,
-                name,
-                name_org[0] == 0 ? name : name_org,
-                zrif,
-                url,
-                std::all_of(
-                        digest,
-                        digest + 64,
-                        [](const auto c) { return c != 0; }),
-                pkgi_hexbytes(digest, SHA256_DIGEST_SIZE),
-                pkgi_strtoll(size),
-        });
-        db_item[item_nb] = item_nb;
-        ++item_nb;
+        sqlite3_reset(stmt);
+        sqlite3_bind_text(stmt, 1, content, strlen(content), nullptr);
+        sqlite3_bind_text(stmt, 2, name, strlen(name), nullptr);
+        sqlite3_bind_text(stmt, 3, name_org, strlen(name_org), nullptr);
+        sqlite3_bind_text(stmt, 4, zrif, strlen(zrif), nullptr);
+        sqlite3_bind_text(stmt, 5, url, strlen(url), nullptr);
+        std::array<uint8_t, 32> digest_array;
+        if (std::all_of(
+                    digest, digest + 64, [](const auto c) { return c != 0; }))
+        {
+            digest_array = pkgi_hexbytes(digest, SHA256_DIGEST_SIZE);
+            sqlite3_bind_blob(
+                    stmt, 6, digest_array.data(), digest_array.size(), nullptr);
+        }
+        else
+            sqlite3_bind_null(stmt, 6);
+        sqlite3_bind_text(stmt, 7, size, strlen(size), nullptr);
+
+        auto err = sqlite3_step(stmt);
+        if (err != SQLITE_DONE)
+            throw std::runtime_error(
+                    fmt::format("can't execute SQL statement: {}", err));
 #undef NEXT_FIELD
     }
-
-    db_item_count = item_nb;
 }
 
 void TitleDatabase::update(Http* http, const char* update_url)
@@ -245,8 +300,78 @@ void TitleDatabase::update(Http* http, const char* update_url)
 
     db_data.resize(db_size);
     parse_tsv_file(db_data);
+    reload();
 
     LOG("finished parsing, %u total items", db.size());
+}
+
+void TitleDatabase::reload()
+{
+    sqlite3_stmt* stmt;
+    SQLITE_CHECK(
+            sqlite3_prepare_v2(
+                    _sqliteDb.get(),
+                    R"(SELECT * FROM titles)",
+                    -1,
+                    &stmt,
+                    nullptr),
+            "can't prepare SQL statement");
+    BOOST_SCOPE_EXIT_ALL(&)
+    {
+        sqlite3_finalize(stmt);
+    };
+
+    db_item_count = 0;
+    db.clear();
+    while (true)
+    {
+        auto const err = sqlite3_step(stmt);
+        if (err == SQLITE_DONE)
+            break;
+        if (err != SQLITE_ROW)
+            throw std::runtime_error(
+                    fmt::format("can't execute SQL statement: {}", err));
+
+        std::string content =
+                reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        const char* name =
+                reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        const char* name_org =
+                reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+        const char* zrif =
+                reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
+        const char* url =
+                reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+        const auto bdigest =
+                static_cast<const uint8_t*>(sqlite3_column_blob(stmt, 6));
+        const auto digest_size = sqlite3_column_bytes(stmt, 6);
+        std::array<uint8_t, 32> digest;
+        if (bdigest)
+            std::copy_n(
+                    bdigest,
+                    std::min<int>(digest_size, digest.size()),
+                    digest.begin());
+        const auto size = sqlite3_column_int64(stmt, 7);
+
+        db.push_back(DbItem{
+                PresenceUnknown,
+                content.size() >= 7 + 9 ? content.substr(7, 9) : "",
+                content,
+                0,
+                name,
+                name_org ? name_org : "",
+                zrif ? zrif : "",
+                url,
+                static_cast<bool>(bdigest),
+                bdigest ? digest : std::array<uint8_t, 32>{},
+                size,
+        });
+
+        db_item[db.size() - 1] = db.size() - 1;
+    }
+
+    db_item_count = db.size();
+    LOG("reloaded %d items", db_item_count);
 }
 
 void TitleDatabase::swap(uint32_t a, uint32_t b)

@@ -12,10 +12,11 @@ extern "C" {
 #include "pkgi_menu.hpp"
 #include "pkgi_vitahttp.hpp"
 
+#include <fmt/format.h>
+
 #include <memory>
 
-#include <stddef.h>
-
+#include <cstddef>
 #include <cstring>
 
 #define PKGI_UPDATE_URL \
@@ -49,6 +50,8 @@ static char search_text[256];
 static char error_state[256];
 
 static std::unique_ptr<TitleDatabase> db;
+
+static void pkgi_open_db();
 
 static const char* pkgi_get_ok_str(void)
 {
@@ -88,6 +91,25 @@ static const char* pkgi_get_mode_partition()
     return mode == ModePspGames || mode == ModePsxGames
                    ? config.install_psp_psx_location.c_str()
                    : "ux0:";
+}
+
+static std::string modeToDbName(Mode mode)
+{
+    switch (mode)
+    {
+    case ModeGames:
+        return "pkgj_games.db";
+    case ModeDlcs:
+        return "pkgj_dlcs.db";
+    case ModeUpdates:
+        return "pkgj_updates.db";
+    case ModePspGames:
+        return "pkgj_pspgames.db";
+    case ModePsxGames:
+        return "pkgj_psxgames.db";
+    }
+    throw std::runtime_error(
+            fmt::format("unknown mode: {}", static_cast<int>(mode)));
 }
 
 static void pkgi_start_download(Downloader& downloader)
@@ -159,7 +181,7 @@ static void pkgi_refresh_games(const char* url, Mode set_mode)
     current_url = url;
     state = StateRefreshing;
     mode = set_mode;
-    db = std::make_unique<TitleDatabase>(mode);
+    pkgi_open_db();
     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
 }
 
@@ -740,11 +762,40 @@ static void reposition(void)
     }
 }
 
+static void pkgi_open_db()
+{
+    try
+    {
+        db = std::make_unique<TitleDatabase>(
+                mode,
+                (std::string(pkgi_get_config_folder()) + '/' +
+                 modeToDbName(mode))
+                        .c_str());
+    }
+    catch (const std::exception& e)
+    {
+        LOG("error during database open: %s", e.what());
+        state = StateError;
+        pkgi_snprintf(
+                error_state,
+                sizeof(error_state),
+                "DB initialization error: %s, try to delete them?",
+                e.what());
+
+        pkgi_input input;
+        while (pkgi_update(&input))
+        {
+            pkgi_draw_rect(0, 0, VITA_WIDTH, VITA_HEIGHT, 0);
+            pkgi_do_error();
+            pkgi_swap();
+        }
+        pkgi_end();
+    }
+}
+
 int main()
 {
     pkgi_start();
-
-    db = std::make_unique<TitleDatabase>(mode);
 
     Downloader downloader;
 
@@ -772,6 +823,22 @@ int main()
     font_height = pkgi_text_height("M");
     avail_height = VITA_HEIGHT - 3 * (font_height + PKGI_MAIN_HLINE_EXTRA);
     bottom_y = VITA_HEIGHT - 2 * font_height - PKGI_MAIN_ROW_PADDING;
+
+    pkgi_open_db();
+
+    try
+    {
+        LOG("reloading");
+        db->reload();
+    }
+    catch (const std::exception& e)
+    {
+        LOG("error during reload: %s", e.what());
+        pkgi_dialog_error(
+                fmt::format(
+                        "failed to reload db: {}, try to refresh?", e.what())
+                        .c_str());
+    }
 
     if (pkgi_is_unsafe_mode())
     {

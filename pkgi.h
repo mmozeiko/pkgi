@@ -35,9 +35,16 @@ typedef struct pkgi_input
 #define PKGI_COUNTOF(arr) (sizeof(arr) / sizeof(0 [arr]))
 
 #ifdef PKGI_ENABLE_LOGGING
-#define LOG(msg, ...) pkgi_log(msg, ##__VA_ARGS__)
+#define LOG(msg, ...)                 \
+    do                                \
+    {                                 \
+        pkgi_log(msg, ##__VA_ARGS__); \
+    } while (0)
 #else
-#define LOG(...)
+#define LOG(...) \
+    do           \
+    {            \
+    } while (0)
 #endif
 
 void pkgi_log(const char* msg, ...);
