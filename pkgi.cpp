@@ -67,7 +67,7 @@ static void pkgi_refresh_thread(void)
     try
     {
         auto const http = std::make_unique<VitaHttp>();
-        db->update(http.get(), url, mode);
+        db->update(http.get(), url);
         first_item = 0;
         selected_item = 0;
         state = StateUpdateDone;
@@ -159,6 +159,7 @@ static void pkgi_refresh_games(const char* url, Mode set_mode)
     current_url = url;
     state = StateRefreshing;
     mode = set_mode;
+    db = std::make_unique<TitleDatabase>(mode);
     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
 }
 
@@ -743,7 +744,7 @@ int main()
 {
     pkgi_start();
 
-    db = std::make_unique<TitleDatabase>();
+    db = std::make_unique<TitleDatabase>(mode);
 
     Downloader downloader;
 

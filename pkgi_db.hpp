@@ -80,7 +80,9 @@ typedef struct Config Config;
 class TitleDatabase
 {
 public:
-    void update(Http* http, const char* update_url, Mode mode);
+    TitleDatabase(Mode mode);
+
+    void update(Http* http, const char* update_url);
     void get_update_status(uint32_t* updated, uint32_t* total);
 
     void configure(const char* search, const Config* config);
@@ -89,8 +91,6 @@ public:
     uint32_t total();
     DbItem* get(uint32_t index);
     DbItem* get_by_content(const char* content);
-
-    Mode get_mode();
 
 private:
     static constexpr auto MAX_DB_SIZE = 4 * 1024 * 1024;

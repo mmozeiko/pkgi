@@ -66,6 +66,10 @@ static std::array<uint8_t, 32> pkgi_hexbytes(
     return result;
 }
 
+TitleDatabase::TitleDatabase(Mode mode) : mode(mode)
+{
+}
+
 void TitleDatabase::parse_tsv_file(std::string& db_data)
 {
     char* ptr = db_data.data();
@@ -199,15 +203,13 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
     db_item_count = item_nb;
 }
 
-void TitleDatabase::update(Http* http, const char* update_url, Mode amode)
+void TitleDatabase::update(Http* http, const char* update_url)
 {
     std::string db_data;
     db_data.resize(MAX_DB_SIZE);
     db_total = 0;
     db_size = 0;
     db_item_count = 0;
-
-    mode = amode;
 
     if (update_url[0] == 0)
         throw std::runtime_error("no update url");
@@ -437,11 +439,6 @@ DbItem* TitleDatabase::get_by_content(const char* content)
         if (db[db_item[i]].content == content)
             return &db[db_item[i]];
     return NULL;
-}
-
-Mode TitleDatabase::get_mode()
-{
-    return mode;
 }
 
 GameRegion pkgi_get_region(const std::string& titleid)

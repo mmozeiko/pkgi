@@ -54,8 +54,8 @@ int refreshlist(int argc, char* argv[])
 
     auto const http = std::make_unique<FileHttp>();
 
-    auto db = std::make_unique<TitleDatabase>();
-    db->update(http.get(), argv[3], ModeGames);
+    auto db = std::make_unique<TitleDatabase>(ModeGames);
+    db->update(http.get(), argv[3]);
 
     return 0;
 }
