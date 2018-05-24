@@ -48,7 +48,7 @@ static int bottom_y;
 static char search_text[256];
 static char error_state[256];
 
-static TitleDatabase db;
+static std::unique_ptr<TitleDatabase> db;
 
 static const char* pkgi_get_ok_str(void)
 {
@@ -67,7 +67,7 @@ static void pkgi_refresh_thread(void)
     try
     {
         auto const http = std::make_unique<VitaHttp>();
-        db.update(http.get(), url, mode);
+        db->update(http.get(), url, mode);
         first_item = 0;
         selected_item = 0;
         state = StateUpdateDone;
@@ -92,7 +92,7 @@ static const char* pkgi_get_mode_partition()
 
 static void pkgi_start_download(Downloader& downloader)
 {
-    DbItem* item = db.get(selected_item);
+    DbItem* item = db->get(selected_item);
 
     LOG("decoding zRIF");
 
@@ -172,7 +172,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
     int col_name = col_installed + pkgi_text_width(PKGI_UTF8_INSTALLED) +
                    PKGI_MAIN_COLUMN_PADDING;
 
-    uint32_t db_count = db.count();
+    uint32_t db_count = db->count();
 
     if (input)
     {
@@ -259,7 +259,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
     int line_height = font_height + PKGI_MAIN_ROW_PADDING;
     for (uint32_t i = first_item; i < db_count; i++)
     {
-        DbItem* item = db.get(i);
+        DbItem* item = db->get(i);
 
         uint32_t color = PKGI_COLOR_TEXT;
 
@@ -442,7 +442,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
     {
         input->pressed &= ~pkgi_ok_button();
 
-        DbItem* item = db.get(selected_item);
+        DbItem* item = db->get(selected_item);
 
         if (downloader.is_in_queue(item->content))
         {
@@ -507,7 +507,7 @@ static void pkgi_do_refresh(void)
 
     uint32_t updated;
     uint32_t total;
-    db.get_update_status(&updated, &total);
+    db->get_update_status(&updated, &total);
 
     if (total == 0)
     {
@@ -631,8 +631,8 @@ static void pkgi_do_tail(Downloader& downloader)
 
     const auto second_line = bottom_y + font_height + PKGI_MAIN_ROW_PADDING;
 
-    uint32_t count = db.count();
-    uint32_t total = db.total();
+    uint32_t count = db->count();
+    uint32_t total = db->total();
 
     if (count == total)
     {
@@ -683,7 +683,7 @@ static void pkgi_do_tail(Downloader& downloader)
     }
     else
     {
-        DbItem* item = db.get(selected_item);
+        DbItem* item = db->get(selected_item);
         pkgi_snprintf(
                 text,
                 sizeof(text),
@@ -717,7 +717,7 @@ static void pkgi_do_error(void)
 
 static void reposition(void)
 {
-    uint32_t count = db.count();
+    uint32_t count = db->count();
     if (first_item + selected_item < count)
     {
         return;
@@ -743,11 +743,13 @@ int main()
 {
     pkgi_start();
 
+    db = std::make_unique<TitleDatabase>();
+
     Downloader downloader;
 
     downloader.refresh = [](const std::string& content) {
         // FIXME this runs on the wrong thread
-        const auto item = db.get_by_content(content.c_str());
+        const auto item = db->get_by_content(content.c_str());
         if (!item)
         {
             LOG("couldn't find %s", content.c_str());
@@ -798,7 +800,7 @@ int main()
                 // pkgi_start_thread("update_thread", &pkgi_check_for_update);
             }
 
-            db.configure(NULL, &config);
+            db->configure(NULL, &config);
             state = StateMain;
         }
 
@@ -836,7 +838,7 @@ int main()
         {
             search_active = 1;
             pkgi_dialog_input_get_text(search_text, sizeof(search_text));
-            db.configure(search_text, &config);
+            db->configure(search_text, &config);
             reposition();
         }
 
@@ -851,7 +853,7 @@ int main()
                     config_temp.filter != new_config.filter)
                 {
                     config_temp = new_config;
-                    db.configure(
+                    db->configure(
                             search_active ? search_text : NULL, &config_temp);
                     reposition();
                 }
@@ -867,14 +869,14 @@ int main()
                 case MenuResultSearchClear:
                     search_active = 0;
                     search_text[0] = 0;
-                    db.configure(NULL, &config);
+                    db->configure(NULL, &config);
                     break;
                 case MenuResultCancel:
                     if (config_temp.sort != config.sort ||
                         config_temp.order != config.order ||
                         config_temp.filter != config.filter)
                     {
-                        db.configure(
+                        db->configure(
                                 search_active ? search_text : NULL, &config);
                         reposition();
                     }
