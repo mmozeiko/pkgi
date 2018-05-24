@@ -85,7 +85,7 @@ static void pkgi_refresh_thread(void)
 
 static const char* pkgi_get_mode_partition()
 {
-    return db.get_mode() == ModePspGames || db.get_mode() == ModePsxGames
+    return mode == ModePspGames || mode == ModePsxGames
                    ? config.install_psp_psx_location.c_str()
                    : "ux0:";
 }
@@ -102,7 +102,7 @@ static void pkgi_start_download(Downloader& downloader)
         pkgi_zrif_decode(item->zrif.c_str(), rif, message, sizeof(message)))
     {
         downloader.add(DownloadItem{
-                static_cast<Type>(db.get_mode()),
+                static_cast<Type>(mode),
                 item->name,
                 item->content,
                 item->url,
@@ -267,14 +267,14 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 
         if (item->presence == PresenceUnknown)
         {
-            if (db.get_mode() == ModeGames)
+            if (mode == ModeGames)
             {
                 if (pkgi_is_installed(titleid))
                     item->presence = PresenceInstalled;
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
             }
-            else if (db.get_mode() == ModePspGames)
+            else if (mode == ModePspGames)
             {
                 if (pkgi_psp_is_installed(
                             pkgi_get_mode_partition(), item->content.c_str()))
@@ -282,7 +282,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
             }
-            else if (db.get_mode() == ModePsxGames)
+            else if (mode == ModePsxGames)
             {
                 if (pkgi_psx_is_installed(
                             pkgi_get_mode_partition(), item->content.c_str()))
@@ -295,7 +295,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                 if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
                 else if (
-                        db.get_mode() == ModeDlcs &&
+                        mode == ModeDlcs &&
                         pkgi_dlc_is_installed(item->content.c_str()))
                     item->presence = PresenceInstalled;
                 else if (pkgi_is_installed(titleid))
@@ -451,7 +451,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
             return;
         }
 
-        switch (db.get_mode())
+        switch (mode)
         {
         case ModeGames:
         case ModePsxGames:
@@ -647,7 +647,7 @@ static void pkgi_do_tail(Downloader& downloader)
     // get free space of partition only if looking at psx or psp games else show
     // ux0:
     char size[64];
-    if (db.get_mode() == ModePsxGames || db.get_mode() == ModePspGames)
+    if (mode == ModePsxGames || mode == ModePspGames)
     {
         pkgi_friendly_size(
                 size,
