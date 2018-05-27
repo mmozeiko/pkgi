@@ -25,7 +25,6 @@ extern "C" {
 typedef enum {
     StateError,
     StateRefreshing,
-    StateUpdateDone,
     StateMain,
 } State;
 
@@ -73,7 +72,8 @@ static void pkgi_refresh_thread(void)
         db->update(http.get(), url);
         first_item = 0;
         selected_item = 0;
-        state = StateUpdateDone;
+        db->configure(NULL, &config);
+        state = StateMain;
     }
     catch (const std::exception& e)
     {
@@ -880,17 +880,6 @@ int main()
     {
         pkgi_draw_texture(background, 0, 0);
 
-        if (state == StateUpdateDone)
-        {
-            if (!config.no_version_check)
-            {
-                // pkgi_start_thread("update_thread", &pkgi_check_for_update);
-            }
-
-            db->configure(NULL, &config);
-            state = StateMain;
-        }
-
         pkgi_do_head();
         switch (state)
         {
@@ -907,10 +896,6 @@ int main()
                     downloader,
                     pkgi_dialog_is_open() || pkgi_menu_is_open() ? NULL
                                                                  : &input);
-            break;
-
-        case StateUpdateDone:
-            // never happens, just to shut up the compiler
             break;
         }
 
