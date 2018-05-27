@@ -176,11 +176,30 @@ static void pkgi_friendly_size(char* text, uint32_t textlen, int64_t size)
     }
 }
 
-static void pkgi_refresh_games(const char* url, Mode set_mode)
+static std::string const& pkgi_get_url_from_mode(Mode mode)
 {
-    current_url = url;
+    switch (mode)
+    {
+    case ModeGames:
+        return config.games_url;
+    case ModeUpdates:
+        return config.updates_url;
+    case ModeDlcs:
+        return config.dlcs_url;
+    case ModePspGames:
+        return config.psp_games_url;
+    case ModePsxGames:
+        return config.psx_games_url;
+    }
+    throw std::runtime_error(
+            fmt::format("unknown mode: {}", static_cast<int>(mode)));
+}
+
+static void pkgi_refresh_games(Mode set_mode)
+{
     state = StateRefreshing;
     mode = set_mode;
+    current_url = pkgi_get_url_from_mode(mode).c_str();
     pkgi_open_db();
     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
 }
@@ -954,21 +973,19 @@ int main()
                     pkgi_save_config(config);
                     break;
                 case MenuResultShowGames:
-                    pkgi_refresh_games(config.games_url.c_str(), ModeGames);
+                    pkgi_refresh_games(ModeGames);
                     break;
                 case MenuResultShowUpdates:
-                    pkgi_refresh_games(config.updates_url.c_str(), ModeUpdates);
+                    pkgi_refresh_games(ModeUpdates);
                     break;
                 case MenuResultShowDlcs:
-                    pkgi_refresh_games(config.dlcs_url.c_str(), ModeDlcs);
+                    pkgi_refresh_games(ModeDlcs);
                     break;
                 case MenuResultShowPsxGames:
-                    pkgi_refresh_games(
-                            config.psx_games_url.c_str(), ModePsxGames);
+                    pkgi_refresh_games(ModePsxGames);
                     break;
                 case MenuResultShowPspGames:
-                    pkgi_refresh_games(
-                            config.psp_games_url.c_str(), ModePspGames);
+                    pkgi_refresh_games(ModePspGames);
                     break;
                 }
             }
