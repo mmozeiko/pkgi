@@ -9,11 +9,11 @@ typedef enum {
     MenuResultSearchClear,
     MenuResultAccept,
     MenuResultCancel,
-    MenuResultRefreshGames,
-    MenuResultRefreshUpdates,
-    MenuResultRefreshDlcs,
-    MenuResultRefreshPsxGames,
-    MenuResultRefreshPspGames,
+    MenuResultShowGames,
+    MenuResultShowUpdates,
+    MenuResultShowDlcs,
+    MenuResultShowPsxGames,
+    MenuResultShowPspGames,
 } MenuResult;
 
 int pkgi_menu_is_open(void);

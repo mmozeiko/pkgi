@@ -953,20 +953,20 @@ int main()
                     pkgi_menu_get(&config);
                     pkgi_save_config(config);
                     break;
-                case MenuResultRefreshGames:
+                case MenuResultShowGames:
                     pkgi_refresh_games(config.games_url.c_str(), ModeGames);
                     break;
-                case MenuResultRefreshUpdates:
+                case MenuResultShowUpdates:
                     pkgi_refresh_games(config.updates_url.c_str(), ModeUpdates);
                     break;
-                case MenuResultRefreshDlcs:
+                case MenuResultShowDlcs:
                     pkgi_refresh_games(config.dlcs_url.c_str(), ModeDlcs);
                     break;
-                case MenuResultRefreshPsxGames:
+                case MenuResultShowPsxGames:
                     pkgi_refresh_games(
                             config.psx_games_url.c_str(), ModePsxGames);
                     break;
-                case MenuResultRefreshPspGames:
+                case MenuResultShowPspGames:
                     pkgi_refresh_games(
                             config.psp_games_url.c_str(), ModePspGames);
                     break;

@@ -23,7 +23,7 @@ typedef enum {
     MenuText,
     MenuSort,
     MenuFilter,
-    MenuRefresh,
+    MenuShow,
 } MenuType;
 
 typedef struct
@@ -49,11 +49,11 @@ static const MenuEntry menu_entries[] = {
         {MenuFilter, "Japan", DbFilterRegionJPN},
         {MenuFilter, "USA", DbFilterRegionUSA},
 
-        {MenuRefresh, "Refresh games", 1},
-        {MenuRefresh, "Refresh updates", 2},
-        {MenuRefresh, "Refresh DLCs", 4},
-        {MenuRefresh, "Refresh PSX games", 8},
-        {MenuRefresh, "Refresh PSP games", 16},
+        {MenuShow, "Show games", 1},
+        {MenuShow, "Show updates", 2},
+        {MenuShow, "Show DLCs", 4},
+        {MenuShow, "Show PSX games", 8},
+        {MenuShow, "Show PSP games", 16},
 };
 
 int pkgi_menu_is_open(void)
@@ -126,7 +126,7 @@ int pkgi_do_menu(pkgi_input* input)
         } while (menu_entries[menu_selected].type == MenuText ||
                  (menu_entries[menu_selected].type == MenuSearchClear &&
                   !menu_search_clear) ||
-                 (menu_entries[menu_selected].type == MenuRefresh &&
+                 (menu_entries[menu_selected].type == MenuShow &&
                   !(menu_entries[menu_selected].value & menu_allow_refresh)));
     }
 
@@ -145,7 +145,7 @@ int pkgi_do_menu(pkgi_input* input)
         } while (menu_entries[menu_selected].type == MenuText ||
                  (menu_entries[menu_selected].type == MenuSearchClear &&
                   !menu_search_clear) ||
-                 (menu_entries[menu_selected].type == MenuRefresh &&
+                 (menu_entries[menu_selected].type == MenuShow &&
                   !(menu_entries[menu_selected].value & menu_allow_refresh)));
     }
 
@@ -177,24 +177,24 @@ int pkgi_do_menu(pkgi_input* input)
             menu_delta = -1;
             return 1;
         }
-        else if (type == MenuRefresh)
+        else if (type == MenuShow)
         {
             switch (menu_entries[menu_selected].value)
             {
             case 1:
-                menu_result = MenuResultRefreshGames;
+                menu_result = MenuResultShowGames;
                 break;
             case 2:
-                menu_result = MenuResultRefreshUpdates;
+                menu_result = MenuResultShowUpdates;
                 break;
             case 4:
-                menu_result = MenuResultRefreshDlcs;
+                menu_result = MenuResultShowDlcs;
                 break;
             case 8:
-                menu_result = MenuResultRefreshPsxGames;
+                menu_result = MenuResultShowPsxGames;
                 break;
             case 16:
-                menu_result = MenuResultRefreshPspGames;
+                menu_result = MenuResultShowPspGames;
                 break;
             }
 
@@ -242,13 +242,14 @@ int pkgi_do_menu(pkgi_input* input)
         {
             continue;
         }
-        else if (type == MenuRefresh)
+        else if (type == MenuShow)
         {
+            if (entry[-1].type != MenuShow)
+                y += font_height / 2;
             if (!(entry->value & menu_allow_refresh))
             {
                 continue;
             }
-            y += font_height / 2;
         }
 
         uint32_t color = menu_selected == i ? PKGI_COLOR_TEXT_MENU_SELECTED
@@ -258,7 +259,7 @@ int pkgi_do_menu(pkgi_input* input)
 
         char text[64];
         if (type == MenuSearch || type == MenuSearchClear || type == MenuText ||
-            type == MenuRefresh)
+            type == MenuShow)
         {
             pkgi_strncpy(text, sizeof(text), entry->text);
         }
