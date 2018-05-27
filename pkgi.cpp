@@ -195,12 +195,16 @@ static std::string const& pkgi_get_url_from_mode(Mode mode)
             fmt::format("unknown mode: {}", static_cast<int>(mode)));
 }
 
-static void pkgi_refresh_games(Mode set_mode)
+static void pkgi_set_mode(Mode set_mode)
+{
+    mode = set_mode;
+    pkgi_open_db();
+}
+
+static void pkgi_refresh_list()
 {
     state = StateRefreshing;
-    mode = set_mode;
     current_url = pkgi_get_url_from_mode(mode).c_str();
-    pkgi_open_db();
     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
 }
 
@@ -448,7 +452,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 
     if (db_count == 0)
     {
-        const char* text = "No items!";
+        const char* text = "No items! Try to refresh.";
 
         int w = pkgi_text_width(text);
         pkgi_draw_text(
@@ -781,10 +785,31 @@ static void reposition(void)
     }
 }
 
+static void pkgi_reload()
+{
+    try
+    {
+        db->reload();
+        db->configure(NULL, &config);
+    }
+    catch (const std::exception& e)
+    {
+        LOG("error during reload: %s", e.what());
+        pkgi_dialog_error(
+                fmt::format(
+                        "failed to reload db: {}, try to refresh?", e.what())
+                        .c_str());
+    }
+}
+
 static void pkgi_open_db()
 {
     try
     {
+        // can't allocate two databases at the same time, a database class is
+        // 16MB at the moment, doesn't seem huge to me, but let's work around
+        // that
+        db = nullptr;
         db = std::make_unique<TitleDatabase>(
                 mode,
                 (std::string(pkgi_get_config_folder()) + '/' +
@@ -810,6 +835,8 @@ static void pkgi_open_db()
         }
         pkgi_end();
     }
+
+    pkgi_reload();
 }
 
 int main()
@@ -844,20 +871,6 @@ int main()
     bottom_y = VITA_HEIGHT - 2 * font_height - PKGI_MAIN_ROW_PADDING;
 
     pkgi_open_db();
-
-    try
-    {
-        LOG("reloading");
-        db->reload();
-    }
-    catch (const std::exception& e)
-    {
-        LOG("error during reload: %s", e.what());
-        pkgi_dialog_error(
-                fmt::format(
-                        "failed to reload db: {}, try to refresh?", e.what())
-                        .c_str());
-    }
 
     if (pkgi_is_unsafe_mode())
     {
@@ -957,20 +970,23 @@ int main()
                     pkgi_menu_get(&config);
                     pkgi_save_config(config);
                     break;
+                case MenuResultRefresh:
+                    pkgi_refresh_list();
+                    break;
                 case MenuResultShowGames:
-                    pkgi_refresh_games(ModeGames);
+                    pkgi_set_mode(ModeGames);
                     break;
                 case MenuResultShowUpdates:
-                    pkgi_refresh_games(ModeUpdates);
+                    pkgi_set_mode(ModeUpdates);
                     break;
                 case MenuResultShowDlcs:
-                    pkgi_refresh_games(ModeDlcs);
+                    pkgi_set_mode(ModeDlcs);
                     break;
                 case MenuResultShowPsxGames:
-                    pkgi_refresh_games(ModePsxGames);
+                    pkgi_set_mode(ModePsxGames);
                     break;
                 case MenuResultShowPspGames:
-                    pkgi_refresh_games(ModePspGames);
+                    pkgi_set_mode(ModePspGames);
                     break;
                 }
             }

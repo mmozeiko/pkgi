@@ -9,6 +9,7 @@ typedef enum {
     MenuResultSearchClear,
     MenuResultAccept,
     MenuResultCancel,
+    MenuResultRefresh,
     MenuResultShowGames,
     MenuResultShowUpdates,
     MenuResultShowDlcs,
