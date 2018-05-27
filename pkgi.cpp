@@ -28,7 +28,7 @@ typedef enum {
     StateMain,
 } State;
 
-static State state;
+static State state = StateMain;
 static Mode mode = ModeGames;
 
 static uint32_t first_item;
@@ -872,12 +872,7 @@ int main()
 
     pkgi_open_db();
 
-    if (pkgi_is_unsafe_mode())
-    {
-        state = StateRefreshing;
-        pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
-    }
-    else
+    if (!pkgi_is_unsafe_mode())
     {
         state = StateError;
         pkgi_snprintf(
