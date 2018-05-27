@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.20
+
+What's new:
+
+- List content is now cached and there is an explicit command to refresh it
+
 ## 0.19
 
 What's new:
