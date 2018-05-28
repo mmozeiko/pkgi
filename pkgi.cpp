@@ -806,6 +806,8 @@ static void pkgi_open_db()
 {
     try
     {
+        first_item = 0;
+        selected_item = 0;
         // can't allocate two databases at the same time, a database class is
         // 16MB at the moment, doesn't seem huge to me, but let's work around
         // that
