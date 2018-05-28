@@ -4,6 +4,7 @@
 #include <deque>
 #include <mutex>
 #include <optional>
+#include <tuple>
 #include <vector>
 
 #include "pkgi_thread.hpp"
@@ -46,7 +47,7 @@ public:
     void remove_from_queue(const std::string& contentid);
     bool is_in_queue(const std::string& titleid);
     std::optional<DownloadItem> get_current_download();
-    float get_current_download_progress();
+    std::tuple<uint64_t, uint64_t> get_current_download_progress();
 
     std::function<void(const std::string& content)> refresh;
     std::function<void(const std::string& error)> error;
@@ -59,7 +60,8 @@ private:
 
     DownloadItem _current_download;
     bool _cancel_current = false;
-    std::atomic<float> _progress = 0.0f;
+    std::atomic<uint64_t> _download_offset = 0;
+    std::atomic<uint64_t> _download_size = 0;
 
     Thread _thread;
     bool _dying = false;

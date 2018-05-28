@@ -647,6 +647,25 @@ static void pkgi_do_head(void)
     }
 }
 
+static uint64_t last_progress_time;
+static uint64_t last_progress_offset;
+static uint64_t last_progress_speed;
+
+static uint64_t get_speed(const uint64_t download_offset)
+{
+    const uint64_t now = pkgi_time_msec();
+    const uint64_t progress_time = now - last_progress_time;
+    if (progress_time < 1000)
+        return last_progress_speed;
+
+    const uint64_t progress_data = download_offset - last_progress_offset;
+    last_progress_speed = progress_data * 1000 / progress_time;
+    last_progress_offset = download_offset;
+    last_progress_time = now;
+
+    return last_progress_speed;
+}
+
 static void pkgi_do_tail(Downloader& downloader)
 {
     char text[256];
@@ -656,20 +675,42 @@ static void pkgi_do_tail(Downloader& downloader)
 
     const auto current_download = downloader.get_current_download();
 
+    uint64_t download_offset;
+    uint64_t download_size;
+    std::tie(download_offset, download_size) =
+            downloader.get_current_download_progress();
+    // avoid divide by 0
+    if (download_size == 0)
+        download_size = 1;
+
     pkgi_draw_rect(
             0,
             bottom_y + PKGI_MAIN_HLINE_HEIGHT,
-            int(VITA_WIDTH * downloader.get_current_download_progress()),
+            VITA_WIDTH * download_offset / download_size,
             font_height + PKGI_MAIN_ROW_PADDING - 1,
             PKGI_COLOR_PROGRESS_BACKGROUND);
 
     if (current_download)
+    {
+        const auto speed = get_speed(download_offset);
+        std::string sspeed;
+
+        if (speed > 1000 * 1024)
+            sspeed = fmt::format("{:.3g} MB/s", speed / 1024.f / 1024.f);
+        else if (speed > 1000)
+            sspeed = fmt::format("{:.3g} KB/s", speed / 1024.f);
+        else
+            sspeed = fmt::format("{} B/s", speed);
+
         pkgi_snprintf(
                 text,
                 sizeof(text),
-                "Downloading %s: %s",
+                "Downloading %s: %s (%s, %d%%)",
                 type_to_string(current_download->type).c_str(),
-                current_download->name.c_str());
+                current_download->name.c_str(),
+                sspeed.c_str(),
+                static_cast<int>(download_offset * 100 / download_size));
+    }
     else
         pkgi_snprintf(text, sizeof(text), "Idle");
 

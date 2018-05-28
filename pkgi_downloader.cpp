@@ -68,9 +68,9 @@ std::optional<DownloadItem> Downloader::get_current_download()
     return _current_download;
 }
 
-float Downloader::get_current_download_progress()
+std::tuple<uint64_t, uint64_t> Downloader::get_current_download_progress()
 {
-    return _progress.load();
+    return {_download_offset.load(), _download_size.load()};
 }
 
 void Downloader::remove_from_queue(const std::string& contentid)
@@ -98,8 +98,9 @@ void Downloader::run()
             ScopeLock _(_cond.get_mutex());
 
             _current_download = {};
-            _progress = 0.0f;
             _cancel_current = false;
+            _download_offset = 0;
+            _download_size = 0;
 
             if (_dying)
                 return;
@@ -137,7 +138,8 @@ void Downloader::do_download(const DownloadItem& item)
     auto download = std::make_unique<Download>(std::make_unique<VitaHttp>());
     download->save_as_iso = item.save_as_iso;
     download->update_progress_cb = [this](const Download& d) {
-        _progress = float(d.download_offset) / float(d.download_size);
+        _download_offset = d.download_offset;
+        _download_size = d.download_size;
     };
     download->update_status = [](auto&&) {};
     download->is_canceled = [this] { return _cancel_current || _dying; };
