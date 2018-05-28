@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.29
+
+What's new:
+
+- Percentage and speed are now shown during download
+
+Bug fixes:
+
+- When changing list, the list scrolls back up
+
 ## 0.20
 
 What's new:

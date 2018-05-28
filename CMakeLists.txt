@@ -22,7 +22,7 @@ include(ExternalProject)
 
 set(VITA_APP_NAME "PKGj")
 set(VITA_TITLEID  "PKGJ00000")
-set(VITA_VERSION  "0.20")
+set(VITA_VERSION  "0.21")
 
 option(PKGI_ENABLE_LOGGING "enables debug logging over udp multicast" OFF)
 
