@@ -12,6 +12,15 @@ extern "C" {
 
 static constexpr auto ISO_SECTOR_SIZE = 2048;
 
+enum ContentType
+{
+    CONTENT_TYPE_PSX_GAME = 6,
+    CONTENT_TYPE_PSP_GAME = 7,
+    CONTENT_TYPE_PSP_MINI_GAME = 15,
+    CONTENT_TYPE_PSV_GAME = 21, // or update
+    CONTENT_TYPE_PSV_DLC = 22,
+};
+
 // clang-format off
 static const uint8_t pkg_psp_key[] = { 0x07, 0xf2, 0xc6, 0x82, 0x90, 0xb5, 0x0d, 0x2c, 0x33, 0x81, 0x8d, 0x70, 0x9b, 0x60, 0xe6, 0x2b };
 static const uint8_t pkg_vita_2[] = { 0xe3, 0x1a, 0x70, 0xc9, 0xce, 0x1d, 0xd7, 0x2b, 0xf3, 0xc0, 0x62, 0x29, 0x63, 0xf2, 0xec, 0xcb };
@@ -594,13 +603,11 @@ int Download::download_head(const uint8_t* rif)
         if (type == 2)
         {
             content_type = get32be(head + offset + 8);
-            // 6 PSX game
-            // 7 PSP game
-            // 15 PSP-Mini game
-            // 21 PSV game (or update)
-            // 22 PSV DLC
-            if (content_type != 21 && content_type != 22 && content_type != 6 &&
-                content_type != 7 && content_type != 15)
+            if (content_type != CONTENT_TYPE_PSX_GAME &&
+                content_type != CONTENT_TYPE_PSP_GAME &&
+                content_type != CONTENT_TYPE_PSP_MINI_GAME &&
+                content_type != CONTENT_TYPE_PSV_GAME &&
+                content_type != CONTENT_TYPE_PSV_DLC)
             {
                 throw DownloadError(
                         "unsupported package type: " +
@@ -898,7 +905,9 @@ int Download::download_files(void)
             item_size,
             type);
 
-        if (content_type == 6 || content_type == 7 || content_type == 15)
+        if (content_type == CONTENT_TYPE_PSX_GAME ||
+            content_type == CONTENT_TYPE_PSP_GAME ||
+            content_type == CONTENT_TYPE_PSP_MINI_GAME)
         {
             if (std::string(item_name) == "USRDIR/CONTENT/DOCUMENT.DAT")
                 pkgi_snprintf(
@@ -963,7 +972,8 @@ int Download::download_files(void)
             throw DownloadError("pkg file is too small or corrupted");
         }
 
-        if (content_type == 7 || content_type == 15)
+        if (content_type == CONTENT_TYPE_PSP_GAME ||
+            content_type == CONTENT_TYPE_PSP_MINI_GAME)
         {
             if (save_as_iso &&
                 std::string(item_name) == "USRDIR/CONTENT/EBOOT.PBP")
@@ -1026,7 +1036,8 @@ int Download::download_tail(void)
     {
         uint32_t read =
                 (uint32_t)min64(sizeof(down), total_size - download_offset);
-        int size = download_data(down, read, 0, content_type != 6);
+        int size = download_data(
+                down, read, 0, content_type != CONTENT_TYPE_PSX_GAME);
         if (size <= 0)
         {
             return 0;
@@ -1132,7 +1143,9 @@ int Download::pkgi_download(
         return 0;
     if (!download_tail())
         return 0;
-    if (content_type != 6 && content_type != 7 && content_type != 15)
+    if (content_type != CONTENT_TYPE_PSX_GAME &&
+        content_type != CONTENT_TYPE_PSP_GAME &&
+        content_type != CONTENT_TYPE_PSP_MINI_GAME)
     {
         if (!create_stat())
             return 0;
