@@ -1,15 +1,4 @@
-ExternalProject_Add(vitasqliteproject
-  GIT_REPOSITORY https://github.com/VitaSmith/libsqlite
-  GIT_TAG 7bf41a937d0358a1f0740950b30e8444ca8beea0
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ""
-  INSTALL_COMMAND ""
-)
-set(vitasqlitepath ${CMAKE_CURRENT_BINARY_DIR}/vitasqliteproject-prefix/src/vitasqliteproject)
-add_library(vitasqlite STATIC ${vitasqlitepath}/libsqlite/sqlite.c)
-set_source_files_properties(${vitasqlitepath}/libsqlite/sqlite.c PROPERTIES GENERATED TRUE)
-target_include_directories(vitasqlite PUBLIC ${vitasqlitepath})
-add_dependencies(vitasqlite vitasqliteproject)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
 
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 
@@ -50,15 +39,14 @@ add_executable(pkgj
   puff.c
 )
 
-add_dependencies(pkgj Boost fmtproject sqliteproject)
-
 target_link_libraries(pkgj
   vita2d
-  fmt
+  CONAN_PKG::fmt
+  CONAN_PKG::boost_scope_exit
+  CONAN_PKG::vitasqlite
   png
   z
   m
-  vitasqlite
   SceAppMgr_stub
   SceAppUtil_stub
   SceCommonDialog_stub
@@ -72,12 +60,17 @@ target_link_libraries(pkgj
   ScePower_stub
   ScePromoterUtil_stub
   SceShellSvc_stub
-  SceSqlite_stub
   SceSsl_stub
   SceSysmodule_stub
 )
 
-target_include_directories(pkgj PRIVATE ${sqlitepath})
+set_target_properties(pkgj PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+)
 
 vita_create_self(eboot.bin pkgj UNSAFE)
 

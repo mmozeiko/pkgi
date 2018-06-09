@@ -48,7 +48,7 @@ void pkgi_vsnprintf(char* buffer, uint32_t size, const char* msg, va_list args)
 
 char* pkgi_strstr(const char* str, const char* sub)
 {
-    return strstr(str, sub);
+    return strstr((char*)str, sub);
 }
 
 int pkgi_stricontains(const char* str, const char* sub)
@@ -68,7 +68,7 @@ void pkgi_strncpy(char* dst, uint32_t size, const char* src)
 
 char* pkgi_strrchr(const char* str, char ch)
 {
-    return strrchr(str, ch);
+    return strrchr((char*)str, ch);
 }
 
 void pkgi_memcpy(void* dst, const void* src, uint32_t size)

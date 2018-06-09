@@ -14,8 +14,6 @@ extern "C" {
 
 #include <vita2d.h>
 
-#include <libsqlite/sqlite.h>
-
 #include <psp2/appmgr.h>
 #include <psp2/ctrl.h>
 #include <psp2/display.h>
@@ -34,6 +32,7 @@ extern "C" {
 #include <psp2/power.h>
 #include <psp2/promoterutil.h>
 #include <psp2/shellutil.h>
+#include <psp2/sqlite.h>
 #include <psp2/sysmodule.h>
 
 #include <stdarg.h>

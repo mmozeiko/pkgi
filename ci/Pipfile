@@ -1,0 +1,12 @@
+[[source]]
+name = "pypi"
+verify_ssl = true
+url = "https://pypi.python.org/simple"
+
+[dev-packages]
+
+[requires]
+python_version = "3"
+
+[packages]
+conan = "*"
