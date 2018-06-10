@@ -630,11 +630,6 @@ const char* pkgi_get_config_folder(void)
         return "ux0:pkgi";
 }
 
-const char* pkgi_get_app_folder(void)
-{
-    return "ux0:app";
-}
-
 int pkgi_is_incomplete(const char* partition, const char* contentid)
 {
     return pkgi_file_exists(
