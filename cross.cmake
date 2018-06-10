@@ -24,19 +24,19 @@ add_assets(assets assets/background.png)
 
 add_executable(pkgj
   ${assets}
-  pkgi.cpp
-  pkgi_aes128.c
-  pkgi_config.cpp
-  pkgi_db.cpp
-  pkgi_dialog.c
-  pkgi_download.cpp
-  pkgi_downloader.cpp
-  pkgi_vitahttp.cpp
-  pkgi_menu.cpp
-  pkgi_sha256.c
-  pkgi_vita.cpp
-  pkgi_zrif.c
-  puff.c
+  src/pkgi.cpp
+  src/pkgi_aes128.c
+  src/pkgi_config.cpp
+  src/pkgi_db.cpp
+  src/pkgi_dialog.c
+  src/pkgi_download.cpp
+  src/pkgi_downloader.cpp
+  src/pkgi_vitahttp.cpp
+  src/pkgi_menu.cpp
+  src/pkgi_sha256.c
+  src/pkgi_vita.cpp
+  src/pkgi_zrif.c
+  src/puff.c
 )
 
 target_link_libraries(pkgj
@@ -75,17 +75,17 @@ set_target_properties(pkgj PROPERTIES
 vita_create_self(eboot.bin pkgj UNSAFE)
 
 configure_file(
-   sce_sys/livearea/contents/template.xml.in
-   sce_sys/livearea/contents/template.xml
+   assets/sce_sys/livearea/contents/template.xml.in
+   assets/sce_sys/livearea/contents/template.xml
 )
 
 vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} eboot.bin
   VERSION 0${VITA_VERSION}
   NAME ${VITA_APP_NAME}
-  FILE sce_sys/icon0.png sce_sys/icon0.png
-       sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
-       sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
-       ${CMAKE_CURRENT_BINARY_DIR}/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
+  FILE assets/sce_sys/icon0.png sce_sys/icon0.png
+       assets/sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
+       assets/sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
+       ${CMAKE_CURRENT_BINARY_DIR}/assets/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
 )
 
 add_custom_target(send
