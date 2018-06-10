@@ -1,10 +1,10 @@
 extern "C" {
 #include "pkgi.h"
-#include "pkgi_style.h"
+#include "style.h"
 }
-#include "pkgi_config.hpp"
-#include "pkgi_db.hpp"
-#include "pkgi_http.hpp"
+#include "config.hpp"
+#include "db.hpp"
+#include "http.hpp"
 
 #include <fmt/format.h>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pkgi_db.hpp"
+#include "db.hpp"
 
 typedef struct pkgi_input pkgi_input;
 

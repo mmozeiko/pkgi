@@ -7,7 +7,7 @@
 #include <tuple>
 #include <vector>
 
-#include "pkgi_thread.hpp"
+#include "thread.hpp"
 
 enum Type
 {

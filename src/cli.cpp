@@ -1,8 +1,8 @@
-#include "pkgi_db.hpp"
-#include "pkgi_download.hpp"
-#include "pkgi_filehttp.hpp"
+#include "db.hpp"
+#include "download.hpp"
+#include "filehttp.hpp"
 extern "C" {
-#include "pkgi_zrif.h"
+#include "zrif.h"
 }
 
 #include <boost/algorithm/hex.hpp>

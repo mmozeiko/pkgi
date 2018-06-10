@@ -1,6 +1,6 @@
-#include "pkgi_dialog.h"
-#include "pkgi_style.h"
-#include "pkgi_utils.h"
+#include "dialog.h"
+#include "style.h"
+#include "utils.h"
 #include "pkgi.h"
 
 typedef enum {

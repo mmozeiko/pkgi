@@ -25,17 +25,17 @@ add_assets(assets assets/background.png)
 add_executable(pkgj
   ${assets}
   src/pkgi.cpp
-  src/pkgi_aes128.c
-  src/pkgi_config.cpp
-  src/pkgi_db.cpp
-  src/pkgi_dialog.c
-  src/pkgi_download.cpp
-  src/pkgi_downloader.cpp
-  src/pkgi_vitahttp.cpp
-  src/pkgi_menu.cpp
-  src/pkgi_sha256.c
-  src/pkgi_vita.cpp
-  src/pkgi_zrif.c
+  src/aes128.c
+  src/config.cpp
+  src/db.cpp
+  src/dialog.c
+  src/download.cpp
+  src/downloader.cpp
+  src/vitahttp.cpp
+  src/menu.cpp
+  src/sha256.c
+  src/vita.cpp
+  src/zrif.c
   src/puff.c
 )
 

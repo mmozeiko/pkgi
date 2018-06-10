@@ -8,11 +8,11 @@
 #include <stdint.h>
 
 extern "C" {
-#include "pkgi_aes128.h"
-#include "pkgi_sha256.h"
+#include "aes128.h"
+#include "sha256.h"
 }
 
-#include "pkgi_http.hpp"
+#include "http.hpp"
 
 #define PKGI_RIF_SIZE 512
 #define PKG_HEADER_SIZE 192

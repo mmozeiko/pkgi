@@ -1,6 +1,6 @@
 extern "C" {
 #include "pkgi.h"
-#include "pkgi_style.h"
+#include "style.h"
 }
 
 #include <fmt/format.h>

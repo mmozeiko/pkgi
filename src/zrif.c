@@ -1,5 +1,5 @@
-#include "pkgi_zrif.h"
-#include "pkgi_utils.h"
+#include "zrif.h"
+#include "utils.h"
 #include "pkgi.h"
 #include "puff.h"
 

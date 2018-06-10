@@ -1,16 +1,16 @@
 extern "C" {
 #include "pkgi.h"
-#include "pkgi_dialog.h"
-#include "pkgi_style.h"
-#include "pkgi_utils.h"
-#include "pkgi_zrif.h"
+#include "dialog.h"
+#include "style.h"
+#include "utils.h"
+#include "zrif.h"
 }
-#include "pkgi_config.hpp"
-#include "pkgi_db.hpp"
-#include "pkgi_download.hpp"
-#include "pkgi_downloader.hpp"
-#include "pkgi_menu.hpp"
-#include "pkgi_vitahttp.hpp"
+#include "config.hpp"
+#include "db.hpp"
+#include "download.hpp"
+#include "downloader.hpp"
+#include "menu.hpp"
+#include "vitahttp.hpp"
 
 #include <fmt/format.h>
 

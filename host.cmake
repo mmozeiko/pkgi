@@ -1,13 +1,13 @@
 add_executable(pkgj_cli
-  src/pkgi_db.cpp
-  src/pkgi_download.cpp
-  src/pkgi_simulator.cpp
-  src/pkgi_aes128.c
-  src/pkgi_sha256.c
-  src/pkgi_filehttp.cpp
-  src/pkgi_zrif.c
+  src/db.cpp
+  src/download.cpp
+  src/simulator.cpp
+  src/aes128.c
+  src/sha256.c
+  src/filehttp.cpp
+  src/zrif.c
   src/puff.c
-  src/pkgi_cli.cpp
+  src/cli.cpp
 )
 
 target_link_libraries(pkgj_cli

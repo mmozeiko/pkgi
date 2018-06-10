@@ -1,4 +1,4 @@
-#include "pkgi_vitahttp.hpp"
+#include "vitahttp.hpp"
 
 #include <psp2/io/fcntl.h>
 #include <psp2/net/http.h>

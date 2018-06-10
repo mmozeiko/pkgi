@@ -1,10 +1,10 @@
-#include "pkgi_menu.hpp"
+#include "menu.hpp"
 
 extern "C" {
 #include "pkgi.h"
-#include "pkgi_style.h"
+#include "style.h"
 }
-#include "pkgi_config.hpp"
+#include "config.hpp"
 
 static int menu_search_clear;
 

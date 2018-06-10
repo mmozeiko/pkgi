@@ -1,9 +1,9 @@
-#include "pkgi_downloader.hpp"
+#include "downloader.hpp"
 
 #include <boost/scope_exit.hpp>
 
-#include "pkgi_download.hpp"
-#include "pkgi_vitahttp.hpp"
+#include "download.hpp"
+#include "vitahttp.hpp"
 
 std::string type_to_string(Type type)
 {
