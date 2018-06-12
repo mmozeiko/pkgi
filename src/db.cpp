@@ -91,6 +91,137 @@ TitleDatabase::TitleDatabase(Mode mode, std::string const& dbPath) : mode(mode)
         ))", "can't create table");
 }
 
+namespace
+{
+std::vector<const char*> pkgi_split_row(char** pptr, const char* end)
+{
+    auto& ptr = *pptr;
+
+    std::vector<const char*> result;
+    while (ptr != end && *ptr != '\n')
+    {
+        const char* field = ptr;
+        while (ptr != end && *ptr != '\t' && *ptr != '\r')
+            ++ptr;
+        if (ptr == end)
+        {
+            result.push_back(field);
+            break;
+        }
+        *ptr++ = 0;
+        result.push_back(field);
+
+        if (ptr == end)
+        {
+            result.push_back(field);
+            break;
+        }
+    }
+    while (ptr != end && *ptr++ != '\n')
+        ;
+    return result;
+}
+
+enum class Column
+{
+    Content,
+    Name,
+    NameOrg,
+    Zrif,
+    Url,
+    Digest,
+    Size,
+};
+
+int pkgi_get_column_number(Mode mode, Column column)
+{
+#define MAP_COL(name, i) \
+    case Column::name:   \
+        return i
+
+    switch (mode)
+    {
+    case ModeGames:
+        switch (column)
+        {
+            MAP_COL(Content, 5);
+            MAP_COL(Name, 2);
+            MAP_COL(NameOrg, 7);
+            MAP_COL(Zrif, 4);
+            MAP_COL(Url, 3);
+            MAP_COL(Digest, 9);
+            MAP_COL(Size, 8);
+        default:
+            throw std::runtime_error("invalid column");
+        }
+    case ModeUpdates:
+        switch (column)
+        {
+            MAP_COL(Content, -1);
+            MAP_COL(Name, 2);
+            MAP_COL(NameOrg, -1);
+            MAP_COL(Zrif, -1);
+            MAP_COL(Url, 5);
+            MAP_COL(Digest, 9);
+            MAP_COL(Size, 8);
+        default:
+            throw std::runtime_error("invalid column");
+        }
+    case ModeDlcs:
+        switch (column)
+        {
+            MAP_COL(Content, 5);
+            MAP_COL(Name, 2);
+            MAP_COL(NameOrg, -1);
+            MAP_COL(Zrif, 4);
+            MAP_COL(Url, 3);
+            MAP_COL(Digest, 8);
+            MAP_COL(Size, 7);
+        default:
+            throw std::runtime_error("invalid column");
+        }
+    case ModePsxGames:
+        switch (column)
+        {
+            MAP_COL(Content, 4);
+            MAP_COL(Name, 2);
+            MAP_COL(NameOrg, 6);
+            MAP_COL(Zrif, -1);
+            MAP_COL(Url, 3);
+            MAP_COL(Digest, 8);
+            MAP_COL(Size, 7);
+        default:
+            throw std::runtime_error("invalid column");
+        }
+    case ModePspGames:
+        switch (column)
+        {
+            MAP_COL(Content, 5);
+            MAP_COL(Name, 3);
+            MAP_COL(NameOrg, -1);
+            MAP_COL(Zrif, -1);
+            MAP_COL(Url, 4);
+            MAP_COL(Digest, 10);
+            MAP_COL(Size, 9);
+        default:
+            throw std::runtime_error("invalid column");
+        }
+    default:
+        throw std::runtime_error("invalid mode");
+    }
+#undef MAP_COL
+}
+
+const char* get_or_empty(
+        Mode mode, std::vector<const char*> const& v, Column column)
+{
+    const auto pos = pkgi_get_column_number(mode, column);
+    if (pos < 0)
+        return "";
+    return v.at(pos);
+}
+}
+
 void TitleDatabase::parse_tsv_file(std::string& db_data)
 {
     SQLITE_EXEC(_sqliteDb, "BEGIN", "can't begin transaction");
@@ -131,92 +262,23 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
     char* end = db_data.data() + db_data.size();
 
     // skip header
-    while (ptr < end && *ptr != '\r')
+    while (ptr < end && *ptr != '\n')
         ptr++;
-    ptr++; // \r
+    if (ptr == end)
+        return;
     ptr++; // \n
 
     while (ptr < end && *ptr)
     {
-#define NEXT_FIELD()                      \
-    do                                    \
-    {                                     \
-        while (ptr < end && *ptr != '\t') \
-            ptr++;                        \
-        if (ptr == end)                   \
-            break;                        \
-        *ptr++ = 0;                       \
-    } while (0)
+        const auto fields = pkgi_split_row(&ptr, end);
 
-        const char* zrif = "";
-        const char* content = "";
-        const char* name_org = "";
-
-        NEXT_FIELD(); // Title ID
-        NEXT_FIELD(); // Region
-
-        if (mode == ModePspGames)
-        {
-            NEXT_FIELD(); // Type
-        }
-
-        const char* name = ptr;
-        NEXT_FIELD();
-
-        if (mode == ModeUpdates)
-        {
-            NEXT_FIELD(); // Update Version
-            NEXT_FIELD(); // FW VERSION
-        }
-
-        const char* url = ptr;
-        NEXT_FIELD();
-
-        if (mode == ModeUpdates)
-        {
-            NEXT_FIELD(); // NoNPDRM mirror
-        }
-
-        if (mode == ModeGames || mode == ModeDlcs)
-        {
-            zrif = ptr;
-            NEXT_FIELD();
-
-            content = ptr;
-            NEXT_FIELD();
-        }
-        else if (mode == ModePsxGames || mode == ModePspGames)
-        {
-            content = ptr;
-            NEXT_FIELD();
-        }
-
-        NEXT_FIELD(); // Last Modification Date
-
-        if (mode == ModeGames || mode == ModePsxGames)
-        {
-            name_org = ptr;
-            NEXT_FIELD();
-        }
-        else if (mode == ModePspGames)
-        {
-            NEXT_FIELD(); // RAP
-            NEXT_FIELD(); // Download RAP
-        }
-
-        const char* size = ptr;
-        NEXT_FIELD();
-
-        const char* digest = ptr;
-        while (ptr < end && *ptr != '\n' && *ptr != '\r')
-            ptr++;
-        if (ptr != end)
-        {
-            *ptr++ = 0;
-
-            if (*ptr == '\n')
-                ptr++;
-        }
+        auto content = get_or_empty(mode, fields, Column::Content);
+        const auto name = get_or_empty(mode, fields, Column::Name);
+        const auto name_org = get_or_empty(mode, fields, Column::NameOrg);
+        const auto url = get_or_empty(mode, fields, Column::Url);
+        const auto zrif = get_or_empty(mode, fields, Column::Zrif);
+        const auto digest = get_or_empty(mode, fields, Column::Digest);
+        const auto size = get_or_empty(mode, fields, Column::Size);
 
         if (*url == '\0' || std::string(url) == "MISSING" ||
             std::string(url) == "CART ONLY" || std::string(zrif) == "MISSING")
