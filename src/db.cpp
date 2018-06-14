@@ -87,7 +87,8 @@ TitleDatabase::TitleDatabase(Mode mode, std::string const& dbPath) : mode(mode)
             zrif TEXT,
             url TEXT NOT NULL,
             digest BLOB,
-            size INT
+            size INT,
+            fw_version TEXT
         ))", "can't create table");
 }
 
@@ -131,6 +132,7 @@ enum class Column
     Url,
     Digest,
     Size,
+    FwVersion,
 };
 
 int pkgi_get_column_number(Mode mode, Column column)
@@ -151,6 +153,7 @@ int pkgi_get_column_number(Mode mode, Column column)
             MAP_COL(Url, 3);
             MAP_COL(Digest, 9);
             MAP_COL(Size, 8);
+            MAP_COL(FwVersion, 10);
         default:
             throw std::runtime_error("invalid column");
         }
@@ -164,6 +167,7 @@ int pkgi_get_column_number(Mode mode, Column column)
             MAP_COL(Url, 5);
             MAP_COL(Digest, 9);
             MAP_COL(Size, 8);
+            MAP_COL(FwVersion, -1);
         default:
             throw std::runtime_error("invalid column");
         }
@@ -177,6 +181,7 @@ int pkgi_get_column_number(Mode mode, Column column)
             MAP_COL(Url, 3);
             MAP_COL(Digest, 8);
             MAP_COL(Size, 7);
+            MAP_COL(FwVersion, -1);
         default:
             throw std::runtime_error("invalid column");
         }
@@ -190,6 +195,7 @@ int pkgi_get_column_number(Mode mode, Column column)
             MAP_COL(Url, 3);
             MAP_COL(Digest, 8);
             MAP_COL(Size, 7);
+            MAP_COL(FwVersion, -1);
         default:
             throw std::runtime_error("invalid column");
         }
@@ -203,6 +209,7 @@ int pkgi_get_column_number(Mode mode, Column column)
             MAP_COL(Url, 4);
             MAP_COL(Digest, 10);
             MAP_COL(Size, 9);
+            MAP_COL(FwVersion, -1);
         default:
             throw std::runtime_error("invalid column");
         }
@@ -247,8 +254,8 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
             sqlite3_prepare_v2(
                     _sqliteDb.get(),
                     R"(INSERT INTO titles
-                    (content, name, name_org, zrif, url, digest, size)
-                    VALUES (?, ?, ?, ?, ?, ?, ?))",
+                    (content, name, name_org, zrif, url, digest, size, fw_version)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?))",
                     -1,
                     &stmt,
                     nullptr),
@@ -279,6 +286,7 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
         const auto zrif = get_or_empty(mode, fields, Column::Zrif);
         const auto digest = get_or_empty(mode, fields, Column::Digest);
         const auto size = get_or_empty(mode, fields, Column::Size);
+        const auto fw_version = get_or_empty(mode, fields, Column::FwVersion);
 
         if (*url == '\0' || std::string(url) == "MISSING" ||
             std::string(url) == "CART ONLY" || std::string(zrif) == "MISSING")
@@ -311,6 +319,7 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
         else
             sqlite3_bind_null(stmt, 6);
         sqlite3_bind_text(stmt, 7, size, strlen(size), nullptr);
+        sqlite3_bind_text(stmt, 8, fw_version, strlen(fw_version), nullptr);
 
         auto err = sqlite3_step(stmt);
         if (err != SQLITE_DONE)
