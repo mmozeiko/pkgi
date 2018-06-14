@@ -88,7 +88,8 @@ TitleDatabase::TitleDatabase(Mode mode, std::string const& dbPath) : mode(mode)
             url TEXT NOT NULL,
             digest BLOB,
             size INT,
-            fw_version TEXT
+            fw_version TEXT,
+            last_modification DATETIME
         ))", "can't create table");
 }
 
@@ -133,6 +134,7 @@ enum class Column
     Digest,
     Size,
     FwVersion,
+    LastModification,
 };
 
 int pkgi_get_column_number(Mode mode, Column column)
@@ -146,13 +148,14 @@ int pkgi_get_column_number(Mode mode, Column column)
     case ModeGames:
         switch (column)
         {
-            MAP_COL(Content, 5);
             MAP_COL(Name, 2);
-            MAP_COL(NameOrg, 7);
-            MAP_COL(Zrif, 4);
             MAP_COL(Url, 3);
-            MAP_COL(Digest, 9);
+            MAP_COL(Zrif, 4);
+            MAP_COL(Content, 5);
+            MAP_COL(LastModification, 6);
+            MAP_COL(NameOrg, 7);
             MAP_COL(Size, 8);
+            MAP_COL(Digest, 9);
             MAP_COL(FwVersion, 10);
         default:
             throw std::runtime_error("invalid column");
@@ -160,13 +163,14 @@ int pkgi_get_column_number(Mode mode, Column column)
     case ModeUpdates:
         switch (column)
         {
-            MAP_COL(Content, -1);
             MAP_COL(Name, 2);
+            MAP_COL(Url, 5);
+            MAP_COL(LastModification, 7);
+            MAP_COL(Size, 8);
+            MAP_COL(Digest, 9);
+            MAP_COL(Content, -1);
             MAP_COL(NameOrg, -1);
             MAP_COL(Zrif, -1);
-            MAP_COL(Url, 5);
-            MAP_COL(Digest, 9);
-            MAP_COL(Size, 8);
             MAP_COL(FwVersion, -1);
         default:
             throw std::runtime_error("invalid column");
@@ -174,13 +178,14 @@ int pkgi_get_column_number(Mode mode, Column column)
     case ModeDlcs:
         switch (column)
         {
-            MAP_COL(Content, 5);
             MAP_COL(Name, 2);
-            MAP_COL(NameOrg, -1);
-            MAP_COL(Zrif, 4);
             MAP_COL(Url, 3);
-            MAP_COL(Digest, 8);
+            MAP_COL(Zrif, 4);
+            MAP_COL(Content, 5);
+            MAP_COL(LastModification, 6);
             MAP_COL(Size, 7);
+            MAP_COL(Digest, 8);
+            MAP_COL(NameOrg, -1);
             MAP_COL(FwVersion, -1);
         default:
             throw std::runtime_error("invalid column");
@@ -188,13 +193,14 @@ int pkgi_get_column_number(Mode mode, Column column)
     case ModePsxGames:
         switch (column)
         {
-            MAP_COL(Content, 4);
             MAP_COL(Name, 2);
-            MAP_COL(NameOrg, 6);
-            MAP_COL(Zrif, -1);
             MAP_COL(Url, 3);
-            MAP_COL(Digest, 8);
+            MAP_COL(Content, 4);
+            MAP_COL(LastModification, 5);
+            MAP_COL(NameOrg, 6);
             MAP_COL(Size, 7);
+            MAP_COL(Digest, 8);
+            MAP_COL(Zrif, -1);
             MAP_COL(FwVersion, -1);
         default:
             throw std::runtime_error("invalid column");
@@ -202,14 +208,15 @@ int pkgi_get_column_number(Mode mode, Column column)
     case ModePspGames:
         switch (column)
         {
-            MAP_COL(Content, 5);
             MAP_COL(Name, 3);
+            MAP_COL(Url, 4);
+            MAP_COL(Content, 5);
+            MAP_COL(LastModification, 6);
+            MAP_COL(Size, 9);
+            MAP_COL(Digest, 10);
+            MAP_COL(FwVersion, -1);
             MAP_COL(NameOrg, -1);
             MAP_COL(Zrif, -1);
-            MAP_COL(Url, 4);
-            MAP_COL(Digest, 10);
-            MAP_COL(Size, 9);
-            MAP_COL(FwVersion, -1);
         default:
             throw std::runtime_error("invalid column");
         }
@@ -254,8 +261,8 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
             sqlite3_prepare_v2(
                     _sqliteDb.get(),
                     R"(INSERT INTO titles
-                    (content, name, name_org, zrif, url, digest, size, fw_version)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?))",
+                    (content, name, name_org, zrif, url, digest, size, fw_version, last_modification)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?))",
                     -1,
                     &stmt,
                     nullptr),
@@ -287,6 +294,8 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
         const auto digest = get_or_empty(mode, fields, Column::Digest);
         const auto size = get_or_empty(mode, fields, Column::Size);
         const auto fw_version = get_or_empty(mode, fields, Column::FwVersion);
+        const auto last_modification =
+                get_or_empty(mode, fields, Column::LastModification);
 
         if (*url == '\0' || std::string(url) == "MISSING" ||
             std::string(url) == "CART ONLY" || std::string(zrif) == "MISSING")
@@ -320,6 +329,8 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
             sqlite3_bind_null(stmt, 6);
         sqlite3_bind_text(stmt, 7, size, strlen(size), nullptr);
         sqlite3_bind_text(stmt, 8, fw_version, strlen(fw_version), nullptr);
+        sqlite3_bind_text(
+                stmt, 9, last_modification, strlen(last_modification), nullptr);
 
         auto err = sqlite3_step(stmt);
         if (err != SQLITE_DONE)
