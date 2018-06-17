@@ -391,9 +391,8 @@ void TitleDatabase::update(Http* http, const char* update_url)
 
     db_data.resize(db_size);
     parse_tsv_file(db_data);
-    reload();
 
-    LOG("finished parsing, %u total items", db.size());
+    LOG("finished parsing");
 }
 
 void TitleDatabase::reload()
