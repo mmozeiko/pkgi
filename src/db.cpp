@@ -421,16 +421,68 @@ void TitleDatabase::update(Http* http, const char* update_url)
     LOG("finished parsing");
 }
 
-void TitleDatabase::reload()
+namespace
 {
+const char* region_to_quoted_string(GameRegion region)
+{
+    switch (region)
+    {
+    case RegionASA:
+        return "'ASIA'";
+    case RegionEUR:
+        return "'EU'";
+    case RegionJPN:
+        return "'JP'";
+    case RegionUSA:
+        return "'US'";
+    default:
+        throw std::runtime_error(fmt::format("unknown region {}", (int)region));
+    }
+}
+
+std::vector<std::string> filter_to_vector(uint32_t filter)
+{
+    std::vector<std::string> ret;
+#define HANDLE_REGION(reg)            \
+    if (filter & DbFilterRegion##reg) \
+    ret.push_back(region_to_quoted_string(Region##reg))
+    HANDLE_REGION(ASA);
+    HANDLE_REGION(EUR);
+    HANDLE_REGION(JPN);
+    HANDLE_REGION(USA);
+#undef HANDLE_REGION
+    return ret;
+}
+
+std::string join(const std::vector<std::string>& vec, const std::string sep)
+{
+    if (vec.empty())
+        return "";
+
+    std::string out = vec[0];
+    for (auto s = ++vec.begin(); s != vec.end(); ++s)
+    {
+        out += sep;
+        out += *s;
+    }
+    return out;
+}
+}
+
+void TitleDatabase::reload(uint32_t region_filter)
+{
+    std::string query = "SELECT * FROM titles WHERE 1 ";
+
+    if ((region_filter & DbFilterAllRegions) != DbFilterAllRegions)
+    {
+        query += " AND region IN (" +
+                 join(filter_to_vector(region_filter), ", ") + ")";
+    }
+
     sqlite3_stmt* stmt;
     SQLITE_CHECK(
             sqlite3_prepare_v2(
-                    _sqliteDb.get(),
-                    R"(SELECT * FROM titles)",
-                    -1,
-                    &stmt,
-                    nullptr),
+                    _sqliteDb.get(), query.c_str(), -1, &stmt, nullptr),
             "can't prepare SQL statement");
     BOOST_SCOPE_EXIT_ALL(&)
     {
@@ -583,6 +635,8 @@ void TitleDatabase::heapify(
 
 void TitleDatabase::configure(const char* search, const Config* config)
 {
+    reload(config->filter);
+
     uint32_t search_count;
     if (!search)
     {
@@ -622,35 +676,7 @@ void TitleDatabase::configure(const char* search, const Config* config)
         heapify(i, 0, config->sort, config->order, config->filter);
     }
 
-    if (config->filter == DbFilterAll)
-    {
-        db_item_count = search_count;
-    }
-    else
-    {
-        uint32_t low = 0;
-        uint32_t high = search_count - 1;
-        while (low <= high)
-        {
-            // this never overflows because of MAX_DB_ITEMS
-            uint32_t middle = (low + high) / 2;
-
-            GameRegion region = pkgi_get_region(db[db_item[middle]].titleid);
-            if (matches(region, config->filter))
-            {
-                low = middle + 1;
-            }
-            else
-            {
-                if (middle == 0)
-                {
-                    break;
-                }
-                high = middle - 1;
-            }
-        }
-        db_item_count = low;
-    }
+    db_item_count = search_count;
 }
 
 void TitleDatabase::get_update_status(uint32_t* updated, uint32_t* total)

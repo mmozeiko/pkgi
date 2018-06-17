@@ -93,7 +93,7 @@ class TitleDatabase
 public:
     TitleDatabase(Mode mode, std::string const& dbPath);
 
-    void reload();
+    void reload(uint32_t region_filter);
 
     void update(Http* http, const char* update_url);
     void get_update_status(uint32_t* updated, uint32_t* total);

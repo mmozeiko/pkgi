@@ -830,7 +830,6 @@ static void pkgi_reload()
 {
     try
     {
-        db->reload();
         db->configure(NULL, &config);
     }
     catch (const std::exception& e)
