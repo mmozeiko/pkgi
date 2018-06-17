@@ -28,7 +28,7 @@ add_executable(pkgj
   src/aes128.c
   src/config.cpp
   src/db.cpp
-  src/dialog.c
+  src/dialog.cpp
   src/download.cpp
   src/downloader.cpp
   src/vitahttp.cpp

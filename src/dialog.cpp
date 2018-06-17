@@ -1,7 +1,10 @@
+extern "C" {
 #include "dialog.h"
+
 #include "pkgi.h"
 #include "style.h"
 #include "utils.h"
+}
 
 typedef enum {
     DialogNone,
