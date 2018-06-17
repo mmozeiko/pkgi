@@ -1,5 +1,6 @@
+#include "pkgi.hpp"
+
 extern "C" {
-#include "pkgi.h"
 #include "dialog.h"
 #include "style.h"
 #include "utils.h"

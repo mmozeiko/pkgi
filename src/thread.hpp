@@ -1,15 +1,13 @@
 #pragma once
 
+#include "pkgi.hpp"
+
+#include <psp2/kernel/threadmgr.h>
+
 #include <functional>
 #include <memory>
 #include <stdexcept>
 #include <string>
-
-#include <psp2/kernel/threadmgr.h>
-
-extern "C" {
-#include "pkgi.h"
-}
 
 class ScopeProcessLock
 {

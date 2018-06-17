@@ -1,11 +1,11 @@
 #include "db.hpp"
 
 extern "C" {
-#include "pkgi.h"
 #include "sha256.h"
 #include "utils.h"
 }
 #include "config.hpp"
+#include "pkgi.hpp"
 
 #include <fmt/format.h>
 

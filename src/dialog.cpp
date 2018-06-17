@@ -1,10 +1,10 @@
 extern "C" {
 #include "dialog.h"
 
-#include "pkgi.h"
 #include "style.h"
 #include "utils.h"
 }
+#include "pkgi.hpp"
 
 typedef enum {
     DialogNone,

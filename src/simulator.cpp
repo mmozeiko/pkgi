@@ -1,5 +1,5 @@
+#include "pkgi.hpp"
 extern "C" {
-#include "pkgi.h"
 #include "style.h"
 }
 

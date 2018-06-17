@@ -1,8 +1,9 @@
+#include "download.hpp"
+
 extern "C" {
-#include "pkgi.h"
 #include "utils.h"
 }
-#include "download.hpp"
+#include "pkgi.hpp"
 
 #include <fmt/format.h>
 

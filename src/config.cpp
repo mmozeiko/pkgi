@@ -1,7 +1,6 @@
-extern "C" {
-#include "pkgi.h"
-}
 #include "config.hpp"
+
+#include "pkgi.hpp"
 
 static char* skipnonws(char* text, char* end)
 {

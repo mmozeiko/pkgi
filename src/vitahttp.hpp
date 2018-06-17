@@ -1,10 +1,7 @@
 #pragma once
 
 #include "http.hpp"
-
-extern "C" {
-#include "pkgi.h"
-}
+#include "pkgi.hpp"
 
 struct pkgi_http;
 
