@@ -89,7 +89,8 @@ TitleDatabase::TitleDatabase(Mode mode, std::string const& dbPath) : mode(mode)
             digest BLOB,
             size INT,
             fw_version TEXT,
-            last_modification DATETIME
+            last_modification DATETIME,
+            region TEXT NOT NULL
         ))", "can't create table");
 }
 
@@ -126,6 +127,7 @@ std::vector<const char*> pkgi_split_row(char** pptr, const char* end)
 
 enum class Column
 {
+    Region,
     Content,
     Name,
     NameOrg,
@@ -148,6 +150,7 @@ int pkgi_get_column_number(Mode mode, Column column)
     case ModeGames:
         switch (column)
         {
+            MAP_COL(Region, 1);
             MAP_COL(Name, 2);
             MAP_COL(Url, 3);
             MAP_COL(Zrif, 4);
@@ -163,6 +166,7 @@ int pkgi_get_column_number(Mode mode, Column column)
     case ModeUpdates:
         switch (column)
         {
+            MAP_COL(Region, 1);
             MAP_COL(Name, 2);
             MAP_COL(Url, 5);
             MAP_COL(LastModification, 7);
@@ -178,6 +182,7 @@ int pkgi_get_column_number(Mode mode, Column column)
     case ModeDlcs:
         switch (column)
         {
+            MAP_COL(Region, 1);
             MAP_COL(Name, 2);
             MAP_COL(Url, 3);
             MAP_COL(Zrif, 4);
@@ -193,6 +198,7 @@ int pkgi_get_column_number(Mode mode, Column column)
     case ModePsxGames:
         switch (column)
         {
+            MAP_COL(Region, 1);
             MAP_COL(Name, 2);
             MAP_COL(Url, 3);
             MAP_COL(Content, 4);
@@ -208,6 +214,7 @@ int pkgi_get_column_number(Mode mode, Column column)
     case ModePspGames:
         switch (column)
         {
+            MAP_COL(Region, 1);
             MAP_COL(Name, 3);
             MAP_COL(Url, 4);
             MAP_COL(Content, 5);
@@ -261,8 +268,8 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
             sqlite3_prepare_v2(
                     _sqliteDb.get(),
                     R"(INSERT INTO titles
-                    (content, name, name_org, zrif, url, digest, size, fw_version, last_modification)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?))",
+                    (content, name, name_org, zrif, url, digest, size, fw_version, last_modification, region)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?))",
                     -1,
                     &stmt,
                     nullptr),
@@ -287,6 +294,7 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
         const auto fields = pkgi_split_row(&ptr, end);
 
         auto content = get_or_empty(mode, fields, Column::Content);
+        const auto region = get_or_empty(mode, fields, Column::Region);
         const auto name = get_or_empty(mode, fields, Column::Name);
         const auto name_org = get_or_empty(mode, fields, Column::NameOrg);
         const auto url = get_or_empty(mode, fields, Column::Url);
@@ -331,6 +339,7 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
         sqlite3_bind_text(stmt, 8, fw_version, strlen(fw_version), nullptr);
         sqlite3_bind_text(
                 stmt, 9, last_modification, strlen(last_modification), nullptr);
+        sqlite3_bind_text(stmt, 10, region, strlen(region), nullptr);
 
         auto err = sqlite3_step(stmt);
         if (err != SQLITE_DONE)
