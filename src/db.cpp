@@ -78,6 +78,32 @@ TitleDatabase::TitleDatabase(Mode mode, std::string const& dbPath) : mode(mode)
     SQLITE_CHECK(sqlite3_open(dbPath.c_str(), &db), "can't open database");
     _sqliteDb.reset(db);
 
+    try
+    {
+        sqlite3_stmt* stmt;
+        SQLITE_CHECK(
+                sqlite3_prepare_v2(
+                        _sqliteDb.get(),
+                        R"(
+                        SELECT id, content, name, name_org, zrif, url,
+                            digest, size, fw_version, last_modification, region
+                        FROM titles
+                        WHERE 0)",
+                        -1,
+                        &stmt,
+                        nullptr),
+                "sanity select failed");
+        sqlite3_finalize(stmt);
+    }
+    catch (const std::exception& e)
+    {
+        LOG("%s. Trying migration.", e.what());
+        SQLITE_EXEC(
+                _sqliteDb,
+                R"(DROP TABLE IF EXISTS titles)",
+                "drop table failed");
+    }
+
     SQLITE_EXEC(_sqliteDb, R"(
         CREATE TABLE IF NOT EXISTS titles (
             id INT PRIMARY KEY,
