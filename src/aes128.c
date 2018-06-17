@@ -1,19 +1,16 @@
 #include "aes128.h"
 
-#include "pkgi.h"
-
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
 
-#define ASSERT_ALIGNED(o, a)                          \
-    do                                                \
-    {                                                 \
-        if (((uintptr_t)(&(o))) % a != 0)             \
-        {                                             \
-            LOG("unaligned cryptographic operation"); \
-            assert(0);                                \
-        }                                             \
+#define ASSERT_ALIGNED(o, a)                        \
+    do                                              \
+    {                                               \
+        if (((uintptr_t)(&(o))) % a != 0)           \
+        {                                           \
+            assert(0 && "unaligned aes operation"); \
+        }                                           \
     } while (0)
 
 #if __ARM_NEON__
