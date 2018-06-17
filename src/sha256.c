@@ -1,5 +1,6 @@
 #include "sha256.h"
-#include "pkgi.h" // just for memcpy
+
+#include <string.h>
 
 #if __ARM_NEON__
 
@@ -274,7 +275,7 @@ void sha256_update(sha256_ctx* ctx, const uint8_t* buffer, uint32_t size)
 
     if (left && size >= fill)
     {
-        pkgi_memcpy(ctx->buffer + left, buffer, fill);
+        memcpy(ctx->buffer + left, buffer, fill);
         sha256_process(ctx->state, ctx->buffer, 1);
         buffer += fill;
         size -= fill;
@@ -290,7 +291,7 @@ void sha256_update(sha256_ctx* ctx, const uint8_t* buffer, uint32_t size)
         size -= used;
     }
 
-    pkgi_memcpy(ctx->buffer + left, buffer, size);
+    memcpy(ctx->buffer + left, buffer, size);
 }
 
 void sha256_finish(sha256_ctx* ctx, uint8_t* digest)
