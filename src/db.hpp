@@ -91,9 +91,9 @@ struct SqliteClose
 class TitleDatabase
 {
 public:
-    TitleDatabase(Mode mode, std::string const& dbPath);
+    TitleDatabase(Mode mode, const std::string& dbPath);
 
-    void reload(uint32_t region_filter);
+    void reload(uint32_t region_filter, const std::string& search);
 
     void update(Http* http, const char* update_url);
     void get_update_status(uint32_t* updated, uint32_t* total);

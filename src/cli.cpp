@@ -56,7 +56,7 @@ int refreshlist(int argc, char* argv[])
 
     auto db = std::make_unique<TitleDatabase>(ModeGames, "db.db");
     db->update(http.get(), argv[3]);
-    db->reload(DbFilterAllRegions);
+    db->reload(DbFilterAllRegions, "the");
 
     return 0;
 }

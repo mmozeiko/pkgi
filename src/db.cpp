@@ -469,15 +469,15 @@ std::string join(const std::vector<std::string>& vec, const std::string sep)
 }
 }
 
-void TitleDatabase::reload(uint32_t region_filter)
+void TitleDatabase::reload(uint32_t region_filter, const std::string& search)
 {
     std::string query = "SELECT * FROM titles WHERE 1 ";
 
     if ((region_filter & DbFilterAllRegions) != DbFilterAllRegions)
-    {
         query += " AND region IN (" +
                  join(filter_to_vector(region_filter), ", ") + ")";
-    }
+    if (!search.empty())
+        query += " AND name LIKE ? COLLATE NOCASE";
 
     sqlite3_stmt* stmt;
     SQLITE_CHECK(
@@ -488,6 +488,12 @@ void TitleDatabase::reload(uint32_t region_filter)
     {
         sqlite3_finalize(stmt);
     };
+
+    if (!search.empty())
+    {
+        const auto like = '%' + search + '%';
+        sqlite3_bind_text(stmt, 1, like.data(), like.size(), nullptr);
+    }
 
     db_item_count = 0;
     db.clear();
@@ -635,48 +641,26 @@ void TitleDatabase::heapify(
 
 void TitleDatabase::configure(const char* search, const Config* config)
 {
-    reload(config->filter);
+    reload(config->filter, search);
 
-    uint32_t search_count;
-    if (!search)
-    {
-        search_count = db.size();
-    }
-    else
-    {
-        uint32_t write = 0;
-        for (uint32_t read = 0; read < db.size(); read++)
-        {
-            if (pkgi_stricontains(db[db_item[read]].name.c_str(), search))
-            {
-                if (write < read)
-                {
-                    swap(read, write);
-                }
-                write++;
-            }
-        }
-        search_count = write;
-    }
+    db_item_count = db.size();
 
-    if (search_count == 0)
+    if (db_item_count == 0)
     {
         db_item_count = 0;
         return;
     }
 
-    for (int i = search_count / 2 - 1; i >= 0; i--)
+    for (int i = db_item_count / 2 - 1; i >= 0; i--)
     {
-        heapify(search_count, i, config->sort, config->order, config->filter);
+        heapify(db_item_count, i, config->sort, config->order, config->filter);
     }
 
-    for (int i = search_count - 1; i >= 0; i--)
+    for (int i = db_item_count - 1; i >= 0; i--)
     {
         swap(i, 0);
         heapify(i, 0, config->sort, config->order, config->filter);
     }
-
-    db_item_count = search_count;
 }
 
 void TitleDatabase::get_update_status(uint32_t* updated, uint32_t* total)
