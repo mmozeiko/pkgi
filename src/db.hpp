@@ -121,13 +121,6 @@ private:
     std::unique_ptr<sqlite3, SqliteClose> _sqliteDb = nullptr;
 
     void parse_tsv_file(std::string& db_data);
-    void swap(uint32_t a, uint32_t b);
-    void heapify(
-            uint32_t n,
-            uint32_t index,
-            DbSort sort,
-            DbSortOrder order,
-            uint32_t filter);
 };
 
 GameRegion pkgi_get_region(const std::string& titleid);
