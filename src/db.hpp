@@ -115,9 +115,6 @@ private:
 
     std::vector<DbItem> db;
 
-    unsigned int db_item[MAX_DB_SIZE];
-    uint32_t db_item_count;
-
     std::unique_ptr<sqlite3, SqliteClose> _sqliteDb = nullptr;
 
     void parse_tsv_file(std::string& db_data);

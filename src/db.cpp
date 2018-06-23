@@ -381,7 +381,6 @@ void TitleDatabase::update(Http* http, const char* update_url)
     db_data.resize(MAX_DB_SIZE);
     db_total = 0;
     db_size = 0;
-    db_item_count = 0;
 
     if (update_url[0] == 0)
         throw std::runtime_error("no update url");
@@ -495,7 +494,6 @@ void TitleDatabase::reload(uint32_t region_filter, const std::string& search)
         sqlite3_bind_text(stmt, 1, like.data(), like.size(), nullptr);
     }
 
-    db_item_count = 0;
     db.clear();
     while (true)
     {
@@ -540,12 +538,9 @@ void TitleDatabase::reload(uint32_t region_filter, const std::string& search)
                 bdigest ? digest : std::array<uint8_t, 32>{},
                 size,
         });
-
-        db_item[db.size() - 1] = db.size() - 1;
     }
 
-    db_item_count = db.size();
-    LOG("reloaded %d items", db_item_count);
+    LOG("reloaded %d items", db.size());
 }
 
 namespace
@@ -589,8 +584,6 @@ void TitleDatabase::configure(const char* search, const Config* config)
     std::sort(db.begin(), db.end(), [&](const auto& a, const auto& b) {
         return lower(a, b, config->sort, config->order);
     });
-
-    db_item_count = db.size();
 }
 
 void TitleDatabase::get_update_status(uint32_t* updated, uint32_t* total)
@@ -601,7 +594,7 @@ void TitleDatabase::get_update_status(uint32_t* updated, uint32_t* total)
 
 uint32_t TitleDatabase::count(void)
 {
-    return db_item_count;
+    return db.size();
 }
 
 uint32_t TitleDatabase::total(void)
@@ -611,14 +604,14 @@ uint32_t TitleDatabase::total(void)
 
 DbItem* TitleDatabase::get(uint32_t index)
 {
-    return index < db_item_count ? &db[db_item[index]] : NULL;
+    return index < db.size() ? &db[index] : NULL;
 }
 
 DbItem* TitleDatabase::get_by_content(const char* content)
 {
-    for (size_t i = 0; i < db_item_count; ++i)
-        if (db[db_item[i]].content == content)
-            return &db[db_item[i]];
+    for (size_t i = 0; i < db.size(); ++i)
+        if (db[i].content == content)
+            return &db[i];
     return NULL;
 }
 
