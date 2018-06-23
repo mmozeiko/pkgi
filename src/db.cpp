@@ -57,7 +57,8 @@ static std::array<uint8_t, 32> pkgi_hexbytes(
     {                                                                  \
         auto err = call;                                               \
         if (err != SQLITE_OK)                                          \
-            throw std::runtime_error(fmt::format(errstr ": {}", err)); \
+            throw std::runtime_error(fmt::format(                      \
+                    errstr ":\n{}", sqlite3_errmsg(_sqliteDb.get()))); \
     } while (false)
 
 #define SQLITE_EXEC_RESULT(handle, statement, errstr, cb, data)              \
@@ -66,7 +67,7 @@ static std::array<uint8_t, 32> pkgi_hexbytes(
         char* errmsg;                                                        \
         auto err = sqlite3_exec(handle.get(), statement, cb, data, &errmsg); \
         if (err != SQLITE_OK)                                                \
-            throw std::runtime_error(fmt::format(errstr ": {}", errmsg));    \
+            throw std::runtime_error(fmt::format(errstr ":\n{}", errmsg));   \
     } while (false)
 
 #define SQLITE_EXEC(handle, statement, errstr) \
@@ -370,8 +371,9 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
 
         auto err = sqlite3_step(stmt);
         if (err != SQLITE_DONE)
-            throw std::runtime_error(
-                    fmt::format("can't execute SQL statement: {}", err));
+            throw std::runtime_error(fmt::format(
+                    "can't execute SQL statement:\n{}",
+                    sqlite3_errmsg(_sqliteDb.get())));
 #undef NEXT_FIELD
     }
 }
@@ -529,8 +531,9 @@ void TitleDatabase::reload(
         if (err == SQLITE_DONE)
             break;
         if (err != SQLITE_ROW)
-            throw std::runtime_error(
-                    fmt::format("can't execute SQL statement: {}", err));
+            throw std::runtime_error(fmt::format(
+                    "can't execute SQL statement:\n{}",
+                    sqlite3_errmsg(_sqliteDb.get())));
 
         std::string content =
                 reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
