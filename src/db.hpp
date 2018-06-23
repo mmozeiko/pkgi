@@ -78,8 +78,6 @@ typedef enum {
     ModePspGames,
 } Mode;
 
-typedef struct Config Config;
-
 struct SqliteClose
 {
     void operator()(sqlite3* s)
@@ -93,12 +91,14 @@ class TitleDatabase
 public:
     TitleDatabase(Mode mode, const std::string& dbPath);
 
-    void reload(uint32_t region_filter, const std::string& search);
+    void reload(
+            uint32_t region_filter,
+            DbSort sort_by,
+            DbSortOrder sort_order,
+            const std::string& search);
 
     void update(Http* http, const char* update_url);
     void get_update_status(uint32_t* updated, uint32_t* total);
-
-    void configure(const char* search, const Config* config);
 
     uint32_t count();
     uint32_t total();

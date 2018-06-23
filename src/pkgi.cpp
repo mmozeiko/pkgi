@@ -63,6 +63,12 @@ static const char* pkgi_get_cancel_str(void)
     return pkgi_cancel_button() == PKGI_BUTTON_O ? PKGI_UTF8_O : PKGI_UTF8_X;
 }
 
+static void configure_db(
+        TitleDatabase* db, const char* search, const Config* config)
+{
+    db->reload(config->filter, config->sort, config->order, search);
+}
+
 static void pkgi_refresh_thread(void)
 {
     LOG("starting update");
@@ -73,7 +79,7 @@ static void pkgi_refresh_thread(void)
         db->update(http.get(), url);
         first_item = 0;
         selected_item = 0;
-        db->configure(NULL, &config);
+        configure_db(db.get(), NULL, &config);
         state = StateMain;
     }
     catch (const std::exception& e)
@@ -831,7 +837,7 @@ static void pkgi_reload()
 {
     try
     {
-        db->configure(NULL, &config);
+        configure_db(db.get(), NULL, &config);
     }
     catch (const std::exception& e)
     {
@@ -961,7 +967,7 @@ int main()
         {
             search_active = 1;
             pkgi_dialog_input_get_text(search_text, sizeof(search_text));
-            db->configure(search_text, &config);
+            configure_db(db.get(), search_text, &config);
             reposition();
         }
 
@@ -976,8 +982,10 @@ int main()
                     config_temp.filter != new_config.filter)
                 {
                     config_temp = new_config;
-                    db->configure(
-                            search_active ? search_text : NULL, &config_temp);
+                    configure_db(
+                            db.get(),
+                            search_active ? search_text : NULL,
+                            &config_temp);
                     reposition();
                 }
             }
@@ -992,15 +1000,17 @@ int main()
                 case MenuResultSearchClear:
                     search_active = 0;
                     search_text[0] = 0;
-                    db->configure(NULL, &config);
+                    configure_db(db.get(), NULL, &config);
                     break;
                 case MenuResultCancel:
                     if (config_temp.sort != config.sort ||
                         config_temp.order != config.order ||
                         config_temp.filter != config.filter)
                     {
-                        db->configure(
-                                search_active ? search_text : NULL, &config);
+                        configure_db(
+                                db.get(),
+                                search_active ? search_text : NULL,
+                                &config);
                         reposition();
                     }
                     break;

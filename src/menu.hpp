@@ -17,6 +17,8 @@ typedef enum {
     MenuResultShowPspGames,
 } MenuResult;
 
+typedef struct Config Config;
+
 int pkgi_menu_is_open(void);
 void pkgi_menu_get(Config* config);
 MenuResult pkgi_menu_result(void);

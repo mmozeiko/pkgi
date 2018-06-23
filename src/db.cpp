@@ -4,7 +4,6 @@ extern "C" {
 #include "sha256.h"
 #include "utils.h"
 }
-#include "config.hpp"
 #include "pkgi.hpp"
 
 #include <fmt/format.h>
@@ -468,9 +467,36 @@ std::string join(const std::vector<std::string>& vec, const std::string sep)
     }
     return out;
 }
+
+bool lower(const DbItem& a, const DbItem& b, DbSort sort, DbSortOrder order)
+{
+    GameRegion reg_a = pkgi_get_region(a.titleid);
+    GameRegion reg_b = pkgi_get_region(b.titleid);
+
+    int cmp;
+    if (sort == SortByTitle)
+        cmp = a.titleid.compare(b.titleid);
+    else if (sort == SortByRegion)
+        cmp = reg_a == reg_b ? a.titleid.compare(b.titleid) : reg_a - reg_b;
+    else if (sort == SortByName)
+        cmp = pkgi_stricmp(a.name.c_str(), b.name.c_str());
+    else if (sort == SortBySize)
+        cmp = a.size - b.size;
+    else
+        throw std::runtime_error(fmt::format("unknown sort order {}", sort));
+
+    if (order == SortDescending)
+        cmp = -cmp;
+
+    return cmp < 0;
+}
 }
 
-void TitleDatabase::reload(uint32_t region_filter, const std::string& search)
+void TitleDatabase::reload(
+        uint32_t region_filter,
+        DbSort sort_by,
+        DbSortOrder sort_order,
+        const std::string& search)
 {
     std::string query = "SELECT * FROM titles WHERE 1 ";
 
@@ -542,6 +568,19 @@ void TitleDatabase::reload(uint32_t region_filter, const std::string& search)
         });
     }
 
+    // We do not sort with an ORDER BY clause because it forces sqlite to create
+    // a temporary table in a temporary file. While it is possible for the VFS
+    // to support temporary files, we do not want to store them on the file
+    // system as it is *very* slow. Options are:
+    // - compile sqlite3 with SQLITE_TEMP_STORE=3, but sqlite3 is hard to
+    //   compile because the vita lacks some APIs like mmap
+    // - store the file in memory, but I couldn't find a memfd_create-like API,
+    //   or a ramfs I could write to
+    // - do the sorting manually, that's what I am left with
+    std::sort(db.begin(), db.end(), [&](const auto& a, const auto& b) {
+        return lower(a, b, sort_by, sort_order);
+    });
+
     LOG("reloaded %d items", db.size());
 
     SQLITE_EXEC_RESULT(
@@ -554,49 +593,6 @@ void TitleDatabase::reload(uint32_t region_filter, const std::string& search)
                 return 0;
             }),
             &_title_count);
-}
-
-namespace
-{
-bool lower(const DbItem& a, const DbItem& b, DbSort sort, DbSortOrder order)
-{
-    GameRegion reg_a = pkgi_get_region(a.titleid);
-    GameRegion reg_b = pkgi_get_region(b.titleid);
-
-    int cmp;
-    if (sort == SortByTitle)
-        cmp = a.titleid.compare(b.titleid);
-    else if (sort == SortByRegion)
-        cmp = reg_a == reg_b ? a.titleid.compare(b.titleid) : reg_a - reg_b;
-    else if (sort == SortByName)
-        cmp = pkgi_stricmp(a.name.c_str(), b.name.c_str());
-    else if (sort == SortBySize)
-        cmp = a.size - b.size;
-    else
-        throw std::runtime_error(fmt::format("unknown sort order {}", sort));
-
-    if (order == SortDescending)
-        cmp = -cmp;
-
-    return cmp < 0;
-}
-}
-
-void TitleDatabase::configure(const char* search, const Config* config)
-{
-    reload(config->filter, search);
-    // We do not sort with an ORDER BY clause because it forces sqlite to create
-    // a temporary table in a temporary file. While it is possible for the VFS
-    // to support temporary files, we do not want to store them on the file
-    // system as it is *very* slow. Options are:
-    // - compile sqlite3 with SQLITE_TEMP_STORE=3, but sqlite3 is hard to
-    //   compile because the vita lacks some APIs like mmap
-    // - store the file in memory, but I couldn't find a memfd_create-like API,
-    //   or a ramfs I could write to
-    // - do the sorting manually, that's what I am left with
-    std::sort(db.begin(), db.end(), [&](const auto& a, const auto& b) {
-        return lower(a, b, config->sort, config->order);
-    });
 }
 
 void TitleDatabase::get_update_status(uint32_t* updated, uint32_t* total)
