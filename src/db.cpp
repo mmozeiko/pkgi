@@ -106,7 +106,7 @@ TitleDatabase::TitleDatabase(Mode mode, std::string const& dbPath) : mode(mode)
 
     SQLITE_EXEC(_sqliteDb, R"(
         CREATE TABLE IF NOT EXISTS titles (
-            id INT PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             content TEXT NOT NULL,
             name TEXT NOT NULL,
             name_org TEXT,
