@@ -112,6 +112,7 @@ private:
     Mode mode;
     uint32_t db_total;
     uint32_t db_size;
+    uint32_t _title_count;
 
     std::vector<DbItem> db;
 

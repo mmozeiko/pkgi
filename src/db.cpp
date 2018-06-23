@@ -61,15 +61,17 @@ static std::array<uint8_t, 32> pkgi_hexbytes(
             throw std::runtime_error(fmt::format(errstr ": {}", err)); \
     } while (false)
 
-#define SQLITE_EXEC(handle, statement, errstr)                            \
-    do                                                                    \
-    {                                                                     \
-        char* errmsg;                                                     \
-        auto err = sqlite3_exec(                                          \
-                handle.get(), statement, nullptr, nullptr, &errmsg);      \
-        if (err != SQLITE_OK)                                             \
-            throw std::runtime_error(fmt::format(errstr ": {}", errmsg)); \
+#define SQLITE_EXEC_RESULT(handle, statement, errstr, cb, data)              \
+    do                                                                       \
+    {                                                                        \
+        char* errmsg;                                                        \
+        auto err = sqlite3_exec(handle.get(), statement, cb, data, &errmsg); \
+        if (err != SQLITE_OK)                                                \
+            throw std::runtime_error(fmt::format(errstr ": {}", errmsg));    \
     } while (false)
+
+#define SQLITE_EXEC(handle, statement, errstr) \
+    SQLITE_EXEC_RESULT(handle, statement, errstr, nullptr, nullptr)
 
 TitleDatabase::TitleDatabase(Mode mode, std::string const& dbPath) : mode(mode)
 {
@@ -541,6 +543,17 @@ void TitleDatabase::reload(uint32_t region_filter, const std::string& search)
     }
 
     LOG("reloaded %d items", db.size());
+
+    SQLITE_EXEC_RESULT(
+            _sqliteDb,
+            R"(SELECT COUNT(*) FROM titles)",
+            "failed to get title count",
+            ([](void* data, int, char** row, char**) {
+                auto const title_count = static_cast<uint32_t*>(data);
+                *title_count = atoi(row[0]);
+                return 0;
+            }),
+            &_title_count);
 }
 
 namespace
@@ -592,14 +605,14 @@ void TitleDatabase::get_update_status(uint32_t* updated, uint32_t* total)
     *total = db_total;
 }
 
-uint32_t TitleDatabase::count(void)
+uint32_t TitleDatabase::count()
 {
     return db.size();
 }
 
-uint32_t TitleDatabase::total(void)
+uint32_t TitleDatabase::total()
 {
-    return db.size();
+    return _title_count;
 }
 
 DbItem* TitleDatabase::get(uint32_t index)
