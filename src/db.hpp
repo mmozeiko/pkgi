@@ -25,6 +25,7 @@ typedef enum {
     SortByRegion,
     SortByName,
     SortBySize,
+    SortByDate,
 } DbSort;
 
 typedef enum {

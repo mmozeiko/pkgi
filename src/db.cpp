@@ -484,6 +484,8 @@ bool lower(const DbItem& a, const DbItem& b, DbSort sort, DbSortOrder order)
         cmp = pkgi_stricmp(a.name.c_str(), b.name.c_str());
     else if (sort == SortBySize)
         cmp = a.size - b.size;
+    else if (sort == SortByDate)
+        cmp = a.date.compare(b.date);
     else
         throw std::runtime_error(fmt::format("unknown sort order {}", sort));
 

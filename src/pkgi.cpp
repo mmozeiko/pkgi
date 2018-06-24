@@ -66,7 +66,8 @@ static const char* pkgi_get_cancel_str(void)
 static void configure_db(
         TitleDatabase* db, const char* search, const Config* config)
 {
-    db->reload(config->filter, config->sort, config->order, search);
+    db->reload(
+            config->filter, config->sort, config->order, search ? search : "");
 }
 
 static void pkgi_refresh_thread(void)

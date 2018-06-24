@@ -43,6 +43,7 @@ static const MenuEntry menu_entries[] = {
         {MenuSort, "Region", SortByRegion},
         {MenuSort, "Name", SortByName},
         {MenuSort, "Size", SortBySize},
+        {MenuSort, "Date", SortByDate},
 
         {MenuText, "Regions:", 0},
         {MenuFilter, "Asia", DbFilterRegionASA},
