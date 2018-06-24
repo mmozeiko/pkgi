@@ -80,17 +80,17 @@ static void pkgi_refresh_thread(void)
         first_item = 0;
         selected_item = 0;
         configure_db(db.get(), NULL, &config);
-        state = StateMain;
     }
     catch (const std::exception& e)
     {
-        state = StateError;
         snprintf(
                 error_state,
                 sizeof(error_state),
                 "can't get list: %s",
                 e.what());
+        pkgi_dialog_error(error_state);
     }
+    state = StateMain;
 }
 
 static const char* pkgi_get_mode_partition()
