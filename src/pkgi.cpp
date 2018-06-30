@@ -511,6 +511,8 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
     {
         input->pressed &= ~pkgi_ok_button();
 
+        if (selected_item >= db->count())
+            return;
         DbItem* item = db->get(selected_item);
 
         if (downloader.is_in_queue(item->content))
