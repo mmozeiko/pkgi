@@ -485,7 +485,7 @@ bool lower(const DbItem& a, const DbItem& b, DbSort sort, DbSortOrder order)
     if (sort == SortByTitle)
         cmp = a.titleid.compare(b.titleid);
     else if (sort == SortByRegion)
-        cmp = reg_a == reg_b ? a.titleid.compare(b.titleid) : reg_a - reg_b;
+        cmp = reg_a - reg_b;
     else if (sort == SortByName)
         cmp = pkgi_stricmp(a.name.c_str(), b.name.c_str());
     else if (sort == SortBySize)
@@ -494,6 +494,9 @@ bool lower(const DbItem& a, const DbItem& b, DbSort sort, DbSortOrder order)
         cmp = a.date.compare(b.date);
     else
         throw std::runtime_error(fmt::format("unknown sort order {}", sort));
+
+    if (cmp == 0)
+        cmp = a.titleid.compare(b.titleid);
 
     if (order == SortDescending)
         cmp = -cmp;
