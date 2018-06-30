@@ -502,6 +502,8 @@ void TitleDatabase::reload(
         DbSortOrder sort_order,
         const std::string& search)
 {
+    LOG("reloading database");
+
     std::string query =
             "SELECT id, content, name, name_org, zrif, url, digest, size, "
             "last_modification "
@@ -528,6 +530,8 @@ void TitleDatabase::reload(
         const auto like = '%' + search + '%';
         sqlite3_bind_text(stmt, 1, like.data(), like.size(), nullptr);
     }
+
+    LOG("filling memory cache");
 
     db.clear();
     while (true)
@@ -579,6 +583,8 @@ void TitleDatabase::reload(
         });
     }
 
+    LOG("sorting results");
+
     // We do not sort with an ORDER BY clause because it forces sqlite to create
     // a temporary table in a temporary file. While it is possible for the VFS
     // to support temporary files, we do not want to store them on the file
@@ -604,6 +610,8 @@ void TitleDatabase::reload(
                 return 0;
             }),
             &_title_count);
+
+    LOG("total: %d items", _title_count);
 }
 
 void TitleDatabase::get_update_status(uint32_t* updated, uint32_t* total)
