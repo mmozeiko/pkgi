@@ -1,6 +1,18 @@
 # Changelog
 
-## 0.29
+## 0.22
+
+What's new:
+
+- Allowed sorting by last modification date
+- Games that are not supported on the current firmware are now hidden
+- When the list fails to download, there is no more need to exit pkgj
+
+Bug fixes:
+
+- Fixed crash when pressing X on an empty list
+
+## 0.21
 
 What's new:
 
