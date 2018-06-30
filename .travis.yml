@@ -30,8 +30,8 @@ deploy:
   api_key:
     secure: OjxWDlM7Z5YhbteraqHmICJBtTIpIvthTkI0JaE7B7KDc11qJu4Lj89yX2TH/QD6D/Rm60jWkusEh23Bv56mir3MAXkrkG17tz/XPx0BvuJBNkUeK4k8enVaKjEDZYL62i1AIEJAF6egmcQ6mY7Ji1KO+7rzJTA3f/4dOUHCq+PTeEwEZv8J8IM43UeQuvUt6KftvzEmMktiwVeWE58oTk6J9vtbc5yQwJKtJ+UkRDby63zqByAznSi89QbMXpy0hQ0gZH+dSp0RzoZIjL+7zhIo7wHes9Z0qOUdq5eLyrYoSuCwFEBwQwEu5BakBIAr931llG4TiXPbNiyIKgRkKAkBibNYE6/wZ1qc3MysjrldghZ06HIKr62dSmslJe49IG8j97wV98Ecd/3oaj0430UdP6UArT424WL2byhJmqQ3HMUVZKi4GqtHS7jTbx9JH7bl/d3Xhvbj5iGlNHVOs9XcJLEz8AhyOnkWFnFDKU71jx5+LzWXqABkU9C1M+0NOoHD5juutJxPVxLJhSRaLjZpdiKvEHobTv63SLiIatdCCuL5MVRzVcFstB/uJPh96XTteCUEzOVueY0ATBeaMAvdR9AgfSiEXZ6girtubR7jsVFgsMdNEvbw78Sqv+GuCnrQDAYe0DUSoKdp3C27k0Qm9TEK4CEibg4gGK6S8rk=
   file:
-    - ci/buildci/pkgj.elf
-    - ci/buildci/pkgj.vpk
+    - ci/build/pkgj.elf
+    - ci/build/pkgj.vpk
   skip_cleanup: true
   on:
     tags: true
