@@ -500,7 +500,10 @@ void TitleDatabase::reload(
         DbSortOrder sort_order,
         const std::string& search)
 {
-    std::string query = "SELECT * FROM titles WHERE 1 ";
+    std::string query =
+            "SELECT id, content, name, name_org, zrif, url, digest, size, "
+            "last_modification "
+            "FROM titles WHERE 1 ";
 
     if ((region_filter & DbFilterAllRegions) != DbFilterAllRegions)
         query += " AND region IN (" +
@@ -555,6 +558,8 @@ void TitleDatabase::reload(
                     std::min<int>(digest_size, digest.size()),
                     digest.begin());
         const auto size = sqlite3_column_int64(stmt, 7);
+        const char* date =
+                reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8));
 
         db.push_back(DbItem{
                 PresenceUnknown,
@@ -568,6 +573,7 @@ void TitleDatabase::reload(
                 static_cast<bool>(bdigest),
                 bdigest ? digest : std::array<uint8_t, 32>{},
                 size,
+                date,
         });
     }
 

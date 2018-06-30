@@ -60,6 +60,7 @@ typedef struct
     bool has_digest;
     std::array<uint8_t, 32> digest;
     int64_t size;
+    std::string date;
 } DbItem;
 
 typedef enum {
