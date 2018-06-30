@@ -112,6 +112,7 @@ private:
     static constexpr auto MAX_DB_ITEMS = 8192;
 
     Mode mode;
+    std::string _dbPath;
     uint32_t db_total;
     uint32_t db_size;
     uint32_t _title_count;
@@ -121,6 +122,8 @@ private:
     std::unique_ptr<sqlite3, SqliteClose> _sqliteDb = nullptr;
 
     void parse_tsv_file(std::string& db_data);
+
+    void reopen();
 };
 
 GameRegion pkgi_get_region(const std::string& titleid);

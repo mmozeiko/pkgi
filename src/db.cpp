@@ -73,11 +73,17 @@ static std::array<uint8_t, 32> pkgi_hexbytes(
 #define SQLITE_EXEC(handle, statement, errstr) \
     SQLITE_EXEC_RESULT(handle, statement, errstr, nullptr, nullptr)
 
-TitleDatabase::TitleDatabase(Mode mode, std::string const& dbPath) : mode(mode)
+TitleDatabase::TitleDatabase(Mode mode, std::string const& dbPath)
+    : mode(mode), _dbPath(dbPath)
 {
-    LOG("opening database %s", dbPath.c_str());
+    reopen();
+}
+
+void TitleDatabase::reopen()
+{
+    LOG("opening database %s", _dbPath.c_str());
     sqlite3* db;
-    SQLITE_CHECK(sqlite3_open(dbPath.c_str(), &db), "can't open database");
+    SQLITE_CHECK(sqlite3_open(_dbPath.c_str(), &db), "can't open database");
     _sqliteDb.reset(db);
 
     try
@@ -502,6 +508,10 @@ void TitleDatabase::reload(
         DbSortOrder sort_order,
         const std::string& search)
 {
+    // we need to reopen the db before every query because for some reason,
+    // after the app is suspended, all further query will return disk I/O error
+    reopen();
+
     LOG("reloading database");
 
     std::string query =
