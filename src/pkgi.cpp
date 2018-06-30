@@ -66,8 +66,23 @@ static const char* pkgi_get_cancel_str(void)
 static void configure_db(
         TitleDatabase* db, const char* search, const Config* config)
 {
-    db->reload(
-            config->filter, config->sort, config->order, search ? search : "");
+    try
+    {
+        db->reload(
+                config->filter,
+                config->sort,
+                config->order,
+                search ? search : "");
+    }
+    catch (const std::exception& e)
+    {
+        snprintf(
+                error_state,
+                sizeof(error_state),
+                "can't reload list: %s",
+                e.what());
+        pkgi_dialog_error(error_state);
+    }
 }
 
 static void pkgi_refresh_thread(void)
