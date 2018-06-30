@@ -548,119 +548,49 @@ void TitleDatabase::reload(uint32_t region_filter, const std::string& search)
     LOG("reloaded %d items", db_item_count);
 }
 
-void TitleDatabase::swap(uint32_t a, uint32_t b)
+namespace
 {
-    auto const temp = db_item[a];
-    db_item[a] = db_item[b];
-    db_item[b] = temp;
-}
-
-static int matches(GameRegion region, uint32_t filter)
+bool lower(const DbItem& a, const DbItem& b, DbSort sort, DbSortOrder order)
 {
-    return (region == RegionASA && (filter & DbFilterRegionASA)) ||
-           (region == RegionEUR && (filter & DbFilterRegionEUR)) ||
-           (region == RegionJPN && (filter & DbFilterRegionJPN)) ||
-           (region == RegionUSA && (filter & DbFilterRegionUSA)) ||
-           (region == RegionUnknown);
-}
+    GameRegion reg_a = pkgi_get_region(a.titleid);
+    GameRegion reg_b = pkgi_get_region(b.titleid);
 
-static int lower(
-        const DbItem* a,
-        const DbItem* b,
-        DbSort sort,
-        DbSortOrder order,
-        uint32_t filter)
-{
-    GameRegion reg_a = pkgi_get_region(a->titleid);
-    GameRegion reg_b = pkgi_get_region(b->titleid);
-
-    int cmp = 0;
+    int cmp;
     if (sort == SortByTitle)
-    {
-        cmp = a->titleid < b->titleid;
-    }
+        cmp = a.titleid.compare(b.titleid);
     else if (sort == SortByRegion)
-    {
-        cmp = reg_a == reg_b ? a->titleid < b->titleid : reg_a < reg_b;
-    }
+        cmp = reg_a == reg_b ? a.titleid.compare(b.titleid) : reg_a - reg_b;
     else if (sort == SortByName)
-    {
-        cmp = pkgi_stricmp(a->name.c_str(), b->name.c_str()) < 0;
-    }
+        cmp = pkgi_stricmp(a.name.c_str(), b.name.c_str());
     else if (sort == SortBySize)
-    {
-        cmp = a->size < b->size;
-    }
-
-    int matches_a = matches(reg_a, filter);
-    int matches_b = matches(reg_b, filter);
-
-    if (matches_a == matches_b)
-    {
-        return order == SortAscending ? cmp : !cmp;
-    }
-    else if (matches_a)
-    {
-        return 1;
-    }
+        cmp = a.size - b.size;
     else
-    {
-        return 0;
-    }
+        throw std::runtime_error(fmt::format("unknown sort order {}", sort));
+
+    if (order == SortDescending)
+        cmp = -cmp;
+
+    return cmp < 0;
 }
-
-void TitleDatabase::heapify(
-        uint32_t n,
-        uint32_t index,
-        DbSort sort,
-        DbSortOrder order,
-        uint32_t filter)
-{
-    uint32_t largest = index;
-    uint32_t left = 2 * index + 1;
-    uint32_t right = 2 * index + 2;
-
-    if (left < n &&
-        lower(&db[db_item[largest]], &db[db_item[left]], sort, order, filter))
-    {
-        largest = left;
-    }
-
-    if (right < n &&
-        lower(&db[db_item[largest]], &db[db_item[right]], sort, order, filter))
-    {
-        largest = right;
-    }
-
-    if (largest != index)
-    {
-        swap(index, largest);
-        heapify(n, largest, sort, order, filter);
-    }
 }
 
 void TitleDatabase::configure(const char* search, const Config* config)
 {
     reload(config->filter, search);
+    // We do not sort with an ORDER BY clause because it forces sqlite to create
+    // a temporary table in a temporary file. While it is possible for the VFS
+    // to support temporary files, we do not want to store them on the file
+    // system as it is *very* slow. Options are:
+    // - compile sqlite3 with SQLITE_TEMP_STORE=3, but sqlite3 is hard to
+    //   compile because the vita lacks some APIs like mmap
+    // - store the file in memory, but I couldn't find a memfd_create-like API,
+    //   or a ramfs I could write to
+    // - do the sorting manually, that's what I am left with
+    std::sort(db.begin(), db.end(), [&](const auto& a, const auto& b) {
+        return lower(a, b, config->sort, config->order);
+    });
 
     db_item_count = db.size();
-
-    if (db_item_count == 0)
-    {
-        db_item_count = 0;
-        return;
-    }
-
-    for (int i = db_item_count / 2 - 1; i >= 0; i--)
-    {
-        heapify(db_item_count, i, config->sort, config->order, config->filter);
-    }
-
-    for (int i = db_item_count - 1; i >= 0; i--)
-    {
-        swap(i, 0);
-        heapify(i, 0, config->sort, config->order, config->filter);
-    }
 }
 
 void TitleDatabase::get_update_status(uint32_t* updated, uint32_t* total)
