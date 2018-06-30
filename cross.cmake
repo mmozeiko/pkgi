@@ -62,6 +62,7 @@ target_link_libraries(pkgj
   SceShellSvc_stub
   SceSsl_stub
   SceSysmodule_stub
+  SceVshBridge_stub
 )
 
 set_target_properties(pkgj PROPERTIES

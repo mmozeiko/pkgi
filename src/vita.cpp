@@ -24,6 +24,7 @@ extern "C" {
 #include <psp2/io/fcntl.h>
 #include <psp2/io/stat.h>
 #include <psp2/kernel/clib.h>
+#include <psp2/kernel/modulemgr.h>
 #include <psp2/kernel/processmgr.h>
 #include <psp2/kernel/threadmgr.h>
 #include <psp2/libssl.h>
@@ -35,6 +36,7 @@ extern "C" {
 #include <psp2/shellutil.h>
 #include <psp2/sqlite.h>
 #include <psp2/sysmodule.h>
+#include <psp2/vshbridge.h>
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1115,4 +1117,16 @@ void pkgi_close(void* f)
     {
         LOG("close error 0x%08x", err);
     }
+}
+
+std::string pkgi_get_system_version()
+{
+    SceKernelFwInfo info{};
+    info.size = sizeof(info);
+    const auto res = _vshSblGetSystemSwVersion(&info);
+    if (res < 0)
+        throw std::runtime_error(fmt::format(
+                "sceKernelGetSystemSwVersion failed: {:#08x}",
+                static_cast<uint32_t>(res)));
+    return info.versionString;
 }

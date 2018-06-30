@@ -49,6 +49,8 @@ static int bottom_y;
 static char search_text[256];
 static char error_state[256];
 
+static std::string fw_version;
+
 static std::unique_ptr<TitleDatabase> db;
 
 static void pkgi_open_db();
@@ -69,6 +71,7 @@ static void configure_db(
     try
     {
         db->reload(
+                fw_version,
                 config->filter,
                 config->sort,
                 config->order,
@@ -909,6 +912,8 @@ static void pkgi_open_db()
 int main()
 {
     pkgi_start();
+
+    fw_version = pkgi_get_system_version();
 
     Downloader downloader;
 

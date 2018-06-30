@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include <stdarg.h>
 #include <stdint.h>
 
@@ -126,6 +128,8 @@ void pkgi_close(void* f);
 
 int pkgi_read(void* f, void* buffer, uint32_t size);
 int pkgi_write(void* f, const void* buffer, uint32_t size);
+
+std::string pkgi_get_system_version();
 
 // UI stuff
 typedef void* pkgi_texture;
