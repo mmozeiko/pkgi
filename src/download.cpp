@@ -524,8 +524,8 @@ int Download::download_head(const uint8_t* rif)
         throw DownloadError("zRIF content id doesn't match pkg");
     }
 
-    meta_offset = get32be(head + 8);
-    meta_count = get32be(head + 12);
+    const auto meta_offset = get32be(head + 8);
+    const auto meta_count = get32be(head + 12);
     index_count = get32be(head + 20);
     total_size = get64be(head + 24);
     enc_offset = get64be(head + 32);
@@ -588,7 +588,7 @@ int Download::download_head(const uint8_t* rif)
         head_size += size;
     }
 
-    index_size = 0;
+    auto index_size = 0;
 
     uint32_t offset = meta_offset;
     for (uint32_t i = 0; i < meta_count; i++)

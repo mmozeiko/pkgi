@@ -77,13 +77,10 @@ public:
     uint8_t down[64 * 1024];
 
     // pkg header
-    uint32_t meta_offset;
-    uint32_t meta_count;
     uint32_t index_count;
     uint64_t total_size;
     uint64_t enc_offset;
     uint64_t enc_size;
-    uint32_t index_size;
 
     uint32_t content_type;
 
