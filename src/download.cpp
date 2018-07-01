@@ -373,7 +373,7 @@ int Download::download_data(
         uint8_t* buffer, uint32_t size, int encrypted, int save)
 {
     if (is_canceled())
-        return 0;
+        throw std::runtime_error("download was canceled");
 
     if (size == 0)
         return 0;
@@ -401,16 +401,8 @@ int Download::download_data(
     }
 
     int read = _http->read(buffer, size);
-    if (read < 0)
-    {
-        char error[256];
-        pkgi_snprintf(error, sizeof(error), "HTTP download error 0x%08x", read);
-        throw DownloadError(error);
-    }
-    else if (read == 0)
-    {
+    if (read == 0)
         throw DownloadError("HTTP connection closed");
-    }
     download_offset += read;
 
     sha256_update(&sha, buffer, read);
@@ -504,12 +496,8 @@ int Download::download_head(const uint8_t* rif)
     uint32_t head_offset = 0;
     while (head_offset != head_size)
     {
-        int size = download_data(
+        const auto size = download_data(
                 head + head_offset, head_size - head_offset, 0, 1);
-        if (size <= 0)
-        {
-            return 0;
-        }
         head_offset += size;
     }
 
@@ -579,12 +567,8 @@ int Download::download_head(const uint8_t* rif)
     uint32_t target_size = (uint32_t)enc_offset;
     while (head_size != target_size)
     {
-        int size =
+        const auto size =
                 download_data(head + head_size, target_size - head_size, 0, 1);
-        if (size <= 0)
-        {
-            return 0;
-        }
         head_size += size;
     }
 
@@ -632,12 +616,8 @@ int Download::download_head(const uint8_t* rif)
 
     while (head_size != target_size)
     {
-        int size =
+        const auto size =
                 download_data(head + head_size, target_size - head_size, 0, 1);
-        if (size <= 0)
-        {
-            return 0;
-        }
         head_size += size;
     }
 
@@ -667,12 +647,8 @@ int Download::download_head(const uint8_t* rif)
 
     while (head_size != target_size)
     {
-        int size =
+        const auto size =
                 download_data(head + head_size, target_size - head_size, 0, 1);
-        if (size <= 0)
-        {
-            return 0;
-        }
         head_size += size;
     }
 
@@ -686,9 +662,7 @@ void Download::download_file_content(uint64_t encrypted_size)
     {
         uint32_t read = (uint32_t)min64(
                 sizeof(down), encrypted_size - encrypted_offset);
-        int size = download_data(down, read, 1, 1);
-        if (size <= 0)
-            throw DownloadError("unspecified download failure");
+        download_data(down, read, 1, 1);
     }
 }
 
@@ -926,13 +900,9 @@ int Download::download_files(void)
             {
                 while (encrypted_offset != encrypted_size)
                 {
-                    uint32_t read = (uint32_t)min64(
+                    const auto read = (uint32_t)min64(
                             sizeof(down), encrypted_size - encrypted_offset);
-                    int size = download_data(down, read, 1, 0);
-                    if (size <= 0)
-                    {
-                        return 0;
-                    }
+                    download_data(down, read, 1, 0);
                 }
                 continue;
             }
@@ -1024,25 +994,16 @@ int Download::download_tail(void)
     uint64_t tail_offset = enc_offset + enc_size;
     while (download_offset < tail_offset)
     {
-        uint32_t read =
+        const auto read =
                 (uint32_t)min64(sizeof(down), tail_offset - download_offset);
-        int size = download_data(down, read, 0, 0);
-        if (size <= 0)
-        {
-            return 0;
-        }
+        download_data(down, read, 0, 0);
     }
 
     while (download_offset != total_size)
     {
-        uint32_t read =
+        const auto read =
                 (uint32_t)min64(sizeof(down), total_size - download_offset);
-        int size = download_data(
-                down, read, 0, content_type != CONTENT_TYPE_PSX_GAME);
-        if (size <= 0)
-        {
-            return 0;
-        }
+        download_data(down, read, 0, content_type != CONTENT_TYPE_PSX_GAME);
     }
 
     LOG("tail.bin downloaded");
