@@ -1152,9 +1152,6 @@ void Download::serialize_state() const
     oarchive(item_path);
     oarchive(item_index);
 
-    oarchive(head);
-    oarchive(head_size);
-
     oarchive(index_count);
     oarchive(total_size);
     oarchive(enc_offset);
@@ -1178,6 +1175,13 @@ void Download::deserialize_state()
     {
         LOG("download resume file found");
 
+        const auto head_path = fmt::format("{}/sce_sys/package/head.bin", root);
+        const auto size = pkgi_load(head_path.c_str(), head, sizeof(head));
+        if (size < 0)
+            throw std::runtime_error(
+                    fmt::format("can't open head.bin: {:08x}", size));
+        head_size = size;
+
         std::ifstream ss(state_file);
         cereal::BinaryInputArchive iarchive(ss);
 
@@ -1196,9 +1200,6 @@ void Download::deserialize_state()
         iarchive(item_name);
         iarchive(item_path);
         iarchive(item_index);
-
-        iarchive(head);
-        iarchive(head_size);
 
         iarchive(index_count);
         iarchive(total_size);

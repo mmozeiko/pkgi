@@ -127,6 +127,35 @@ void pkgi_rm(const char* file)
     unlink(file);
 }
 
+int pkgi_load(const char* name, void* data, uint32_t max)
+{
+    int fd = open(name, O_RDONLY, 0777);
+    if (fd < 0)
+        return -1;
+
+    char* data8 = static_cast<char*>(data);
+
+    int total = 0;
+    while (max != 0)
+    {
+        int readd = read(fd, data8 + total, max);
+        if (readd < 0)
+        {
+            total = -1;
+            break;
+        }
+        else if (readd == 0)
+        {
+            break;
+        }
+        total += readd;
+        max -= readd;
+    }
+
+    close(fd);
+    return total;
+}
+
 int pkgi_save(const char* name, const void* data, uint32_t size)
 {
     int fd = open(name, O_WRONLY | O_CREAT | O_TRUNC, 0666);
