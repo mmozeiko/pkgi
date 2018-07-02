@@ -91,6 +91,12 @@ int pkgi_is_unsafe_mode(void)
     return 1;
 }
 
+int pkgi_file_exists(const char* path)
+{
+    struct stat s;
+    return stat(path, &s) == 0;
+}
+
 void pkgi_mkdirs(const char* ppath)
 {
     std::string path = ppath;

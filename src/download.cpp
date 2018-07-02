@@ -9,7 +9,11 @@ extern "C" {
 
 #include <boost/scope_exit.hpp>
 
-#include <stddef.h>
+#include <cereal/archives/binary.hpp>
+
+#include <fstream>
+
+#include <cstddef>
 
 static constexpr auto ISO_SECTOR_SIZE = 2048;
 
@@ -842,12 +846,16 @@ int Download::download_files(void)
         }
     };
 
-    for (uint32_t index = 0; index < index_count; index++)
+    for (; item_index < index_count; ++item_index)
     {
+        serialize_state();
+
         uint8_t item[32];
         pkgi_memcpy(
-                item, head + enc_offset + sizeof(item) * index, sizeof(item));
-        aes128_ctr(&aes, iv, sizeof(item) * index, item, sizeof(item));
+                item,
+                head + enc_offset + sizeof(item) * item_index,
+                sizeof(item));
+        aes128_ctr(&aes, iv, sizeof(item) * item_index, item, sizeof(item));
 
         uint32_t name_offset = get32be(item + 0);
         uint32_t name_size = get32be(item + 4);
@@ -870,7 +878,6 @@ int Download::download_files(void)
         decrypted_size = item_size;
         encrypted_base = item_offset;
         encrypted_offset = 0;
-        item_index = index;
 
         LOG("[%u/%u] %s item_offset=%llu item_size=%llu type=%u",
             item_index + 1,
@@ -1090,7 +1097,7 @@ int Download::pkgi_download(
     sha256_init(&sha);
 
     item_file = NULL;
-    item_index = -1;
+    item_index = 0;
     download_size = 0;
     download_offset = 0;
     download_content = content;
@@ -1099,8 +1106,11 @@ int Download::pkgi_download(
     info_start = pkgi_time_msec();
     info_update = info_start + 1000;
 
-    if (!download_head(rif))
-        return 0;
+    deserialize_state();
+
+    if (download_offset == 0)
+        if (!download_head(rif))
+            return 0;
     if (!download_files())
         return 0;
     if (!download_tail())
@@ -1121,4 +1131,92 @@ int Download::pkgi_download(
     }
 
     return 1;
+}
+
+void Download::serialize_state() const
+{
+    std::ofstream ss(
+            fmt::format("{}.resume", root), std::ios::out | std::ios::trunc);
+    cereal::BinaryOutputArchive oarchive(ss);
+
+    oarchive(static_cast<uint8_t>(1));
+
+    oarchive(save_as_iso);
+    oarchive(download_offset, download_size);
+
+    oarchive(iv);
+    oarchive.saveBinary(&aes, sizeof(aes));
+    oarchive.saveBinary(&sha, sizeof(sha));
+
+    oarchive(item_name);
+    oarchive(item_path);
+    oarchive(item_index);
+
+    oarchive(head);
+    oarchive(head_size);
+
+    oarchive(index_count);
+    oarchive(total_size);
+    oarchive(enc_offset);
+    oarchive(enc_size);
+
+    oarchive(content_type);
+
+    oarchive(encrypted_base);
+    oarchive(encrypted_offset);
+    oarchive(decrypted_size);
+}
+
+void Download::deserialize_state()
+{
+    const auto state_file = fmt::format("{}.resume", root);
+
+    if (!pkgi_file_exists(state_file.c_str()))
+        return;
+
+    try
+    {
+        LOG("download resume file found");
+
+        std::ifstream ss(state_file);
+        cereal::BinaryInputArchive iarchive(ss);
+
+        uint8_t version;
+        iarchive(version);
+        if (version != 1)
+            throw std::runtime_error("invalid resume data version");
+
+        iarchive(save_as_iso);
+        iarchive(download_offset, download_size);
+
+        iarchive(iv);
+        iarchive.loadBinary(&aes, sizeof(aes));
+        iarchive.loadBinary(&sha, sizeof(sha));
+
+        iarchive(item_name);
+        iarchive(item_path);
+        iarchive(item_index);
+
+        iarchive(head);
+        iarchive(head_size);
+
+        iarchive(index_count);
+        iarchive(total_size);
+        iarchive(enc_offset);
+        iarchive(enc_size);
+
+        iarchive(content_type);
+
+        iarchive(encrypted_base);
+        iarchive(encrypted_offset);
+        iarchive(decrypted_size);
+
+        LOG("resuming download from %d/%d", download_offset, download_size);
+    }
+    catch (const std::exception& e)
+    {
+        throw std::runtime_error(fmt::format(
+                "error: can't resume download:\n{}\nTry to delete resume data",
+                e.what()));
+    }
 }

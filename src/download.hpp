@@ -110,4 +110,7 @@ public:
     int create_stat();
     int check_integrity(const uint8_t* digest);
     int create_rif(const uint8_t* rif);
+
+    void serialize_state() const;
+    void deserialize_state();
 };
