@@ -14,6 +14,7 @@ class PkgjConan(ConanFile):
 
         self.requires("fmt/4.1.0@blastrock/pkgj")
         self.requires("boost_scope_exit/1.66.0@bincrafters/stable")
+        self.requires("cereal/1.2.2@conan/stable")
 
     def configure(self):
         self.options["fmt"].fPIC = False

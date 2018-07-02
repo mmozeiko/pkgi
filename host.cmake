@@ -15,4 +15,5 @@ target_link_libraries(pkgj_cli
   CONAN_PKG::boost_scope_exit
   CONAN_PKG::boost_algorithm
   CONAN_PKG::sqlite3
+  CONAN_PKG::cereal
 )

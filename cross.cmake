@@ -44,6 +44,7 @@ target_link_libraries(pkgj
   CONAN_PKG::fmt
   CONAN_PKG::boost_scope_exit
   CONAN_PKG::vitasqlite
+  CONAN_PKG::cereal
   png
   z
   m
