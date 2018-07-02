@@ -481,7 +481,7 @@ bool lower(const DbItem& a, const DbItem& b, DbSort sort, DbSortOrder order)
     GameRegion reg_a = pkgi_get_region(a.titleid);
     GameRegion reg_b = pkgi_get_region(b.titleid);
 
-    int cmp;
+    int64_t cmp;
     if (sort == SortByTitle)
         cmp = a.titleid.compare(b.titleid);
     else if (sort == SortByRegion)
