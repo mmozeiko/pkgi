@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.23
+
+Bug fixes:
+
+- Sorting by size is now fixed
+
 ## 0.22
 
 What's new:
