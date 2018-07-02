@@ -5,6 +5,8 @@
 #include "download.hpp"
 #include "vitahttp.hpp"
 
+#include <fmt/format.h>
+
 std::string type_to_string(Type type)
 {
     switch (type)
@@ -171,5 +173,6 @@ void Downloader::do_download(const DownloadItem& item)
         pkgi_install_pspgame(item.partition.c_str(), item.content.c_str());
         break;
     }
+    pkgi_rm(fmt::format("{}pkgi/{}", item.partition, item.content).c_str());
     LOG("install of %s completed!", item.name.c_str());
 }
