@@ -889,12 +889,7 @@ int Download::download_files(void)
                         item_path, sizeof(item_path), "%s/PSP-KEY.EDAT", root);
             else
             {
-                while (encrypted_offset != encrypted_size)
-                {
-                    const auto read = (uint32_t)min64(
-                            sizeof(down), encrypted_size - encrypted_offset);
-                    download_data(down, read, 1, 0);
-                }
+                skip_to_file_offset(encrypted_size);
                 continue;
             }
         }
