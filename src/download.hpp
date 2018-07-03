@@ -102,7 +102,7 @@ public:
 
     void update_progress();
     void download_start(void);
-    int download_data(uint8_t* buffer, uint32_t size, int encrypted, int save);
+    void download_data(uint8_t* buffer, uint32_t size, int encrypted, int save);
     void skip_to_file_offset(uint64_t to_offset);
     void create_file(void);
     void open_file();

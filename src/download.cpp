@@ -373,14 +373,14 @@ static void init_psp_decrypt(
     }
 }
 
-int Download::download_data(
+void Download::download_data(
         uint8_t* buffer, uint32_t size, int encrypted, int save)
 {
     if (is_canceled())
         throw std::runtime_error("download was canceled");
 
     if (size == 0)
-        return 0;
+        return;
 
     update_progress();
 
@@ -404,17 +404,25 @@ int Download::download_data(
         info_update = pkgi_time_msec() + 500;
     }
 
-    int read = _http->read(buffer, size);
-    if (read == 0)
-        throw DownloadError("HTTP connection closed");
-    download_offset += read;
+    {
+        size_t pos = 0;
+        while (pos < size)
+        {
+            const int read = _http->read(buffer + pos, size - pos);
+            if (read == 0)
+                throw DownloadError("HTTP connection closed");
+            pos += read;
+        }
+    }
 
-    sha256_update(&sha, buffer, read);
+    download_offset += size;
+
+    sha256_update(&sha, buffer, size);
 
     if (encrypted)
     {
-        aes128_ctr(&aes, iv, encrypted_base + encrypted_offset, buffer, read);
-        encrypted_offset += read;
+        aes128_ctr(&aes, iv, encrypted_base + encrypted_offset, buffer, size);
+        encrypted_offset += size;
     }
 
     if (save)
@@ -422,12 +430,12 @@ int Download::download_data(
         uint32_t write;
         if (encrypted)
         {
-            write = (uint32_t)min64(decrypted_size, read);
+            write = (uint32_t)min64(decrypted_size, size);
             decrypted_size -= write;
         }
         else
         {
-            write = read;
+            write = size;
         }
 
         if (!pkgi_write(item_file, buffer, write))
@@ -438,8 +446,6 @@ int Download::download_data(
             throw DownloadError(error);
         }
     }
-
-    return read;
 }
 
 void Download::skip_to_file_offset(uint64_t to_offset)
@@ -494,13 +500,7 @@ int Download::download_head(const uint8_t* rif)
     create_file();
 
     head_size = PKG_HEADER_SIZE + PKG_HEADER_EXT_SIZE;
-    uint32_t head_offset = 0;
-    while (head_offset != head_size)
-    {
-        const auto size = download_data(
-                head + head_offset, head_size - head_offset, 0, 1);
-        head_offset += size;
-    }
+    download_data(head, head_size, 0, 1);
 
     if (get32be(head) != 0x7f504b47 ||
         get32be(head + PKG_HEADER_SIZE) != 0x7F657874)
@@ -565,13 +565,8 @@ int Download::download_head(const uint8_t* rif)
 
     aes128_ctr_init(&aes, key);
 
-    uint32_t target_size = (uint32_t)enc_offset;
-    while (head_size != target_size)
-    {
-        const auto size =
-                download_data(head + head_size, target_size - head_size, 0, 1);
-        head_size += size;
-    }
+    download_data(head + head_size, enc_offset - head_size, 0, 1);
+    head_size = enc_offset;
 
     auto index_size = 0;
 
@@ -608,19 +603,11 @@ int Download::download_head(const uint8_t* rif)
         offset += 8 + size;
     }
 
-    target_size = (uint32_t)(enc_offset + index_count * 32);
-    if (target_size > sizeof(head))
-    {
-        LOG("pkg file head is too large");
+    if (head_size + index_count * 32 > sizeof(head))
         throw DownloadError("pkg is not supported, head.bin is too big");
-    }
 
-    while (head_size != target_size)
-    {
-        const auto size =
-                download_data(head + head_size, target_size - head_size, 0, 1);
-        head_size += size;
-    }
+    download_data(head + head_size, index_count * 32, 0, 1);
+    head_size += index_count * 32;
 
     uint64_t item_offset;
     {
@@ -639,19 +626,12 @@ int Download::download_head(const uint8_t* rif)
                 ", got: " + std::to_string(item_offset));
     }
 
-    target_size = (uint32_t)(enc_offset + item_offset);
+    const auto target_size = (uint32_t)(enc_offset + item_offset);
     if (target_size > sizeof(head))
-    {
-        LOG("pkg file head is too large");
         throw DownloadError("pkg is not supported, head.bin is too big");
-    }
 
-    while (head_size != target_size)
-    {
-        const auto size =
-                download_data(head + head_size, target_size - head_size, 0, 1);
-        head_size += size;
-    }
+    download_data(head + head_size, target_size - head_size, 0, 1);
+    head_size = target_size;
 
     LOG("head.bin downloaded");
     return 1;
