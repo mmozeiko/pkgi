@@ -466,6 +466,14 @@ void Download::create_file()
         throw formatEx<DownloadError>("cannot create file {}", item_name);
 }
 
+void Download::open_file()
+{
+    LOG("opening %s file for resume", item_name);
+    item_file = pkgi_openrw(item_path);
+    if (!item_file)
+        throw formatEx<DownloadError>("cannot create file {}", item_name);
+}
+
 int Download::download_head(const uint8_t* rif)
 {
     LOG("downloading pkg head");
@@ -651,11 +659,18 @@ int Download::download_head(const uint8_t* rif)
 
 void Download::download_file_content(uint64_t encrypted_size)
 {
+    static constexpr auto SAVE_PERIOD = 1 * 1024 * 1024;
+
     while (encrypted_offset != encrypted_size)
     {
         uint32_t read = (uint32_t)min64(
                 sizeof(down), encrypted_size - encrypted_offset);
         download_data(down, read, 1, 1);
+
+        if ((encrypted_base + encrypted_offset - last_state_save) /
+                    SAVE_PERIOD >=
+            1)
+            serialize_state();
     }
 }
 
@@ -837,8 +852,6 @@ int Download::download_files(void)
 
     for (; item_index < index_count; ++item_index)
     {
-        serialize_state();
-
         uint8_t item[32];
         pkgi_memcpy(
                 item,
@@ -862,9 +875,13 @@ int Download::download_files(void)
 
         const uint64_t encrypted_size = (item_size + AES_BLOCK_SIZE - 1) &
                                         ~((uint64_t)AES_BLOCK_SIZE - 1);
-        decrypted_size = item_size;
-        encrypted_base = item_offset;
-        encrypted_offset = 0;
+
+        if (!resuming)
+        {
+            decrypted_size = item_size;
+            encrypted_base = item_offset;
+            encrypted_offset = 0;
+        }
 
         LOG("[%u/%u] %s item_offset=%llu item_size=%llu type=%u",
             item_index + 1,
@@ -915,7 +932,14 @@ int Download::download_files(void)
             continue;
         }
 
-        create_file();
+        if (resuming)
+        {
+            open_file();
+            if (pkgi_seek(item_file, encrypted_offset) < 0)
+                throw DownloadError("failed to seek for resume");
+        }
+        else
+            create_file();
 
         if (enc_offset + item_offset + encrypted_offset != download_offset)
             throw formatEx<DownloadError>(
@@ -943,6 +967,8 @@ int Download::download_files(void)
 
         pkgi_close(item_file);
         item_file = NULL;
+
+        resuming = false;
     }
 
     item_index = -1;
@@ -1068,8 +1094,10 @@ int Download::pkgi_download(
     update_status("Downloading");
     sha256_init(&sha);
 
+    resuming = false;
     item_file = NULL;
     item_index = 0;
+    last_state_save = 0;
     download_size = 0;
     download_offset = 0;
     download_content = content;
@@ -1080,7 +1108,7 @@ int Download::pkgi_download(
 
     deserialize_state();
 
-    if (download_offset == 0)
+    if (!resuming)
         if (!download_head(rif))
             return 0;
     if (!download_files())
@@ -1179,6 +1207,8 @@ void Download::deserialize_state()
         iarchive(encrypted_base);
         iarchive(encrypted_offset);
         iarchive(decrypted_size);
+
+        resuming = true;
 
         LOG("resuming download from %d/%d", download_offset, download_size);
     }

@@ -191,6 +191,20 @@ void* pkgi_create(const char* path)
     return (void*)(intptr_t)fd;
 }
 
+void* pkgi_openrw(const char* path)
+{
+    int fd = open(path, O_RDWR, 0777);
+    if (fd < 0)
+        return NULL;
+
+    return (void*)(intptr_t)fd;
+}
+
+int pkgi_seek(void* f, uint64_t offset)
+{
+    return lseek((intptr_t)f, offset, SEEK_SET);
+}
+
 int pkgi_read(void* f, void* buffer, uint32_t size)
 {
     return read((intptr_t)f, buffer, size);

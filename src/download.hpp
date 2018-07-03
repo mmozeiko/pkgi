@@ -89,6 +89,10 @@ public:
     uint64_t encrypted_offset; // offset from beginning of file
     uint64_t decrypted_size;   // size that's left to write into decrypted file
 
+    uint64_t last_state_save;
+
+    bool resuming;
+
     // UI stuff
     uint32_t info_start;
     uint32_t info_update;
@@ -101,6 +105,7 @@ public:
     int download_data(uint8_t* buffer, uint32_t size, int encrypted, int save);
     void skip_data(uint64_t to_offset);
     void create_file(void);
+    void open_file();
     int download_head(const uint8_t* rif);
     void download_file_content(uint64_t encrypted_size);
     void download_file_content_to_iso(uint64_t item_size);

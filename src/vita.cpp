@@ -1079,6 +1079,18 @@ void* pkgi_append(const char* path)
     return (void*)(intptr_t)fd;
 }
 
+int pkgi_seek(void* f, uint64_t offset)
+{
+    LOG("seeking to %d", offset);
+    int pos = sceIoLseek((intptr_t)f, offset, SCE_SEEK_SET);
+    if (pos < 0)
+    {
+        LOG("seek error: %08x", pos);
+        return -1;
+    }
+    return pos;
+}
+
 int pkgi_read(void* f, void* buffer, uint32_t size)
 {
     LOG("asking to read %u bytes", size);
