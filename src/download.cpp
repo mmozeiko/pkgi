@@ -1127,8 +1127,6 @@ void Download::serialize_state() const
     oarchive.saveBinary(&aes, sizeof(aes));
     oarchive.saveBinary(&sha, sizeof(sha));
 
-    oarchive(item_name);
-    oarchive(item_path);
     oarchive(item_index);
 
     oarchive(index_count);
@@ -1176,8 +1174,6 @@ void Download::deserialize_state()
         iarchive.loadBinary(&aes, sizeof(aes));
         iarchive.loadBinary(&sha, sizeof(sha));
 
-        iarchive(item_name);
-        iarchive(item_path);
         iarchive(item_index);
 
         iarchive(index_count);
