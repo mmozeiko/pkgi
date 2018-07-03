@@ -103,7 +103,7 @@ public:
     void update_progress();
     void download_start(void);
     int download_data(uint8_t* buffer, uint32_t size, int encrypted, int save);
-    void skip_data(uint64_t to_offset);
+    void skip_to_file_offset(uint64_t to_offset);
     void create_file(void);
     void open_file();
     int download_head(const uint8_t* rif);

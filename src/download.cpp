@@ -442,7 +442,7 @@ int Download::download_data(
     return read;
 }
 
-void Download::skip_data(uint64_t to_offset)
+void Download::skip_to_file_offset(uint64_t to_offset)
 {
     if (to_offset < encrypted_offset)
         throw DownloadError(
@@ -691,7 +691,7 @@ void Download::download_file_content_to_iso(uint64_t item_size)
     if (psar_offset % 16 != 0)
         throw DownloadError("psar_offset is not aligned");
 
-    skip_data(psar_offset);
+    skip_to_file_offset(psar_offset);
 
     std::vector<uint8_t> psar_header(256);
     download_data(psar_header.data(), psar_header.size(), 1, 0);
@@ -725,7 +725,7 @@ void Download::download_file_content_to_iso(uint64_t item_size)
         throw DownloadError("offset table in data.psar file is too large");
 
     uint64_t const table_offset = psar_offset + iso_table;
-    skip_data(table_offset);
+    skip_to_file_offset(table_offset);
 
     std::vector<std::array<uint8_t, 32>> tables(block_count);
     for (auto& table : tables)
@@ -752,7 +752,7 @@ void Download::download_file_content_to_iso(uint64_t item_size)
         std::vector<uint8_t> data(16 * ISO_SECTOR_SIZE);
 
         uint64_t abs_offset = psar_offset + block_offset;
-        skip_data(abs_offset);
+        skip_to_file_offset(abs_offset);
         download_data(data.data(), block_size, 1, 0);
 
         if ((block_flags & 4) == 0)
@@ -791,7 +791,7 @@ void Download::download_file_content_to_iso(uint64_t item_size)
         }
     }
 
-    skip_data(item_size);
+    skip_to_file_offset(item_size);
 }
 
 void Download::download_file_content_to_pspkey(uint64_t item_size)
@@ -799,7 +799,7 @@ void Download::download_file_content_to_pspkey(uint64_t item_size)
     if (item_size < 0x90 + 0xa0)
         throw DownloadError("PSP-KEY.EDAT file is too short");
 
-    skip_data(0x90);
+    skip_to_file_offset(0x90);
 
     uint8_t key_header[0xa0];
     download_data(key_header, sizeof(key_header), 1, 0);
@@ -834,7 +834,7 @@ void Download::download_file_content_to_pspkey(uint64_t item_size)
     if (!pkgi_write(item_file, key_header + 0x90, 0x10))
         throw DownloadError(fmt::format("failed to write to %s", item_path));
 
-    skip_data(item_size);
+    skip_to_file_offset(item_size);
 }
 
 int Download::download_files(void)
