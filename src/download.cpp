@@ -854,9 +854,7 @@ int Download::download_files(void)
 
         if (name_size > sizeof(item_name) - 1 ||
             enc_offset + name_offset + name_size > total_size)
-        {
             throw DownloadError("pkg file is too small or corrupted");
-        }
 
         pkgi_memcpy(item_name, head + enc_offset + name_offset, name_size);
         aes128_ctr(&aes, iv, name_offset, (uint8_t*)item_name, name_size);
@@ -920,19 +918,14 @@ int Download::download_files(void)
         create_file();
 
         if (enc_offset + item_offset + encrypted_offset != download_offset)
-        {
-            throw DownloadError(
+            throw formatEx<DownloadError>(
                     "pkg is not supported, files are in wrong order, "
-                    "expected: " +
-                    std::to_string(
-                            enc_offset + item_offset + encrypted_offset) +
-                    ", actual: " + std::to_string(download_offset));
-        }
+                    "expected: {}, actual: {}",
+                    enc_offset + item_offset + encrypted_offset,
+                    +download_offset);
 
         if (enc_offset + item_offset + item_size > total_size)
-        {
             throw DownloadError("pkg file is too small or corrupted");
-        }
 
         if (content_type == CONTENT_TYPE_PSP_GAME ||
             content_type == CONTENT_TYPE_PSP_MINI_GAME)
