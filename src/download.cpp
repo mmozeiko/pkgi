@@ -641,11 +641,12 @@ void Download::download_file_content(uint64_t encrypted_size)
 {
     static constexpr auto SAVE_PERIOD = 1 * 1024 * 1024;
 
+    std::vector<uint8_t> down(1 * 1024 * 1024);
     while (encrypted_offset != encrypted_size)
     {
-        uint32_t read = (uint32_t)min64(
-                sizeof(down), encrypted_size - encrypted_offset);
-        download_data(down, read, 1, 1);
+        const uint32_t read =
+                (uint32_t)min64(down.size(), encrypted_size - encrypted_offset);
+        download_data(down.data(), read, 1, 1);
 
         if ((encrypted_base + encrypted_offset - last_state_save) /
                     SAVE_PERIOD >=
@@ -971,19 +972,21 @@ int Download::download_tail(void)
 
     create_file();
 
+    std::vector<uint8_t> down(1 * 1024 * 1024);
     uint64_t tail_offset = enc_offset + enc_size;
     while (download_offset < tail_offset)
     {
         const auto read =
-                (uint32_t)min64(sizeof(down), tail_offset - download_offset);
-        download_data(down, read, 0, 0);
+                (uint32_t)min64(down.size(), tail_offset - download_offset);
+        download_data(down.data(), read, 0, 0);
     }
 
     while (download_offset != total_size)
     {
         const auto read =
-                (uint32_t)min64(sizeof(down), total_size - download_offset);
-        download_data(down, read, 0, content_type != CONTENT_TYPE_PSX_GAME);
+                (uint32_t)min64(down.size(), total_size - download_offset);
+        download_data(
+                down.data(), read, 0, content_type != CONTENT_TYPE_PSX_GAME);
     }
 
     LOG("tail.bin downloaded");

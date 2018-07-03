@@ -73,9 +73,6 @@ public:
     uint8_t head[4 * 1024 * 1024];
     uint32_t head_size;
 
-    // temporary buffer for downloads
-    uint8_t down[64 * 1024];
-
     // pkg header
     uint32_t index_count;
     uint64_t total_size;
