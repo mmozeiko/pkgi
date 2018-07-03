@@ -857,11 +857,11 @@ int Download::download_files(void)
                 sizeof(item));
         aes128_ctr(&aes, iv, sizeof(item) * item_index, item, sizeof(item));
 
-        uint32_t name_offset = get32be(item + 0);
-        uint32_t name_size = get32be(item + 4);
-        uint64_t item_offset = get64be(item + 8);
-        uint64_t item_size = get64be(item + 16);
-        uint8_t type = item[27];
+        const uint32_t name_offset = get32be(item + 0);
+        const uint32_t name_size = get32be(item + 4);
+        const uint64_t item_offset = get64be(item + 8);
+        const uint64_t item_size = get64be(item + 16);
+        const uint8_t type = item[27];
 
         if (name_size > sizeof(item_name) - 1 ||
             enc_offset + name_offset + name_size > total_size)
@@ -873,8 +873,8 @@ int Download::download_files(void)
         aes128_ctr(&aes, iv, name_offset, (uint8_t*)item_name, name_size);
         item_name[name_size] = 0;
 
-        uint64_t encrypted_size = (item_size + AES_BLOCK_SIZE - 1) &
-                                  ~((uint64_t)AES_BLOCK_SIZE - 1);
+        const uint64_t encrypted_size = (item_size + AES_BLOCK_SIZE - 1) &
+                                        ~((uint64_t)AES_BLOCK_SIZE - 1);
         decrypted_size = item_size;
         encrypted_base = item_offset;
         encrypted_offset = 0;
