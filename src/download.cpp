@@ -453,7 +453,7 @@ void Download::skip_data(uint64_t to_offset)
 
 // this includes creating of all the parent folders necessary to actually
 // create file
-int Download::create_file(void)
+void Download::create_file()
 {
     std::string folder = item_path;
     folder.erase(folder.rfind('/'));
@@ -463,13 +463,7 @@ int Download::create_file(void)
     LOG("creating %s file", item_name);
     item_file = pkgi_create(item_path);
     if (!item_file)
-    {
-        char error[256];
-        pkgi_snprintf(error, sizeof(error), "cannot create file %s", item_name);
-        throw DownloadError(error);
-    }
-
-    return 1;
+        throw formatEx<DownloadError>("cannot create file {}", item_name);
 }
 
 int Download::download_head(const uint8_t* rif)
@@ -489,12 +483,7 @@ int Download::download_head(const uint8_t* rif)
         }
     };
 
-    if (!create_file())
-    {
-        char error[256];
-        pkgi_snprintf(error, sizeof(error), "cannot create %s", item_path);
-        throw DownloadError(error);
-    }
+    create_file();
 
     head_size = PKG_HEADER_SIZE + PKG_HEADER_EXT_SIZE;
     uint32_t head_offset = 0;
@@ -928,12 +917,7 @@ int Download::download_files(void)
             continue;
         }
 
-        if (!create_file())
-        {
-            char error[256];
-            pkgi_snprintf(error, sizeof(error), "cannot create %s", item_name);
-            throw DownloadError(error);
-        }
+        create_file();
 
         if (enc_offset + item_offset + encrypted_offset != download_offset)
         {
@@ -991,12 +975,7 @@ int Download::download_tail(void)
     pkgi_snprintf(
             item_path, sizeof(item_path), "%s/sce_sys/package/tail.bin", root);
 
-    if (!create_file())
-    {
-        char error[256];
-        pkgi_snprintf(error, sizeof(error), "cannot create %s", item_path);
-        throw DownloadError(error);
-    }
+    create_file();
 
     uint64_t tail_offset = enc_offset + enc_size;
     while (download_offset < tail_offset)

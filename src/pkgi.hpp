@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fmt/format.h>
+
 #include <string>
 
 #include <stdarg.h>
@@ -48,6 +50,12 @@ typedef struct pkgi_input
     {            \
     } while (0)
 #endif
+
+template <typename E, typename... Args>
+E formatEx(Args&&... args)
+{
+    return E(fmt::format(std::forward<Args>(args)...));
+}
 
 void pkgi_log(const char* msg, ...);
 
