@@ -70,8 +70,7 @@ public:
     int item_index;      // current item
 
     // head.bin contents, kept in memory while downloading
-    uint8_t head[4 * 1024 * 1024];
-    uint32_t head_size;
+    std::vector<uint8_t> head;
 
     // pkg header
     uint32_t index_count;

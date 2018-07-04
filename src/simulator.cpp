@@ -127,6 +127,34 @@ void pkgi_rm(const char* file)
     unlink(file);
 }
 
+std::vector<uint8_t> pkgi_load(const std::string& path)
+{
+    int fd = open(path.c_str(), O_RDONLY);
+    if (fd < 0)
+        throw std::runtime_error(fmt::format(
+                "open({}) failed: {:#08x}",
+                path.c_str(),
+                static_cast<uint32_t>(fd)));
+
+    const auto size = lseek(fd, 0, SEEK_END);
+    lseek(fd, 0, SEEK_SET);
+
+    std::vector<uint8_t> data(size);
+
+    const auto readsize = read(fd, data.data(), data.size());
+    if (readsize < 0)
+        throw std::runtime_error(fmt::format(
+                "sceIoRead({}) failed: {:#08x}",
+                path.c_str(),
+                static_cast<uint32_t>(readsize)));
+
+    data.resize(readsize);
+
+    close(fd);
+
+    return data;
+}
+
 int pkgi_load(const char* name, void* data, uint32_t max)
 {
     int fd = open(name, O_RDONLY, 0777);

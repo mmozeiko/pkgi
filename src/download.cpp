@@ -499,26 +499,26 @@ int Download::download_head(const uint8_t* rif)
 
     create_file();
 
-    head_size = PKG_HEADER_SIZE + PKG_HEADER_EXT_SIZE;
-    download_data(head, head_size, 0, 1);
+    head.resize(PKG_HEADER_SIZE + PKG_HEADER_EXT_SIZE);
+    download_data(head.data(), head.size(), 0, 1);
 
-    if (get32be(head) != 0x7f504b47 ||
-        get32be(head + PKG_HEADER_SIZE) != 0x7F657874)
+    if (get32be(head.data()) != 0x7f504b47 ||
+        get32be(head.data() + PKG_HEADER_SIZE) != 0x7F657874)
     {
         throw DownloadError("wrong pkg header");
     }
 
-    if (rif && !pkgi_memequ(rif + 0x10, head + 0x30, 0x30))
+    if (rif && !pkgi_memequ(rif + 0x10, head.data() + 0x30, 0x30))
     {
         throw DownloadError("zRIF content id doesn't match pkg");
     }
 
-    const auto meta_offset = get32be(head + 8);
-    const auto meta_count = get32be(head + 12);
-    index_count = get32be(head + 20);
-    total_size = get64be(head + 24);
-    enc_offset = get64be(head + 32);
-    enc_size = get64be(head + 40);
+    const auto meta_offset = get32be(head.data() + 8);
+    const auto meta_count = get32be(head.data() + 12);
+    index_count = get32be(head.data() + 20);
+    total_size = get64be(head.data() + 24);
+    enc_offset = get64be(head.data() + 32);
+    enc_size = get64be(head.data() + 40);
     LOG("meta_offset=%u meta_count=%u index_count=%u total_size=%llu "
         "enc_offset=%llu enc_size=%llu",
         meta_offset,
@@ -528,13 +528,7 @@ int Download::download_head(const uint8_t* rif)
         enc_offset,
         enc_size);
 
-    if (enc_offset > sizeof(head))
-    {
-        LOG("pkg file head is too large");
-        throw DownloadError("pkg is not supported, head.bin is too big");
-    }
-
-    pkgi_memcpy(iv, head + 0x70, sizeof(iv));
+    pkgi_memcpy(iv, head.data() + 0x70, sizeof(iv));
 
     uint8_t key[AES_BLOCK_SIZE];
     int key_type = head[0xe7] & 7;
@@ -565,8 +559,12 @@ int Download::download_head(const uint8_t* rif)
 
     aes128_ctr_init(&aes, key);
 
-    download_data(head + head_size, enc_offset - head_size, 0, 1);
-    head_size = enc_offset;
+    head.resize(enc_offset);
+    download_data(
+            head.data() + PKG_HEADER_SIZE + PKG_HEADER_EXT_SIZE,
+            enc_offset - (PKG_HEADER_SIZE + PKG_HEADER_EXT_SIZE),
+            0,
+            1);
 
     auto index_size = 0;
 
@@ -578,12 +576,12 @@ int Download::download_head(const uint8_t* rif)
             throw DownloadError("pkg file is too small or corrupted");
         }
 
-        uint32_t type = get32be(head + offset + 0);
-        uint32_t size = get32be(head + offset + 4);
+        uint32_t type = get32be(head.data() + offset + 0);
+        uint32_t size = get32be(head.data() + offset + 4);
 
         if (type == 2)
         {
-            content_type = get32be(head + offset + 8);
+            content_type = get32be(head.data() + offset + 8);
             if (content_type != CONTENT_TYPE_PSX_GAME &&
                 content_type != CONTENT_TYPE_PSP_GAME &&
                 content_type != CONTENT_TYPE_PSP_MINI_GAME &&
@@ -597,22 +595,19 @@ int Download::download_head(const uint8_t* rif)
         }
         else if (type == 13)
         {
-            // index_offset = get32be(head + offset + 8);
-            index_size = get32be(head + offset + 12);
+            // index_offset = get32be(head.data() + offset + 8);
+            index_size = get32be(head.data() + offset + 12);
         }
         offset += 8 + size;
     }
 
-    if (head_size + index_count * 32 > sizeof(head))
-        throw DownloadError("pkg is not supported, head.bin is too big");
-
-    download_data(head + head_size, index_count * 32, 0, 1);
-    head_size += index_count * 32;
+    head.resize(head.size() + index_count * 32);
+    download_data(head.data() + enc_offset, index_count * 32, 0, 1);
 
     uint64_t item_offset;
     {
         uint8_t item[32];
-        pkgi_memcpy(item, head + enc_offset, sizeof(item));
+        pkgi_memcpy(item, head.data() + enc_offset, sizeof(item));
         aes128_ctr(&aes, iv, 0, item, sizeof(item));
 
         item_offset = get64be(item + 8);
@@ -627,11 +622,12 @@ int Download::download_head(const uint8_t* rif)
     }
 
     const auto target_size = (uint32_t)(enc_offset + item_offset);
-    if (target_size > sizeof(head))
-        throw DownloadError("pkg is not supported, head.bin is too big");
-
-    download_data(head + head_size, target_size - head_size, 0, 1);
-    head_size = target_size;
+    head.resize(target_size);
+    download_data(
+            head.data() + enc_offset + index_count * 32,
+            target_size - (enc_offset + index_count * 32),
+            0,
+            1);
 
     LOG("head.bin downloaded");
     return 1;
@@ -836,7 +832,7 @@ int Download::download_files(void)
         uint8_t item[32];
         pkgi_memcpy(
                 item,
-                head + enc_offset + sizeof(item) * item_index,
+                head.data() + enc_offset + sizeof(item) * item_index,
                 sizeof(item));
         aes128_ctr(&aes, iv, sizeof(item) * item_index, item, sizeof(item));
 
@@ -850,7 +846,8 @@ int Download::download_files(void)
             enc_offset + name_offset + name_size > total_size)
             throw DownloadError("pkg file is too small or corrupted");
 
-        pkgi_memcpy(item_name, head + enc_offset + name_offset, name_size);
+        pkgi_memcpy(
+                item_name, head.data() + enc_offset + name_offset, name_size);
         aes128_ctr(&aes, iv, name_offset, (uint8_t*)item_name, name_size);
         item_name[name_size] = 0;
 
@@ -1152,11 +1149,7 @@ void Download::deserialize_state()
         LOG("download resume file found");
 
         const auto head_path = fmt::format("{}/sce_sys/package/head.bin", root);
-        const auto size = pkgi_load(head_path.c_str(), head, sizeof(head));
-        if (size < 0)
-            throw std::runtime_error(
-                    fmt::format("can't open head.bin: {:08x}", size));
-        head_size = size;
+        head = pkgi_load(head_path);
 
         std::ifstream ss(state_file);
         cereal::BinaryInputArchive iarchive(ss);

@@ -872,6 +872,34 @@ int pkgi_load(const char* name, void* data, uint32_t max)
     return total;
 }
 
+std::vector<uint8_t> pkgi_load(const std::string& path)
+{
+    SceUID fd = sceIoOpen(path.c_str(), SCE_O_RDONLY, 0777);
+    if (fd < 0)
+        throw std::runtime_error(fmt::format(
+                "sceIoOpen({}) failed: {:#08x}",
+                path.c_str(),
+                static_cast<uint32_t>(fd)));
+
+    const auto size = sceIoLseek(fd, 0, SCE_SEEK_END);
+    sceIoLseek(fd, 0, SCE_SEEK_SET);
+
+    std::vector<uint8_t> data(size);
+
+    const auto read = sceIoRead(fd, data.data(), data.size());
+    if (read < 0)
+        throw std::runtime_error(fmt::format(
+                "sceIoRead({}) failed: {:#08x}",
+                path.c_str(),
+                static_cast<uint32_t>(read)));
+
+    data.resize(read);
+
+    sceIoClose(fd);
+
+    return data;
+}
+
 int pkgi_save(const char* name, const void* data, uint32_t size)
 {
     SceUID fd = sceIoOpen(name, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
