@@ -680,11 +680,14 @@ void pkgi_install(const char* contentid)
     snprintf(path, sizeof(path), "ux0:pkgi/%s", contentid);
 
     LOG("calling scePromoterUtilityPromotePkgWithRif on %s", path);
-    int res = scePromoterUtilityPromotePkgWithRif(path, 1);
+    const auto res = scePromoterUtilityPromotePkgWithRif(path, 1);
     if (res < 0)
-        throw std::runtime_error(fmt::format(
-                "scePromoterUtilityPromotePkgWithRif failed: {:#08x}",
-                static_cast<uint32_t>(res)));
+        throw formatEx<std::runtime_error>(
+                "scePromoterUtilityPromotePkgWithRif failed: {:#08x}\n",
+                static_cast<uint32_t>(res),
+                static_cast<uint32_t>(res) == 0x80870004
+                        ? "Please check your NoNpDrm installation"
+                        : "");
 }
 
 static int pkgi_delete_dir(const std::string& path)
