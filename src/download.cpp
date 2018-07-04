@@ -1002,9 +1002,7 @@ int Download::check_integrity(const uint8_t* digest)
     {
         LOG("pkg integrity is wrong, removing head.bin & resume data");
 
-        char path[256];
-        pkgi_snprintf(path, sizeof(path), "%s/sce_sys/package/head.bin", root);
-        pkgi_rm(path);
+        pkgi_rm(fmt::format("{}/sce_sys/package/head.bin", root).c_str());
 
         throw DownloadError("pkg integrity failed, try downloading again");
     }
@@ -1018,16 +1016,11 @@ int Download::create_stat()
     LOG("creating stat.bin");
     update_status("Creating stat.bin");
 
-    char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/sce_sys/package/stat.bin", root);
+    const auto path = fmt::format("{}/sce_sys/package/stat.bin", root);
 
     uint8_t stat[768] = {0};
-    if (!pkgi_save(path, stat, sizeof(stat)))
-    {
-        char error[256];
-        pkgi_snprintf(error, sizeof(error), "cannot save rif to %s", path);
-        throw DownloadError(error);
-    }
+    if (!pkgi_save(path.c_str(), stat, sizeof(stat)))
+        throw formatEx<DownloadError>("cannot save zeros to {}", path);
 
     LOG("stat.bin created");
     return 1;
@@ -1038,15 +1031,10 @@ int Download::create_rif(const uint8_t* rif)
     LOG("creating work.bin");
     update_status("Creating work.bin");
 
-    char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/sce_sys/package/work.bin", root);
+    const auto path = fmt::format("{}/sce_sys/package/work.bin", root);
 
-    if (!pkgi_save(path, rif, PKGI_RIF_SIZE))
-    {
-        char error[256];
-        pkgi_snprintf(error, sizeof(error), "cannot save rif to %s", path);
-        throw DownloadError(error);
-    }
+    if (!pkgi_save(path.c_str(), rif, PKGI_RIF_SIZE))
+        throw formatEx<DownloadError>("cannot save rif to {}", path);
 
     LOG("work.bin created");
     return 1;
@@ -1059,7 +1047,7 @@ int Download::pkgi_download(
         const uint8_t* rif,
         const uint8_t* digest)
 {
-    pkgi_snprintf(root, sizeof(root), "%spkgi/%s", partition, content);
+    root = fmt::format("{}pkgi/{}", partition, content);
     LOGF("temp installation folder: {}", root);
 
     update_status("Downloading");

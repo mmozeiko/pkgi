@@ -51,7 +51,7 @@ public:
     // temporary unpack folder ux0:pkgi/TITLE
     bool save_as_iso{false};
 
-    char root[256];
+    std::string root;
 
     std::unique_ptr<Http> _http;
     const char* download_content;
