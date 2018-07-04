@@ -67,7 +67,7 @@ public:
     void* item_file;       // current file handle
     std::string item_name; // current file name
     std::string item_path; // current file path
-    int item_index;        // current item
+    uint32_t item_index;   // current item
 
     // head.bin contents, kept in memory while downloading
     std::vector<uint8_t> head;

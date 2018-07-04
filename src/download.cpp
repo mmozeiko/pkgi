@@ -560,7 +560,7 @@ int Download::download_head(const uint8_t* rif)
             0,
             1);
 
-    auto index_size = 0;
+    uint32_t index_size = 0;
 
     uint32_t offset = meta_offset;
     for (uint32_t i = 0; i < meta_count; i++)
@@ -940,8 +940,6 @@ int Download::download_files(void)
 
         resuming = false;
     }
-
-    item_index = -1;
 
     LOG("all files decrypted");
     return 1;
