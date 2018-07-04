@@ -137,3 +137,8 @@ puff.h and puff.c files are under [zlib][] license.
 [img_downloads]: https://img.shields.io/github/downloads/blastrock/pkgj/total.svg?maxAge=3600
 [img_latest]: https://img.shields.io/github/release/blastrock/pkgj.svg?maxAge=3600
 [img_license]: https://img.shields.io/github/license/blastrock/pkgj.svg?maxAge=2592000
+
+# Donating
+
+Bitcoin: 128vikqd3AyNEXEiU5uSJvCrRq1e3kRX6n
+Monero: 45sCwEFcPD9ZfwD2UKt6gcG3vChFrMmJHUmVVBUWwPFoPsjmkzvN7i9DKn4pUkyif5axgbnYNqU3NCqugudjTWqdFv5uKQV
