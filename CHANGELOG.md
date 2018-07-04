@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.24
+
+What's new:
+
+- Download resume feature was restored (except when downloading PSP games as ISO
+  files)
+- Made a couple errors more explicit
+
 ## 0.23
 
 Bug fixes:
