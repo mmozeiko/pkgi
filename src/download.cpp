@@ -45,7 +45,7 @@ Download::Download(std::unique_ptr<Http> http) : _http(std::move(http))
 
 void Download::download_start(void)
 {
-    LOG("resuming pkg download from %llu offset", download_offset);
+    LOGF("resuming pkg download from {} offset", download_offset);
     info_update = pkgi_time_msec() + 1000;
     update_status("Downloading");
 }
@@ -386,7 +386,7 @@ void Download::download_data(
 
     if (!*_http)
     {
-        LOG("requesting %s @ %llu", download_url, download_offset);
+        LOGF("requesting {} @ {}", download_url, download_offset);
         _http->start(download_url, download_offset);
 
         const int64_t http_length = _http->get_length();
@@ -397,9 +397,9 @@ void Download::download_data(
 
         download_size = http_length + download_offset;
 
-        LOG("http response length = %lld, total pkg size = %llu",
-            http_length,
-            download_size);
+        LOGF("http response length = {}, total pkg size = {}",
+             http_length,
+             download_size);
         info_start = pkgi_time_msec();
         info_update = pkgi_time_msec() + 500;
     }
@@ -466,7 +466,7 @@ void Download::create_file()
 
     pkgi_mkdirs(folder.c_str());
 
-    LOG("creating %s file", item_name);
+    LOGF("creating {} file", item_name);
     item_file = pkgi_create(item_path);
     if (!item_file)
         throw formatEx<DownloadError>("cannot create file {}", item_name);
@@ -474,7 +474,7 @@ void Download::create_file()
 
 void Download::open_file()
 {
-    LOG("opening %s file for resume", item_name);
+    LOGF("opening {} file for resume", item_name);
     item_file = pkgi_openrw(item_path);
     if (!item_file)
         throw formatEx<DownloadError>("cannot create file {}", item_name);
@@ -519,14 +519,14 @@ int Download::download_head(const uint8_t* rif)
     total_size = get64be(head.data() + 24);
     enc_offset = get64be(head.data() + 32);
     enc_size = get64be(head.data() + 40);
-    LOG("meta_offset=%u meta_count=%u index_count=%u total_size=%llu "
-        "enc_offset=%llu enc_size=%llu",
-        meta_offset,
-        meta_count,
-        index_count,
-        total_size,
-        enc_offset,
-        enc_size);
+    LOGF("meta_offset={} meta_count={} index_count={} total_size={} "
+         "enc_offset={} enc_size={}",
+         meta_offset,
+         meta_count,
+         index_count,
+         total_size,
+         enc_offset,
+         enc_size);
 
     pkgi_memcpy(iv, head.data() + 0x70, sizeof(iv));
 
@@ -861,13 +861,13 @@ int Download::download_files(void)
             encrypted_offset = 0;
         }
 
-        LOG("[%u/%u] %s item_offset=%llu item_size=%llu type=%u",
-            item_index + 1,
-            index_count,
-            item_name,
-            item_offset,
-            item_size,
-            type);
+        LOGF("[{}/{}] {} item_offset={} item_size={} type={}",
+             item_index + 1,
+             index_count,
+             item_name,
+             item_offset,
+             item_size,
+             type);
 
         if (content_type == CONTENT_TYPE_PSX_GAME ||
             content_type == CONTENT_TYPE_PSP_GAME ||
@@ -1064,7 +1064,7 @@ int Download::pkgi_download(
         const uint8_t* digest)
 {
     pkgi_snprintf(root, sizeof(root), "%spkgi/%s", partition, content);
-    LOG("temp installation folder: %s", root);
+    LOGF("temp installation folder: {}", root);
 
     update_status("Downloading");
     sha256_init(&sha);
@@ -1181,7 +1181,7 @@ void Download::deserialize_state()
 
         resuming = true;
 
-        LOG("resuming download from %d/%d", download_offset, download_size);
+        LOGF("resuming download from {}/{}", download_offset, download_size);
     }
     catch (const std::exception& e)
     {

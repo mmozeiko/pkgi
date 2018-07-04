@@ -44,11 +44,14 @@ typedef struct pkgi_input
     {                                 \
         pkgi_log(msg, ##__VA_ARGS__); \
     } while (0)
-#else
-#define LOG(...) \
-    do           \
-    {            \
+#define LOGF(msg, ...)                                     \
+    do                                                     \
+    {                                                      \
+        pkgi_log(fmt::format(msg, ##__VA_ARGS__).c_str()); \
     } while (0)
+#else
+#define LOG(...)
+#define LOGF(...)
 #endif
 
 template <typename E, typename... Args>
