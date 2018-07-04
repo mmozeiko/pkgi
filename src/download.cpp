@@ -439,12 +439,7 @@ void Download::download_data(
         }
 
         if (!pkgi_write(item_file, buffer, write))
-        {
-            char error[256];
-            pkgi_snprintf(
-                    error, sizeof(error), "failed to write to %s", item_path);
-            throw DownloadError(error);
-        }
+            throw formatEx<DownloadError>("failed to write to {}", item_path);
     }
 }
 
@@ -467,7 +462,7 @@ void Download::create_file()
     pkgi_mkdirs(folder.c_str());
 
     LOGF("creating {} file", item_name);
-    item_file = pkgi_create(item_path);
+    item_file = pkgi_create(item_path.c_str());
     if (!item_file)
         throw formatEx<DownloadError>("cannot create file {}", item_name);
 }
@@ -475,7 +470,7 @@ void Download::create_file()
 void Download::open_file()
 {
     LOGF("opening {} file for resume", item_name);
-    item_file = pkgi_openrw(item_path);
+    item_file = pkgi_openrw(item_path.c_str());
     if (!item_file)
         throw formatEx<DownloadError>("cannot create file {}", item_name);
 }
@@ -484,9 +479,8 @@ int Download::download_head(const uint8_t* rif)
 {
     LOG("downloading pkg head");
 
-    pkgi_strncpy(item_name, sizeof(item_name), "Preparing...");
-    pkgi_snprintf(
-            item_path, sizeof(item_path), "%s/sce_sys/package/head.bin", root);
+    item_name = "Preparing...";
+    item_path = fmt::format("{}/sce_sys/package/head.bin", root);
 
     BOOST_SCOPE_EXIT_ALL(&)
     {
@@ -842,14 +836,23 @@ int Download::download_files(void)
         const uint64_t item_size = get64be(item + 16);
         const uint8_t type = item[27];
 
-        if (name_size > sizeof(item_name) - 1 ||
-            enc_offset + name_offset + name_size > total_size)
+        if (enc_offset + name_offset + name_size > total_size)
             throw DownloadError("pkg file is too small or corrupted");
 
-        pkgi_memcpy(
-                item_name, head.data() + enc_offset + name_offset, name_size);
-        aes128_ctr(&aes, iv, name_offset, (uint8_t*)item_name, name_size);
-        item_name[name_size] = 0;
+        {
+            std::vector<uint8_t> item_name_v(
+                    head.begin() + enc_offset + name_offset,
+                    head.begin() + enc_offset + name_offset + name_size);
+            aes128_ctr(
+                    &aes,
+                    iv,
+                    name_offset,
+                    item_name_v.data(),
+                    item_name_v.size());
+            item_name = std::string(
+                    reinterpret_cast<const char*>(item_name_v.data()),
+                    item_name_v.size());
+        }
 
         const uint64_t encrypted_size = (item_size + AES_BLOCK_SIZE - 1) &
                                         ~((uint64_t)AES_BLOCK_SIZE - 1);
@@ -873,18 +876,14 @@ int Download::download_files(void)
             content_type == CONTENT_TYPE_PSP_GAME ||
             content_type == CONTENT_TYPE_PSP_MINI_GAME)
         {
-            if (std::string(item_name) == "USRDIR/CONTENT/DOCUMENT.DAT")
-                pkgi_snprintf(
-                        item_path, sizeof(item_path), "%s/DOCUMENT.DAT", root);
-            else if (std::string(item_name) == "USRDIR/CONTENT/EBOOT.PBP")
-                pkgi_snprintf(
-                        item_path, sizeof(item_path), "%s/EBOOT.PBP", root);
-            else if (std::string(item_name) == "USRDIR/CONTENT/CONTENT.DAT")
-                pkgi_snprintf(
-                        item_path, sizeof(item_path), "%s/CONTENT.DAT", root);
-            else if (std::string(item_name) == "USRDIR/CONTENT/PSP-KEY.EDAT")
-                pkgi_snprintf(
-                        item_path, sizeof(item_path), "%s/PSP-KEY.EDAT", root);
+            if (item_name == "USRDIR/CONTENT/DOCUMENT.DAT")
+                item_path = fmt::format("{}/DOCUMENT.DAT", root);
+            else if (item_name == "USRDIR/CONTENT/EBOOT.PBP")
+                item_path = fmt::format("{}/EBOOT.PBP", root);
+            else if (item_name == "USRDIR/CONTENT/CONTENT.DAT")
+                item_path = fmt::format("{}/CONTENT.DAT", root);
+            else if (item_name == "USRDIR/CONTENT/PSP-KEY.EDAT")
+                item_path = fmt::format("{}/PSP-KEY.EDAT", root);
             else
             {
                 skip_to_file_offset(encrypted_size);
@@ -892,12 +891,11 @@ int Download::download_files(void)
             }
         }
         else
-            pkgi_snprintf(
-                    item_path, sizeof(item_path), "%s/%s", root, item_name);
+            item_path = fmt::format("{}/{}", root, item_name);
 
         if (type == 4)
         {
-            pkgi_mkdirs(item_path);
+            pkgi_mkdirs(item_path.c_str());
             continue;
         }
         else if (type == 18)
@@ -927,10 +925,9 @@ int Download::download_files(void)
         if (content_type == CONTENT_TYPE_PSP_GAME ||
             content_type == CONTENT_TYPE_PSP_MINI_GAME)
         {
-            if (save_as_iso &&
-                std::string(item_name) == "USRDIR/CONTENT/EBOOT.PBP")
+            if (save_as_iso && item_name == "USRDIR/CONTENT/EBOOT.PBP")
                 download_file_content_to_iso(item_size);
-            else if (std::string(item_name) == "USRDIR/CONTENT/PSP-KEY.EDAT")
+            else if (item_name == "USRDIR/CONTENT/PSP-KEY.EDAT")
                 download_file_content_to_pspkey(item_size);
             else
                 download_file_content(encrypted_size);
@@ -963,9 +960,8 @@ int Download::download_tail(void)
         }
     };
 
-    pkgi_strncpy(item_name, sizeof(item_name), "Finishing...");
-    pkgi_snprintf(
-            item_path, sizeof(item_path), "%s/sce_sys/package/tail.bin", root);
+    item_name = "Finishing...";
+    item_path = fmt::format("{}/sce_sys/package/tail.bin", root);
 
     create_file();
 

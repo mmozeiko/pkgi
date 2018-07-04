@@ -64,10 +64,10 @@ public:
     aes128_ctx aes;
     sha256_ctx sha;
 
-    void* item_file;     // current file handle
-    char item_name[256]; // current file name
-    char item_path[256]; // current file path
-    int item_index;      // current item
+    void* item_file;       // current file handle
+    std::string item_name; // current file name
+    std::string item_path; // current file path
+    int item_index;        // current item
 
     // head.bin contents, kept in memory while downloading
     std::vector<uint8_t> head;
