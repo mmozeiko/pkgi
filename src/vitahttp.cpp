@@ -111,9 +111,13 @@ void VitaHttp::start(const std::string& url, uint64_t offset)
     }
 
     if ((err = sceHttpSendRequest(req, NULL, 0)) < 0)
-        throw HttpError(fmt::format(
-                "sceHttpSendRequest failed: {:#08x}",
-                static_cast<uint32_t>(err)));
+        throw formatEx<HttpError>(
+                "sceHttpSendRequest failed: {:#08x}\n",
+                static_cast<uint32_t>(err),
+                static_cast<uint32_t>(err) == 0x80431075
+                        ? "HTTPS URLs may not be supported on your "
+                          "device.\nTry with HTTP."
+                        : "");
 
     http->used = 1;
     http->tmpl = tmpl;

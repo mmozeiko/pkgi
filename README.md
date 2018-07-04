@@ -35,6 +35,9 @@ Setup games databases URLs in `ux0:pkgi/config.txt`. The file format is the foll
     url_psx_games http://thesite/psxgames.tsv
     url_psp_games http://thesite/pspgames.tsv
 
+**Attention:** The PS Vita has an imcomplete HTTPS support and most sites will not
+work, prefer HTTP in these cases.
+
 Then start the application and you are ready to go.
 
 To avoid downloading pkg file over network, you can place it in `ux0:pkgi` folder. Keep the name of file same as in http url,
