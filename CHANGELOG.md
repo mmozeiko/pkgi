@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.25
+
+Bug fixes:
+
+- Fix errors messages from previous version
+
 ## 0.24
 
 What's new:
