@@ -40,10 +40,6 @@ work, prefer HTTP in these cases.
 
 Then start the application and you are ready to go.
 
-To avoid downloading pkg file over network, you can place it in `ux0:pkgi` folder. Keep the name of file same as in http url,
-or rename it with same name as contentid. pkgj will first check if pkg file can be read locally, and only if it is missing
-then pkgj will download it from http url.
-
 # Usage
 
 Using application is pretty straight forward. Select item you want to install and press X. To sort/filter/search press triangle.
