@@ -683,7 +683,7 @@ void pkgi_install(const char* contentid)
     const auto res = scePromoterUtilityPromotePkgWithRif(path, 1);
     if (res < 0)
         throw formatEx<std::runtime_error>(
-                "scePromoterUtilityPromotePkgWithRif failed: {:#08x}\n",
+                "scePromoterUtilityPromotePkgWithRif failed: {:#08x}\n{}",
                 static_cast<uint32_t>(res),
                 static_cast<uint32_t>(res) == 0x80870004
                         ? "Please check your NoNpDrm installation"
