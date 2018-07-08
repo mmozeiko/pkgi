@@ -745,6 +745,8 @@ static int pkgi_delete_dir(const std::string& path)
 
 void pkgi_install_update(const char* contentid)
 {
+    pkgi_mkdirs("ux0:patch");
+
     char path[128];
     snprintf(path, sizeof(path), "ux0:pkgi/%s", contentid);
 
