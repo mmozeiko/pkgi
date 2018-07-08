@@ -544,7 +544,7 @@ void TitleDatabase::reload(
     if (!search.empty())
     {
         const auto like = '%' + search + '%';
-        sqlite3_bind_text(stmt, 2, like.data(), like.size(), nullptr);
+        sqlite3_bind_text(stmt, 2, like.data(), like.size(), SQLITE_TRANSIENT);
     }
 
     LOG("filling memory cache");
