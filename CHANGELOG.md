@@ -1,10 +1,20 @@
 # Changelog
 
+## 0.26
+
+What's new:
+
+- ux0:patch is created on first update installation if it doesn't exist yet
+
+Bug fixes:
+
+- Search feature now works
+
 ## 0.25
 
 Bug fixes:
 
-- Fix errors messages from previous version
+- Fix error messages from previous version
 
 ## 0.24
 
