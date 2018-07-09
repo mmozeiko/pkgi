@@ -88,6 +88,8 @@ struct SqliteClose
     }
 };
 
+std::string pkgi_mode_to_string(Mode mode);
+
 class TitleDatabase
 {
 public:

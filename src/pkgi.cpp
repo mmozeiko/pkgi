@@ -653,26 +653,32 @@ static void pkgi_do_head(void)
         rightw = 0;
     }
 
+    char text[256];
+    int left = pkgi_text_width(search_text) + PKGI_MAIN_TEXT_PADDING;
+    int right = rightw + PKGI_MAIN_TEXT_PADDING;
+
     if (search_active)
-    {
-        char text[256];
-        int left = pkgi_text_width(search_text) + PKGI_MAIN_TEXT_PADDING;
-        int right = rightw + PKGI_MAIN_TEXT_PADDING;
+        pkgi_snprintf(
+                text,
+                sizeof(text),
+                "%s >> %s <<",
+                pkgi_mode_to_string(mode).c_str(),
+                search_text);
+    else
+        pkgi_snprintf(
+                text, sizeof(text), "%s", pkgi_mode_to_string(mode).c_str());
 
-        pkgi_snprintf(text, sizeof(text), ">> %s <<", search_text);
-
-        pkgi_clip_set(
-                left,
-                0,
-                VITA_WIDTH - right - left,
-                font_height + PKGI_MAIN_HLINE_EXTRA);
-        pkgi_draw_text(
-                (VITA_WIDTH - pkgi_text_width(text)) / 2,
-                0,
-                PKGI_COLOR_TEXT_TAIL,
-                text);
-        pkgi_clip_remove();
-    }
+    pkgi_clip_set(
+            left,
+            0,
+            VITA_WIDTH - right - left,
+            font_height + PKGI_MAIN_HLINE_EXTRA);
+    pkgi_draw_text(
+            (VITA_WIDTH - pkgi_text_width(text)) / 2,
+            0,
+            PKGI_COLOR_TEXT_TAIL,
+            text);
+    pkgi_clip_remove();
 }
 
 static uint64_t last_progress_time;

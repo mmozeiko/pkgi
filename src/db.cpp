@@ -17,6 +17,24 @@ extern "C" {
 
 #include <stddef.h>
 
+std::string pkgi_mode_to_string(Mode mode)
+{
+    switch (mode)
+    {
+#define RET(mode, str) \
+    case Mode##mode:   \
+        return str
+        RET(Games, "Vita games");
+        RET(Updates, "Vita updates");
+        RET(Dlcs, "Vita DLCs");
+        RET(PsxGames, "PSX games");
+        RET(PspGames, "PSP games");
+#undef RET
+    default:
+        return "unknown mode";
+    }
+}
+
 static uint8_t hexvalue(char ch)
 {
     if (ch >= '0' && ch <= '9')
