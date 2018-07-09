@@ -150,7 +150,7 @@ void Downloader::do_download(const DownloadItem& item)
                 item.content.c_str(),
                 item.url.c_str(),
                 item.rif.empty() ? nullptr : item.rif.data(),
-                item.digest.data()))
+                item.digest.empty() ? nullptr : item.digest.data()))
         return;
     LOG("download of %s completed!", item.name.c_str());
     switch (item.type)
