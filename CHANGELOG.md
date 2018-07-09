@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.27
+
+What's new:
+
+- Improved various errors
+- Current mode now appears in the top bar
+- Added support for downloading packages without digest
+
 ## 0.26
 
 What's new:
