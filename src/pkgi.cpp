@@ -889,21 +889,8 @@ static void pkgi_open_db()
     catch (const std::exception& e)
     {
         LOG("error during database open: %s", e.what());
-        state = StateError;
-        pkgi_snprintf(
-                error_state,
-                sizeof(error_state),
-                "DB initialization error: %s, try to delete them?",
-                e.what());
-
-        pkgi_input input;
-        while (pkgi_update(&input))
-        {
-            pkgi_draw_rect(0, 0, VITA_WIDTH, VITA_HEIGHT, 0);
-            pkgi_do_error();
-            pkgi_swap();
-        }
-        pkgi_end();
+        throw formatEx<std::runtime_error>(
+                "DB initialization error: %s\nTry to delete them?");
     }
 
     pkgi_reload();
@@ -913,157 +900,176 @@ int main()
 {
     pkgi_start();
 
-    fw_version = pkgi_get_system_version();
-
-    Downloader downloader;
-
-    downloader.refresh = [](const std::string& content) {
-        // FIXME this runs on the wrong thread
-        const auto item = db->get_by_content(content.c_str());
-        if (!item)
-        {
-            LOG("couldn't find %s", content.c_str());
-            return;
-        }
-        item->presence = PresenceUnknown;
-    };
-    downloader.error = [](const std::string& error) {
-        // FIXME this runs on the wrong thread
-        pkgi_dialog_error(("Download failure: " + error).c_str());
-    };
-
-    LOG("started");
-
-    config = pkgi_load_config();
-    current_url = config.games_url.c_str();
-    pkgi_dialog_init();
-
-    font_height = pkgi_text_height("M");
-    avail_height = VITA_HEIGHT - 3 * (font_height + PKGI_MAIN_HLINE_EXTRA);
-    bottom_y = VITA_HEIGHT - 2 * font_height - PKGI_MAIN_ROW_PADDING;
-
-    pkgi_open_db();
-
-    if (!pkgi_is_unsafe_mode())
+    try
     {
-        state = StateError;
-        pkgi_snprintf(
-                error_state,
-                sizeof(error_state),
-                "pkgi requires unsafe enabled in Henkaku settings!");
-    }
+        fw_version = pkgi_get_system_version();
 
-    pkgi_texture background = pkgi_load_png(background);
+        Downloader downloader;
 
-    pkgi_input input;
-    while (pkgi_update(&input))
-    {
-        pkgi_draw_texture(background, 0, 0);
-
-        pkgi_do_head();
-        switch (state)
-        {
-        case StateError:
-            pkgi_do_error();
-            break;
-
-        case StateRefreshing:
-            pkgi_do_refresh();
-            break;
-
-        case StateMain:
-            pkgi_do_main(
-                    downloader,
-                    pkgi_dialog_is_open() || pkgi_menu_is_open() ? NULL
-                                                                 : &input);
-            break;
-        }
-
-        pkgi_do_tail(downloader);
-
-        if (pkgi_dialog_is_open())
-        {
-            pkgi_do_dialog(&input);
-        }
-
-        if (pkgi_dialog_input_update())
-        {
-            search_active = 1;
-            pkgi_dialog_input_get_text(search_text, sizeof(search_text));
-            configure_db(db.get(), search_text, &config);
-            reposition();
-        }
-
-        if (pkgi_menu_is_open())
-        {
-            if (pkgi_do_menu(&input))
+        downloader.refresh = [](const std::string& content) {
+            // FIXME this runs on the wrong thread
+            const auto item = db->get_by_content(content.c_str());
+            if (!item)
             {
-                Config new_config;
-                pkgi_menu_get(&new_config);
-                if (config_temp.sort != new_config.sort ||
-                    config_temp.order != new_config.order ||
-                    config_temp.filter != new_config.filter)
-                {
-                    config_temp = new_config;
-                    configure_db(
-                            db.get(),
-                            search_active ? search_text : NULL,
-                            &config_temp);
-                    reposition();
-                }
+                LOG("couldn't find %s", content.c_str());
+                return;
             }
-            else
+            item->presence = PresenceUnknown;
+        };
+        downloader.error = [](const std::string& error) {
+            // FIXME this runs on the wrong thread
+            pkgi_dialog_error(("Download failure: " + error).c_str());
+        };
+
+        LOG("started");
+
+        config = pkgi_load_config();
+        current_url = config.games_url.c_str();
+        pkgi_dialog_init();
+
+        font_height = pkgi_text_height("M");
+        avail_height = VITA_HEIGHT - 3 * (font_height + PKGI_MAIN_HLINE_EXTRA);
+        bottom_y = VITA_HEIGHT - 2 * font_height - PKGI_MAIN_ROW_PADDING;
+
+        pkgi_open_db();
+
+        if (!pkgi_is_unsafe_mode())
+        {
+            state = StateError;
+            pkgi_snprintf(
+                    error_state,
+                    sizeof(error_state),
+                    "pkgi requires unsafe enabled in Henkaku settings!");
+        }
+
+        pkgi_texture background = pkgi_load_png(background);
+
+        pkgi_input input;
+        while (pkgi_update(&input))
+        {
+            pkgi_draw_texture(background, 0, 0);
+
+            pkgi_do_head();
+            switch (state)
             {
-                MenuResult mres = pkgi_menu_result();
-                switch (mres)
+            case StateError:
+                pkgi_do_error();
+                break;
+
+            case StateRefreshing:
+                pkgi_do_refresh();
+                break;
+
+            case StateMain:
+                pkgi_do_main(
+                        downloader,
+                        pkgi_dialog_is_open() || pkgi_menu_is_open() ? NULL
+                                                                     : &input);
+                break;
+            }
+
+            pkgi_do_tail(downloader);
+
+            if (pkgi_dialog_is_open())
+            {
+                pkgi_do_dialog(&input);
+            }
+
+            if (pkgi_dialog_input_update())
+            {
+                search_active = 1;
+                pkgi_dialog_input_get_text(search_text, sizeof(search_text));
+                configure_db(db.get(), search_text, &config);
+                reposition();
+            }
+
+            if (pkgi_menu_is_open())
+            {
+                if (pkgi_do_menu(&input))
                 {
-                case MenuResultSearch:
-                    pkgi_dialog_input_text("Search", search_text);
-                    break;
-                case MenuResultSearchClear:
-                    search_active = 0;
-                    search_text[0] = 0;
-                    configure_db(db.get(), NULL, &config);
-                    break;
-                case MenuResultCancel:
-                    if (config_temp.sort != config.sort ||
-                        config_temp.order != config.order ||
-                        config_temp.filter != config.filter)
+                    Config new_config;
+                    pkgi_menu_get(&new_config);
+                    if (config_temp.sort != new_config.sort ||
+                        config_temp.order != new_config.order ||
+                        config_temp.filter != new_config.filter)
                     {
+                        config_temp = new_config;
                         configure_db(
                                 db.get(),
                                 search_active ? search_text : NULL,
-                                &config);
+                                &config_temp);
                         reposition();
                     }
-                    break;
-                case MenuResultAccept:
-                    pkgi_menu_get(&config);
-                    pkgi_save_config(config);
-                    break;
-                case MenuResultRefresh:
-                    pkgi_refresh_list();
-                    break;
-                case MenuResultShowGames:
-                    pkgi_set_mode(ModeGames);
-                    break;
-                case MenuResultShowUpdates:
-                    pkgi_set_mode(ModeUpdates);
-                    break;
-                case MenuResultShowDlcs:
-                    pkgi_set_mode(ModeDlcs);
-                    break;
-                case MenuResultShowPsxGames:
-                    pkgi_set_mode(ModePsxGames);
-                    break;
-                case MenuResultShowPspGames:
-                    pkgi_set_mode(ModePspGames);
-                    break;
+                }
+                else
+                {
+                    MenuResult mres = pkgi_menu_result();
+                    switch (mres)
+                    {
+                    case MenuResultSearch:
+                        pkgi_dialog_input_text("Search", search_text);
+                        break;
+                    case MenuResultSearchClear:
+                        search_active = 0;
+                        search_text[0] = 0;
+                        configure_db(db.get(), NULL, &config);
+                        break;
+                    case MenuResultCancel:
+                        if (config_temp.sort != config.sort ||
+                            config_temp.order != config.order ||
+                            config_temp.filter != config.filter)
+                        {
+                            configure_db(
+                                    db.get(),
+                                    search_active ? search_text : NULL,
+                                    &config);
+                            reposition();
+                        }
+                        break;
+                    case MenuResultAccept:
+                        pkgi_menu_get(&config);
+                        pkgi_save_config(config);
+                        break;
+                    case MenuResultRefresh:
+                        pkgi_refresh_list();
+                        break;
+                    case MenuResultShowGames:
+                        pkgi_set_mode(ModeGames);
+                        break;
+                    case MenuResultShowUpdates:
+                        pkgi_set_mode(ModeUpdates);
+                        break;
+                    case MenuResultShowDlcs:
+                        pkgi_set_mode(ModeDlcs);
+                        break;
+                    case MenuResultShowPsxGames:
+                        pkgi_set_mode(ModePsxGames);
+                        break;
+                    case MenuResultShowPspGames:
+                        pkgi_set_mode(ModePspGames);
+                        break;
+                    }
                 }
             }
-        }
 
-        pkgi_swap();
+            pkgi_swap();
+        }
+    }
+    catch (const std::exception& e)
+    {
+        LOGF("Error in main: {}", e.what());
+        state = StateError;
+        pkgi_snprintf(
+                error_state, sizeof(error_state), "Fatal error: %s", e.what());
+
+        pkgi_input input;
+        while (pkgi_update(&input))
+        {
+            pkgi_draw_rect(0, 0, VITA_WIDTH, VITA_HEIGHT, 0);
+            pkgi_do_error();
+            pkgi_swap();
+        }
+        pkgi_end();
     }
 
     LOG("finished");
