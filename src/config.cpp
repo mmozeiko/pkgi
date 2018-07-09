@@ -109,39 +109,32 @@ static DbFilter parse_filter(char* value, uint32_t filter)
 
 Config pkgi_load_config()
 {
-    Config config;
-
-    config.sort = SortByName;
-    config.order = SortAscending;
-    config.filter = DbFilterAll;
-    config.no_version_check = 0;
-    config.install_psp_as_pbp = 0;
-    config.install_psp_psx_location = "ux0:";
-
-    char data[4096];
-    char path[256];
-    pkgi_snprintf(
-            path, sizeof(path), "%s/config.txt", pkgi_get_config_folder());
-    LOG("config location: %s", path);
-
-    int loaded = pkgi_load(path, data, sizeof(data) - 1);
-    if (loaded > 0)
+    try
     {
-        data[loaded] = '\n';
+        Config config;
+
+        config.sort = SortByName;
+        config.order = SortAscending;
+        config.filter = DbFilterAll;
+        config.no_version_check = 0;
+        config.install_psp_as_pbp = 0;
+        config.install_psp_psx_location = "ux0:";
+
+        char path[256];
+        pkgi_snprintf(
+                path, sizeof(path), "%s/config.txt", pkgi_get_config_folder());
+        LOG("config location: %s", path);
+
+        auto data = pkgi_load(path);
+        data.push_back('\n');
 
         LOG("config.txt loaded, parsing");
-        char* text = data;
-        char* end = data + loaded + 1;
-
-        if (loaded > 3 && (uint8_t)text[0] == 0xef &&
-            (uint8_t)text[1] == 0xbb && (uint8_t)text[2] == 0xbf)
-        {
-            text += 3;
-        }
+        auto text = reinterpret_cast<char*>(data.data());
+        const auto end = text + data.size();
 
         while (text < end)
         {
-            char* key = text;
+            const auto key = text;
 
             text = skipnonws(text, end);
             if (text == end)
@@ -153,7 +146,7 @@ Config pkgi_load_config()
             if (text == end)
                 break;
 
-            char* value = text;
+            const auto value = text;
 
             text = skipnonws(text, end);
             if (text == end)
@@ -187,12 +180,13 @@ Config pkgi_load_config()
             else if (pkgi_stricmp(key, "install_psp_psx_location") == 0)
                 config.install_psp_psx_location = value;
         }
+        return config;
     }
-    else
+    catch (const std::exception& e)
     {
-        LOG("config.txt cannot be loaded, using default values");
+        throw formatEx<std::runtime_error>(
+                "Failed to load config:\n{}", e.what());
     }
-    return config;
 }
 
 static const char* sort_str(DbSort sort)
