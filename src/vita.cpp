@@ -690,17 +690,23 @@ void pkgi_install(const char* contentid)
                         : "");
 }
 
-static int pkgi_delete_dir(const std::string& path)
+void pkgi_delete_dir(const std::string& path)
 {
     SceUID dfd = sceIoDopen(path.c_str());
     if (dfd == PKGI_ERRNO_ENOENT)
-        return 1;
+        return;
 
     if (dfd < 0)
+        throw formatEx<std::runtime_error>(
+                "failed sceIoDopen({}): {:#08x}",
+                path,
+                static_cast<uint32_t>(dfd));
+
+    BOOST_SCOPE_EXIT_ALL(&)
     {
-        LOG("failed to Dopen %s: %x", path.c_str(), dfd);
-        return 0;
-    }
+        if (dfd >= 0)
+            sceIoClose(dfd);
+    };
 
     int res = 0;
     SceIoDirent dir;
@@ -711,36 +717,27 @@ static int pkgi_delete_dir(const std::string& path)
                 path + (path[path.size() - 1] == '/' ? "" : "/") + dir.d_name;
 
         if (SCE_S_ISDIR(dir.d_stat.st_mode))
-        {
-            int ret = pkgi_delete_dir(new_path);
-            if (!ret)
-            {
-                sceIoDclose(dfd);
-                return 0;
-            }
-        }
+            pkgi_delete_dir(new_path);
         else
         {
-            int ret = sceIoRemove(new_path.c_str());
+            const auto ret = sceIoRemove(new_path.c_str());
             if (ret < 0)
-            {
-                LOG("failed to remove %s: %x", new_path.c_str(), ret);
-                sceIoDclose(dfd);
-                return 0;
-            }
+                throw formatEx<std::runtime_error>(
+                        "failed sceIoRemove({}): {:#08x}",
+                        new_path,
+                        static_cast<uint32_t>(ret));
         }
     }
 
     sceIoDclose(dfd);
+    dfd = -1;
 
     res = sceIoRmdir(path.c_str());
     if (res < 0)
-    {
-        LOG("failed to rmdir %s: %x", path.c_str(), res);
-        return 0;
-    }
-
-    return 1;
+        throw formatEx<std::runtime_error>(
+                "failed sceIoRmdir({}): {:#08x}",
+                path,
+                static_cast<uint32_t>(res));
 }
 
 void pkgi_install_update(const char* contentid)
@@ -754,9 +751,7 @@ void pkgi_install_update(const char* contentid)
     snprintf(dest, sizeof(dest), "ux0:patch/%.9s", contentid + 7);
 
     LOG("deleting previous patch");
-    if (!pkgi_delete_dir(dest))
-        throw std::runtime_error(
-                fmt::format("can't delete previous patch to install this one"));
+    pkgi_delete_dir(dest);
 
     LOG("installing update at %s", path);
     int res = sceIoRename(path, dest);
@@ -811,7 +806,7 @@ void pkgi_install_pspgame_as_iso(const char* partition, const char* contentid)
         pkgi_rename(
                 pspkey.c_str(), fmt::format("{}/PSP-KEY.EDAT", dest).c_str());
 
-    pkgi_delete_dir(path.c_str());
+    pkgi_delete_dir(path);
 }
 
 uint32_t pkgi_time_msec()
