@@ -713,8 +713,13 @@ void pkgi_delete_dir(const std::string& path)
     memset(&dir, 0, sizeof(SceIoDirent));
     while ((res = sceIoDread(dfd, &dir)) > 0)
     {
+        std::string d_name = dir.d_name;
+
+        if (d_name == "." || d_name == "..")
+            continue;
+
         std::string new_path =
-                path + (path[path.size() - 1] == '/' ? "" : "/") + dir.d_name;
+                path + (path[path.size() - 1] == '/' ? "" : "/") + d_name;
 
         if (SCE_S_ISDIR(dir.d_stat.st_mode))
             pkgi_delete_dir(new_path);
