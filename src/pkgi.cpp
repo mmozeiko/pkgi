@@ -158,9 +158,9 @@ static void pkgi_start_download(Downloader& downloader)
                         ? std::vector<uint8_t>{}
                         : std::vector<uint8_t>(rif, rif + PKGI_RIF_SIZE),
                 item->has_digest
-                        ? std::vector<uint8_t>{}
-                        : std::vector<uint8_t>(
-                                  item->digest.begin(), item->digest.end()),
+                        ? std::vector<uint8_t>(
+                                  item->digest.begin(), item->digest.end())
+                        : std::vector<uint8_t>{},
                 !config.install_psp_as_pbp,
                 pkgi_get_mode_partition()});
     }
