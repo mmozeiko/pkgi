@@ -5,9 +5,12 @@ extern "C" {
 
 #include <fmt/format.h>
 
+#include <boost/scope_exit.hpp>
+
 #include <algorithm>
 #include <cerrno>
 #include <cstring>
+#include <dirent.h>
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdexcept>
@@ -125,6 +128,55 @@ void pkgi_mkdirs(const char* ppath)
 void pkgi_rm(const char* file)
 {
     unlink(file);
+}
+
+void pkgi_delete_dir(const std::string& path)
+{
+    DIR* dfd = opendir(path.c_str());
+    if (!dfd && errno == ENOENT)
+        return;
+
+    if (!dfd)
+        throw formatEx<std::runtime_error>(
+                "failed open({}): {}", path, strerror(errno));
+
+    BOOST_SCOPE_EXIT_ALL(&)
+    {
+        if (dfd)
+            closedir(dfd);
+    };
+
+    int res = 0;
+    errno = 0;
+    struct dirent* dir;
+    while ((dir = readdir(dfd)))
+    {
+        std::string d_name = dir->d_name;
+
+        if (d_name == "." || d_name == "..")
+            continue;
+
+        std::string new_path =
+                path + (path[path.size() - 1] == '/' ? "" : "/") + d_name;
+
+        if (dir->d_type == DT_DIR)
+            pkgi_delete_dir(new_path);
+        else
+        {
+            const auto ret = unlink(new_path.c_str());
+            if (ret < 0)
+                throw formatEx<std::runtime_error>(
+                        "failed unlink({}): {}", new_path, strerror(errno));
+        }
+    }
+
+    closedir(dfd);
+    dfd = nullptr;
+
+    res = rmdir(path.c_str());
+    if (res < 0)
+        throw formatEx<std::runtime_error>(
+                "failed rmdir({}): {}", path, strerror(errno));
 }
 
 std::vector<uint8_t> pkgi_load(const std::string& path)

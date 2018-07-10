@@ -124,6 +124,7 @@ int pkgi_check_free_space(uint64_t http_length);
 
 void pkgi_mkdirs(const char* path);
 void pkgi_rm(const char* file);
+void pkgi_delete_dir(const std::string& path);
 int64_t pkgi_get_size(const char* path);
 
 int pkgi_file_exists(const char* path);
