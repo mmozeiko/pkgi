@@ -19,6 +19,22 @@ extern "C" {
 #define PKG_HEADER_EXT_SIZE 64
 #define PKG_TAIL_SIZE 480
 
+class ResumeError : public std::exception
+{
+public:
+    ResumeError(std::string msg) : _msg(std::move(msg))
+    {
+    }
+
+    virtual const char* what() const noexcept override
+    {
+        return _msg.c_str();
+    }
+
+private:
+    std::string _msg;
+};
+
 class DownloadError : public std::exception
 {
 public:

@@ -907,7 +907,7 @@ int Download::download_files(void)
         {
             open_file();
             if (pkgi_seek(item_file, encrypted_offset) < 0)
-                throw DownloadError("failed to seek for resume");
+                throw ResumeError("failed to seek for resume");
         }
         else
             create_file();
@@ -1048,46 +1048,65 @@ int Download::pkgi_download(
     root = fmt::format("{}pkgi/{}", partition, content);
     LOGF("temp installation folder: {}", root);
 
-    update_status("Downloading");
-    sha256_init(&sha);
-
-    resuming = false;
-    item_file = NULL;
-    item_index = 0;
-    last_state_save = 0;
-    download_size = 0;
-    download_offset = 0;
-    download_content = content;
-    download_url = url;
-
-    info_start = pkgi_time_msec();
-    info_update = info_start + 1000;
-
-    deserialize_state();
-
-    if (!resuming)
-        if (!download_head(rif))
-            return 0;
-    if (!download_files())
-        return 0;
-    if (!download_tail())
-        return 0;
-    if (content_type != CONTENT_TYPE_PSX_GAME &&
-        content_type != CONTENT_TYPE_PSP_GAME &&
-        content_type != CONTENT_TYPE_PSP_MINI_GAME)
+    try
     {
-        if (!create_stat())
-            return 0;
-    }
-    if (!check_integrity(digest))
-        return 0;
-    if (rif)
-    {
-        if (!create_rif(rif))
-            return 0;
-    }
+        update_status("Downloading");
+        sha256_init(&sha);
 
-    return 1;
+        resuming = false;
+        item_file = NULL;
+        item_index = 0;
+        last_state_save = 0;
+        download_size = 0;
+        download_offset = 0;
+        download_content = content;
+        download_url = url;
+
+        info_start = pkgi_time_msec();
+        info_update = info_start + 1000;
+
+        deserialize_state();
+
+        if (!resuming)
+            pkgi_delete_dir(root);
+
+        if (!resuming)
+            if (!download_head(rif))
+                return 0;
+        if (!download_files())
+            return 0;
+        if (!download_tail())
+            return 0;
+        if (content_type != CONTENT_TYPE_PSX_GAME &&
+            content_type != CONTENT_TYPE_PSP_GAME &&
+            content_type != CONTENT_TYPE_PSP_MINI_GAME)
+        {
+            if (!create_stat())
+                return 0;
+        }
+        if (!check_integrity(digest))
+            return 0;
+        if (rif)
+        {
+            if (!create_rif(rif))
+                return 0;
+        }
+
+        return 1;
+    }
+    catch (const ResumeError& e)
+    {
+        LOGF("deleting resume file");
+        try
+        {
+            pkgi_rm(fmt::format("{}.resume", root).c_str());
+        }
+        catch (const std::exception& e)
+        {
+            LOGF("failed to delete resume file");
+        }
+        throw;
+    }
 }
 
 void Download::serialize_state() const
@@ -1167,8 +1186,7 @@ void Download::deserialize_state()
     }
     catch (const std::exception& e)
     {
-        throw std::runtime_error(fmt::format(
-                "error: can't resume download:\n{}\nTry to delete resume data",
-                e.what()));
+        throw formatEx<ResumeError>(
+                "can't resume download:\n{}\nResume data deleted.", e.what());
     }
 }
