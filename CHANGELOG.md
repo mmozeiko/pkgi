@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.28
+
+What's new:
+
+- Resume data is now deleted automatically when resuming fails
+
+Bug fixes:
+
+- Downloaded package integrity is now correctly checked
+
 ## 0.27
 
 What's new:
