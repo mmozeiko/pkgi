@@ -629,7 +629,7 @@ int Download::download_head(const uint8_t* rif)
 
 void Download::download_file_content(uint64_t encrypted_size)
 {
-    static constexpr auto SAVE_PERIOD = 1 * 1024 * 1024;
+    static constexpr auto SAVE_PERIOD = 10 * 1024 * 1024;
 
     std::vector<uint8_t> down(1 * 1024 * 1024);
     while (encrypted_offset != encrypted_size)
