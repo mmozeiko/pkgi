@@ -38,6 +38,8 @@ Setup games databases URLs in `ux0:pkgi/config.txt`. The file format is the foll
 **Attention:** The PS Vita has an imcomplete HTTPS support and most sites will not
 work, prefer HTTP in these cases.
 
+Make sure unsafe mode is enabled in Henkaku settings.
+
 Then start the application and you are ready to go.
 
 # Usage

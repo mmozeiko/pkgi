@@ -908,6 +908,11 @@ int main()
 
     try
     {
+        if (!pkgi_is_unsafe_mode())
+            throw std::runtime_error(
+                    "pkgj requires unsafe mode to be enabled in Henkaku "
+                    "settings!");
+
         fw_version = pkgi_get_system_version();
 
         Downloader downloader;
@@ -938,15 +943,6 @@ int main()
         bottom_y = VITA_HEIGHT - 2 * font_height - PKGI_MAIN_ROW_PADDING;
 
         pkgi_open_db();
-
-        if (!pkgi_is_unsafe_mode())
-        {
-            state = StateError;
-            pkgi_snprintf(
-                    error_state,
-                    sizeof(error_state),
-                    "pkgi requires unsafe enabled in Henkaku settings!");
-        }
 
         pkgi_texture background = pkgi_load_png(background);
 
