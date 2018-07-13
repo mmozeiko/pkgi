@@ -61,7 +61,7 @@ void VitaHttp::start(const std::string& url, uint64_t offset)
     int conn = -1;
     int req = -1;
 
-    LOG("starting http GET request for %s", url);
+    LOGF("starting http GET request for {}", url);
 
     if ((tmpl = sceHttpCreateTemplate(
                  PKGI_USER_AGENT, SCE_HTTP_VERSION_1_1, SCE_TRUE)) < 0)
@@ -147,7 +147,7 @@ int64_t VitaHttp::get_length()
                 "sceHttpGetStatusCode failed: {:#08x}",
                 static_cast<uint32_t>(res)));
 
-    LOG("http status code = %d", status);
+    LOGF("http status code = {}", status);
 
     if (status != 200 && status != 206)
         throw HttpError(fmt::format("bad http status: {}", status));
@@ -174,7 +174,7 @@ int64_t VitaHttp::get_length()
         return 0;
     }
 
-    LOG("http response length = %llu", content_length);
+    LOGF("http response length = {}", content_length);
     return content_length;
 }
 
