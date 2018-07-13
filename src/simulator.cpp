@@ -280,7 +280,7 @@ void* pkgi_openrw(const char* path)
     return (void*)(intptr_t)fd;
 }
 
-int pkgi_seek(void* f, uint64_t offset)
+int64_t pkgi_seek(void* f, uint64_t offset)
 {
     return lseek((intptr_t)f, offset, SEEK_SET);
 }

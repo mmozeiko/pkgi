@@ -1112,13 +1112,13 @@ void* pkgi_append(const char* path)
     return (void*)(intptr_t)fd;
 }
 
-int pkgi_seek(void* f, uint64_t offset)
+int64_t pkgi_seek(void* f, uint64_t offset)
 {
-    LOG("seeking to %d", offset);
-    int pos = sceIoLseek((intptr_t)f, offset, SCE_SEEK_SET);
+    LOGF("seeking to {}", offset);
+    auto const pos = sceIoLseek((intptr_t)f, offset, SCE_SEEK_SET);
     if (pos < 0)
     {
-        LOG("seek error: %08x", pos);
+        LOGF("sceIoLseek failed: {:#016x}", pos);
         return -1;
     }
     return pos;
