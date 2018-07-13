@@ -532,9 +532,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         case ModePspGames:
             if (item->presence == PresenceInstalled)
             {
-                LOG("[%s] %s - alreay installed",
-                    item->titleid.c_str(),
-                    item->name);
+                LOGF("[{}] {} - alreay installed", item->titleid, item->name);
                 pkgi_dialog_error("Already installed");
                 return;
             }
@@ -542,7 +540,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         case ModeDlcs:
             if (item->presence == PresenceInstalled)
             {
-                LOG("[%s] %s - alreay installed", item->content, item->name);
+                LOGF("[{}] {} - alreay installed", item->content, item->name);
                 pkgi_dialog_error("Already installed");
                 return;
             }
@@ -550,15 +548,13 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         case ModeUpdates:
             if (item->presence != PresenceGamePresent)
             {
-                LOG("[%s] %s - game not installed",
-                    item->titleid.c_str(),
-                    item->name);
+                LOGF("[{}] {} - game not installed", item->titleid, item->name);
                 pkgi_dialog_error("Corresponding game not installed");
                 return;
             }
             break;
         }
-        LOG("[%s] %s - starting to install", item->content, item->name);
+        LOGF("[{}] {} - starting to install", item->content, item->name);
         pkgi_start_download(downloader);
     }
     else if (input && (input->pressed & PKGI_BUTTON_T))
@@ -868,7 +864,7 @@ static void pkgi_reload()
     }
     catch (const std::exception& e)
     {
-        LOG("error during reload: %s", e.what());
+        LOGF("error during reload: {}", e.what());
         pkgi_dialog_error(
                 fmt::format(
                         "failed to reload db: {}, try to refresh?", e.what())
@@ -894,7 +890,7 @@ static void pkgi_open_db()
     }
     catch (const std::exception& e)
     {
-        LOG("error during database open: %s", e.what());
+        LOGF("error during database open: {}", e.what());
         throw formatEx<std::runtime_error>(
                 "DB initialization error: %s\nTry to delete them?");
     }
@@ -922,7 +918,7 @@ int main()
             const auto item = db->get_by_content(content.c_str());
             if (!item)
             {
-                LOG("couldn't find %s", content.c_str());
+                LOGF("couldn't find {}", content);
                 return;
             }
             item->presence = PresenceUnknown;
