@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.29
+
+Bug fixes:
+
+- Fixed error when unsafe mode is not activated
+- Fixed downloading of games that contain a single file bigger than 2GB
+
 ## 0.28
 
 What's new:
