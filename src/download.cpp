@@ -1100,6 +1100,7 @@ int Download::pkgi_download(
         try
         {
             pkgi_rm(fmt::format("{}.resume", root).c_str());
+            pkgi_delete_dir(root);
         }
         catch (const std::exception& e)
         {
