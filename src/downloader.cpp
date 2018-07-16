@@ -173,6 +173,8 @@ void Downloader::do_download(const DownloadItem& item)
         pkgi_install_pspgame(item.partition.c_str(), item.content.c_str());
         break;
     }
-    pkgi_rm(fmt::format("{}pkgi/{}", item.partition, item.content).c_str());
+    pkgi_rm(fmt::format("{}pkgi/{}.resume", item.partition, item.content)
+                    .c_str());
+    pkgi_delete_dir(fmt::format("{}pkgi/{}", item.partition, item.content));
     LOG("install of %s completed!", item.name.c_str());
 }
