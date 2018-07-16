@@ -749,20 +749,17 @@ void pkgi_install_update(const char* contentid)
 {
     pkgi_mkdirs("ux0:patch");
 
-    char path[128];
-    snprintf(path, sizeof(path), "ux0:pkgi/%s", contentid);
+    const auto src = fmt::format("ux0:pkgi/{}", contentid);
+    const auto dest = fmt::format("ux0:patch/{:.9}", contentid + 7);
 
-    char dest[128];
-    snprintf(dest, sizeof(dest), "ux0:patch/%.9s", contentid + 7);
-
-    LOG("deleting previous patch");
+    LOGF("deleting previous patch at {}", dest);
     pkgi_delete_dir(dest);
 
-    LOG("installing update at %s", path);
-    int res = sceIoRename(path, dest);
+    LOGF("installing update from {} to {}", src, dest);
+    const auto res = sceIoRename(src.c_str(), dest.c_str());
     if (res < 0)
-        throw std::runtime_error(fmt::format(
-                "failed to rename: {:#08x}", static_cast<uint32_t>(res)));
+        throw formatEx<std::runtime_error>(
+                "failed to rename: {:#08x}", static_cast<uint32_t>(res));
 }
 
 void pkgi_install_pspgame(const char* partition, const char* contentid)
