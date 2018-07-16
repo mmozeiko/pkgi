@@ -1,8 +1,7 @@
 #pragma once
 
 #include "http.hpp"
-
-#include <sqlite3.h>
+#include "sqlite.hpp"
 
 #include <array>
 #include <memory>
@@ -80,14 +79,6 @@ typedef enum {
     ModePspGames,
 } Mode;
 
-struct SqliteClose
-{
-    void operator()(sqlite3* s)
-    {
-        sqlite3_close(s);
-    }
-};
-
 std::string pkgi_mode_to_string(Mode mode);
 
 class TitleDatabase
@@ -122,7 +113,7 @@ private:
 
     std::vector<DbItem> db;
 
-    std::unique_ptr<sqlite3, SqliteClose> _sqliteDb = nullptr;
+    SqlitePtr _sqliteDb = nullptr;
 
     void parse_tsv_file(std::string& db_data);
 
