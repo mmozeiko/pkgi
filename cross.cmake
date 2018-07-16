@@ -33,6 +33,7 @@ add_executable(pkgj
   src/downloader.cpp
   src/vitahttp.cpp
   src/menu.cpp
+  src/sfo.cpp
   src/sha256.c
   src/vita.cpp
   src/zrif.c
