@@ -1,0 +1,62 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 69e6548..a1d52fc 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -234,10 +234,6 @@ ENABLE_TESTING()
+ 
+ # Targets
+ ADD_SUBDIRECTORY(lib)
+-ADD_SUBDIRECTORY(man)
+-ADD_SUBDIRECTORY(src)
+-ADD_SUBDIRECTORY(regress)
+-ADD_SUBDIRECTORY(examples)
+ 
+ # pkgconfig file
+ SET(prefix ${CMAKE_INSTALL_PREFIX})
+diff --git a/lib/zip_source_filep.c b/lib/zip_source_filep.c
+index 9fc9a01..6c17a7e 100644
+--- a/lib/zip_source_filep.c
++++ b/lib/zip_source_filep.c
+@@ -244,7 +244,6 @@ static int
+ create_temp_output(struct read_file *ctx) {
+     char *temp;
+     int tfd;
+-    mode_t mask;
+     FILE *tfp;
+ 
+     if ((temp = (char *)malloc(strlen(ctx->fname) + 8)) == NULL) {
+@@ -253,14 +252,11 @@ create_temp_output(struct read_file *ctx) {
+     }
+     sprintf(temp, "%s.XXXXXX", ctx->fname);
+ 
+-    mask = umask(_SAFE_MASK);
+     if ((tfd = mkstemp(temp)) == -1) {
+ 	zip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+-	umask(mask);
+ 	free(temp);
+ 	return -1;
+     }
+-    umask(mask);
+ 
+     if ((tfp = fdopen(tfd, "r+b")) == NULL) {
+ 	zip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+@@ -412,8 +408,6 @@ read_file(void *state, void *data, zip_uint64_t len, zip_source_cmd_t cmd) {
+ #endif
+ 
+     case ZIP_SOURCE_COMMIT_WRITE: {
+-	mode_t mask;
+-
+ 	if (fclose(ctx->fout) < 0) {
+ 	    ctx->fout = NULL;
+ 	    zip_error_set(&ctx->error, ZIP_ER_WRITE, errno);
+@@ -423,10 +417,6 @@ read_file(void *state, void *data, zip_uint64_t len, zip_source_cmd_t cmd) {
+ 	    zip_error_set(&ctx->error, ZIP_ER_RENAME, errno);
+ 	    return -1;
+ 	}
+-	mask = umask(022);
+-	umask(mask);
+-	/* not much we can do if chmod fails except make the whole commit fail */
+-	(void)chmod(ctx->fname, 0666 & ~mask);
+ 	free(ctx->tmpname);
+ 	ctx->tmpname = NULL;
+ 	return 0;

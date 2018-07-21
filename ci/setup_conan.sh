@@ -28,4 +28,5 @@ fi
 pipenv run conan export conan-vitasdk blastrock/pkgj
 pipenv run conan export conan-fmt blastrock/pkgj
 pipenv run conan export conan-bzip2 blastrock/pkgj
+pipenv run conan export conan-libzip blastrock/pkgj
 pipenv run conan export conan-vitasqlite blastrock/pkgj
