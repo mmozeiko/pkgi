@@ -1,4 +1,5 @@
 add_executable(pkgj_cli
+  src/comppackdb.cpp
   src/db.cpp
   src/download.cpp
   src/simulator.cpp

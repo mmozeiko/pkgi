@@ -27,6 +27,7 @@ add_executable(pkgj
   src/pkgi.cpp
   src/aes128.c
   src/config.cpp
+  src/comppackdb.cpp
   src/db.cpp
   src/dialog.cpp
   src/download.cpp

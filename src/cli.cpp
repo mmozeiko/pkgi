@@ -1,3 +1,4 @@
+#include "comppackdb.hpp"
 #include "db.hpp"
 #include "download.hpp"
 #include "filehttp.hpp"
@@ -13,7 +14,7 @@ extern "C" {
 
 static constexpr auto USAGE =
         "Usage: %s [extract <filename> <zrif> <sha256>] [refreshlist PSV "
-        "url]\n";
+        "path] [refreshcomppack path]\n";
 
 int extract(int argc, char* argv[])
 {
@@ -64,6 +65,23 @@ int refreshlist(int argc, char* argv[])
     return 0;
 }
 
+int refreshcomppack(int argc, char* argv[])
+{
+    if (argc != 3)
+    {
+        printf(USAGE, argv[0]);
+        return 1;
+    }
+
+    auto const http = std::make_unique<FileHttp>();
+
+    auto db = std::make_unique<CompPackDatabase>("comppack.db");
+    db->update(http.get(), argv[2]);
+    fmt::print("got {}\n", db->get("PCSH10119").value());
+
+    return 0;
+}
+
 int main(int argc, char* argv[])
 {
     if (argc < 2)
@@ -76,6 +94,8 @@ int main(int argc, char* argv[])
         return extract(argc, argv);
     if (std::string(argv[1]) == "refreshlist")
         return refreshlist(argc, argv);
+    if (std::string(argv[1]) == "refreshcomppack")
+        return refreshcomppack(argc, argv);
 
     printf(USAGE, argv[0]);
     return 1;
