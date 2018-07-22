@@ -108,7 +108,8 @@ public:
     // UI stuff
     uint32_t info_start;
     uint32_t info_update;
-    std::function<void(const Download& dl)> update_progress_cb;
+    std::function<void(uint64_t download_offset, uint64_t download_size)>
+            update_progress_cb;
     std::function<void(const std::string& status)> update_status;
     std::function<bool()> is_canceled;
 

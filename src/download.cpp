@@ -55,7 +55,7 @@ void Download::update_progress()
     uint32_t info_now = pkgi_time_msec();
     if (info_now >= info_update)
     {
-        update_progress_cb(*this);
+        update_progress_cb(download_offset, download_size);
         info_update = info_now + 500;
     }
 }

@@ -139,9 +139,10 @@ void Downloader::do_download(const DownloadItem& item)
     LOG("downloading %s", item.name.c_str());
     auto download = std::make_unique<Download>(std::make_unique<VitaHttp>());
     download->save_as_iso = item.save_as_iso;
-    download->update_progress_cb = [this](const Download& d) {
-        _download_offset = d.download_offset;
-        _download_size = d.download_size;
+    download->update_progress_cb = [this](uint64_t download_offset,
+                                          uint64_t download_size) {
+        _download_offset = download_offset;
+        _download_size = download_size;
     };
     download->update_status = [](auto&&) {};
     download->is_canceled = [this] { return _cancel_current || _dying; };
