@@ -1,6 +1,7 @@
 #include "comppackdb.hpp"
 #include "db.hpp"
 #include "download.hpp"
+#include "filedownload.hpp"
 #include "filehttp.hpp"
 extern "C" {
 #include "zrif.h"
@@ -14,7 +15,7 @@ extern "C" {
 
 static constexpr auto USAGE =
         "Usage: %s [extract <filename> <zrif> <sha256>] [refreshlist PSV "
-        "path] [refreshcomppack path]\n";
+        "path] [refreshcomppack path] [filedownload path]\n";
 
 int extract(int argc, char* argv[])
 {
@@ -82,6 +83,21 @@ int refreshcomppack(int argc, char* argv[])
     return 0;
 }
 
+int filedownload(int argc, char* argv[])
+{
+    if (argc != 3)
+    {
+        printf(USAGE, argv[0]);
+        return 1;
+    }
+
+    FileDownload d(std::make_unique<FileHttp>());
+
+    d.download("tmp", "id", argv[2]);
+
+    return 0;
+}
+
 int main(int argc, char* argv[])
 {
     if (argc < 2)
@@ -96,6 +112,8 @@ int main(int argc, char* argv[])
         return refreshlist(argc, argv);
     if (std::string(argv[1]) == "refreshcomppack")
         return refreshcomppack(argc, argv);
+    if (std::string(argv[1]) == "filedownload")
+        return filedownload(argc, argv);
 
     printf(USAGE, argv[0]);
     return 1;

@@ -32,6 +32,7 @@ add_executable(pkgj
   src/dialog.cpp
   src/download.cpp
   src/downloader.cpp
+  src/filedownload.cpp
   src/vitahttp.cpp
   src/menu.cpp
   src/sfo.cpp

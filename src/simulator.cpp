@@ -292,7 +292,11 @@ int pkgi_read(void* f, void* buffer, uint32_t size)
 
 int pkgi_write(void* f, const void* buffer, uint32_t size)
 {
-    return write((intptr_t)f, buffer, size);
+    const auto wrote = write((intptr_t)f, buffer, size);
+    if (wrote < 0)
+        throw formatEx<std::runtime_error>(
+                "failed to write to file:\n{}", strerror(errno));
+    return wrote;
 }
 
 void pkgi_close(void* f)

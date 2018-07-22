@@ -2,6 +2,7 @@ add_executable(pkgj_cli
   src/comppackdb.cpp
   src/db.cpp
   src/download.cpp
+  src/filedownload.cpp
   src/simulator.cpp
   src/aes128.c
   src/sfo.cpp
