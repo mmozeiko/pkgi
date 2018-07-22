@@ -8,6 +8,7 @@ What's new:
     config.txt
 - Added app version and required firmware on game update list
 - When updates are installed, they now correctly appear as a white bullet
+- New LiveArea design from JesterIOS
 
 ## 0.31
 
