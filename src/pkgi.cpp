@@ -6,6 +6,7 @@ extern "C" {
 #include "utils.h"
 #include "zrif.h"
 }
+#include "comppackdb.hpp"
 #include "config.hpp"
 #include "db.hpp"
 #include "download.hpp"
@@ -26,6 +27,7 @@ extern "C" {
 typedef enum {
     StateError,
     StateRefreshing,
+    StateCPRefreshing,
     StateMain,
 } State;
 
@@ -52,6 +54,7 @@ static char error_state[256];
 static std::string fw_version;
 
 static std::unique_ptr<TitleDatabase> db;
+static std::unique_ptr<CompPackDatabase> comppack_db;
 
 static void pkgi_open_db();
 
@@ -108,6 +111,23 @@ static void pkgi_refresh_thread(void)
                 "can't get list: %s",
                 e.what());
         pkgi_dialog_error(error_state);
+    }
+    state = StateMain;
+}
+
+static void pkgi_refresh_comppack_thread()
+{
+    LOG("starting update comppack");
+    try
+    {
+        auto const http = std::make_unique<VitaHttp>();
+        comppack_db->update(http.get(), config.comppack_url + "entries.txt");
+    }
+    catch (const std::exception& e)
+    {
+        pkgi_dialog_error(
+                fmt::format("failed to refresh comppack db:\n{}", e.what())
+                        .c_str());
     }
     state = StateMain;
 }
@@ -232,6 +252,12 @@ static void pkgi_refresh_list()
     state = StateRefreshing;
     current_url = pkgi_get_url_from_mode(mode).c_str();
     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
+}
+
+static void pkgi_refresh_comppack()
+{
+    state = StateCPRefreshing;
+    pkgi_start_thread("refresh_thread", &pkgi_refresh_comppack_thread);
 }
 
 static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
@@ -601,6 +627,15 @@ static void pkgi_do_refresh(void)
             (VITA_WIDTH - w) / 2, VITA_HEIGHT / 2, PKGI_COLOR_TEXT, text);
 }
 
+static void pkgi_do_refresh_comppack()
+{
+    const auto text = "Downloading compatibility packs database...";
+
+    int w = pkgi_text_width(text);
+    pkgi_draw_text(
+            (VITA_WIDTH - w) / 2, VITA_HEIGHT / 2, PKGI_COLOR_TEXT, text);
+}
+
 static void pkgi_do_head(void)
 {
     const char* version = PKGI_VERSION;
@@ -884,9 +919,11 @@ static void pkgi_open_db()
         db = nullptr;
         db = std::make_unique<TitleDatabase>(
                 mode,
-                (std::string(pkgi_get_config_folder()) + '/' +
-                 modeToDbName(mode))
-                        .c_str());
+                std::string(pkgi_get_config_folder()) + '/' +
+                        modeToDbName(mode));
+
+        comppack_db = std::make_unique<CompPackDatabase>(
+                std::string(pkgi_get_config_folder()) + "/comppack.db");
     }
     catch (const std::exception& e)
     {
@@ -956,6 +993,10 @@ int main()
 
             case StateRefreshing:
                 pkgi_do_refresh();
+                break;
+
+            case StateCPRefreshing:
+                pkgi_do_refresh_comppack();
                 break;
 
             case StateMain:
@@ -1030,6 +1071,9 @@ int main()
                         break;
                     case MenuResultRefresh:
                         pkgi_refresh_list();
+                        break;
+                    case MenuResultRefreshCompPack:
+                        pkgi_refresh_comppack();
                         break;
                     case MenuResultShowGames:
                         pkgi_set_mode(ModeGames);
