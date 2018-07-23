@@ -5,6 +5,7 @@ extern "C" {
 }
 #include "config.hpp"
 #include "db.hpp"
+#include "extractzip.hpp"
 #include "http.hpp"
 #include "sfo.hpp"
 
@@ -804,6 +805,21 @@ void pkgi_install_update(const char* contentid)
         throw formatEx<std::runtime_error>(
                 "can't execute version update SQL statement:\n{}",
                 sqlite3_errmsg(_sqliteDb.get()));
+}
+
+void pkgi_install_comppack(const char* titleid)
+{
+    const auto src = fmt::format("ux0:pkgi/{}-comp.ppk", titleid);
+    const auto dest = fmt::format("ux0:rePatch/{}", titleid);
+
+    pkgi_mkdirs(dest.c_str());
+
+    LOGF("deleting previous pack at {}", dest);
+    pkgi_delete_dir(dest);
+    pkgi_mkdirs(dest.c_str());
+
+    LOGF("installing comp pack from {} to {}", src, dest);
+    pkgi_extract_zip(src, dest);
 }
 
 void pkgi_install_pspgame(const char* partition, const char* contentid)

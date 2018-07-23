@@ -16,6 +16,7 @@ enum Type
     Dlc,
     PsxGame,
     PspGame,
+    CompPack,
 };
 
 struct DownloadItem
@@ -68,4 +69,7 @@ private:
 
     void run();
     void do_download(const DownloadItem& item);
+
+    void do_download_package(const DownloadItem& item);
+    void do_download_comppack(const DownloadItem& item);
 };
