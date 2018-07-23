@@ -262,6 +262,7 @@ int pkgi_save(const char* name, const void* data, uint32_t size)
 
 void* pkgi_create(const char* path)
 {
+    LOGF("pkgi_create {}", path);
     int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
     if (fd < 0)
     {

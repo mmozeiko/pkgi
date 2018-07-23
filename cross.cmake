@@ -32,6 +32,7 @@ add_executable(pkgj
   src/dialog.cpp
   src/download.cpp
   src/downloader.cpp
+  src/extractzip.cpp
   src/filedownload.cpp
   src/vitahttp.cpp
   src/menu.cpp
@@ -48,6 +49,7 @@ target_link_libraries(pkgj
   CONAN_PKG::boost_scope_exit
   CONAN_PKG::vitasqlite
   CONAN_PKG::cereal
+  CONAN_PKG::libzip
   png
   z
   m

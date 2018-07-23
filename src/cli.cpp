@@ -1,6 +1,7 @@
 #include "comppackdb.hpp"
 #include "db.hpp"
 #include "download.hpp"
+#include "extractzip.hpp"
 #include "filedownload.hpp"
 #include "filehttp.hpp"
 extern "C" {
@@ -98,6 +99,19 @@ int filedownload(int argc, char* argv[])
     return 0;
 }
 
+int extractzip(int argc, char* argv[])
+{
+    if (argc != 3)
+    {
+        printf(USAGE, argv[0]);
+        return 1;
+    }
+
+    pkgi_extract_zip(argv[2], "tmp");
+
+    return 0;
+}
+
 int main(int argc, char* argv[])
 {
     if (argc < 2)
@@ -114,6 +128,8 @@ int main(int argc, char* argv[])
         return refreshcomppack(argc, argv);
     if (std::string(argv[1]) == "filedownload")
         return filedownload(argc, argv);
+    if (std::string(argv[1]) == "extractzip")
+        return extractzip(argc, argv);
 
     printf(USAGE, argv[0]);
     return 1;
