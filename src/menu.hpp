@@ -10,6 +10,7 @@ typedef enum {
     MenuResultAccept,
     MenuResultCancel,
     MenuResultRefresh,
+    MenuResultRefreshCompPack,
     MenuResultShowGames,
     MenuResultShowUpdates,
     MenuResultShowDlcs,

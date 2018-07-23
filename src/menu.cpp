@@ -24,6 +24,7 @@ typedef enum {
     MenuSort,
     MenuFilter,
     MenuRefresh,
+    MenuRefreshCompPack,
     MenuShow,
 } MenuType;
 
@@ -52,6 +53,7 @@ static const MenuEntry menu_entries[] = {
         {MenuFilter, "USA", DbFilterRegionUSA},
 
         {MenuRefresh, "Refresh", 0},
+        {MenuRefreshCompPack, "Refresh comp pack", 0},
 
         {MenuShow, "Show games", 1},
         {MenuShow, "Show updates", 2},
@@ -187,6 +189,12 @@ int pkgi_do_menu(pkgi_input* input)
             menu_delta = -1;
             return 1;
         }
+        if (type == MenuRefreshCompPack)
+        {
+            menu_result = MenuResultRefreshCompPack;
+            menu_delta = -1;
+            return 1;
+        }
         else if (type == MenuShow)
         {
             switch (menu_entries[menu_selected].value)
@@ -271,7 +279,8 @@ int pkgi_do_menu(pkgi_input* input)
 
         char text[64];
         if (type == MenuSearch || type == MenuSearchClear || type == MenuText ||
-            type == MenuRefresh || type == MenuShow)
+            type == MenuRefresh || type == MenuRefreshCompPack ||
+            type == MenuShow)
         {
             pkgi_strncpy(text, sizeof(text), entry->text);
         }
