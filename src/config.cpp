@@ -167,6 +167,8 @@ Config pkgi_load_config()
                 config.psx_games_url = value;
             else if (pkgi_stricmp(key, "url_psp_games") == 0)
                 config.psp_games_url = value;
+            else if (pkgi_stricmp(key, "url_comppack") == 0)
+                config.comppack_url = value;
             else if (pkgi_stricmp(key, "sort") == 0)
                 config.sort = parse_sort(value, SortByName);
             else if (pkgi_stricmp(key, "order") == 0)
@@ -253,6 +255,12 @@ void pkgi_save_config(const Config& config)
                 sizeof(data) - len,
                 "url_psp_games %s\n",
                 config.psp_games_url.c_str());
+    if (!config.comppack_url.empty())
+        len += pkgi_snprintf(
+                data + len,
+                sizeof(data) - len,
+                "url_comppack %s\n",
+                config.comppack_url.c_str());
     if (!config.install_psp_psx_location.empty())
         len += pkgi_snprintf(
                 data + len,
