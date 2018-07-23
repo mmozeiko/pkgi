@@ -193,6 +193,30 @@ static void pkgi_start_download(Downloader& downloader)
     state = StateMain;
 }
 
+static void pkgi_start_download_comppack(Downloader& downloader)
+{
+    DbItem* item = db->get(selected_item);
+    const auto entry = comppack_db->get(item->titleid);
+    if (!entry)
+    {
+        pkgi_dialog_error(
+                fmt::format("No compatibility pack found for {}", item->titleid)
+                        .c_str());
+        return;
+    }
+
+    downloader.add(DownloadItem{CompPack,
+                                item->name,
+                                item->titleid,
+                                config.comppack_url + *entry,
+                                std::vector<uint8_t>{},
+                                std::vector<uint8_t>{},
+                                false,
+                                "ux0:"});
+
+    state = StateMain;
+}
+
 static void pkgi_friendly_size(char* text, uint32_t textlen, int64_t size)
 {
     if (size <= 0)
@@ -582,6 +606,15 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         }
         LOGF("[{}] {} - starting to install", item->content, item->name);
         pkgi_start_download(downloader);
+    }
+    else if (input && (input->pressed & PKGI_BUTTON_LT))
+    {
+        input->pressed &= ~PKGI_BUTTON_LT;
+
+        if (selected_item >= db->count())
+            return;
+
+        pkgi_start_download_comppack(downloader);
     }
     else if (input && (input->pressed & PKGI_BUTTON_T))
     {
