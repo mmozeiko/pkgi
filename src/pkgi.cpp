@@ -193,6 +193,14 @@ static void pkgi_start_download(Downloader& downloader)
 static void pkgi_start_download_comppack(Downloader& downloader)
 {
     DbItem* item = db->get(selected_item);
+
+    // HACK: comppack are identified by their titleid instead of content id
+    if (downloader.is_in_queue(item->titleid))
+    {
+        downloader.remove_from_queue(item->titleid);
+        return;
+    }
+
     const auto entry = comppack_db->get(item->titleid);
     if (!entry)
     {
