@@ -20,6 +20,11 @@ FileDownload::FileDownload(std::unique_ptr<Http> http) : _http(std::move(http))
 {
 }
 
+void FileDownload::update_progress()
+{
+    update_progress_cb(download_offset, download_size);
+}
+
 void FileDownload::start_download()
 {
     LOGF("requesting {}", download_url);
@@ -37,6 +42,8 @@ void FileDownload::download_data(uint32_t size)
 {
     if (size == 0)
         return;
+
+    update_progress();
 
     std::vector<uint8_t> buffer(size);
     {
@@ -71,7 +78,7 @@ void FileDownload::download_file()
 
     start_download();
 
-    static constexpr auto SAVE_PERIOD = 10 * 1024 * 1024;
+    static constexpr auto SAVE_PERIOD = 512 * 1024;
 
     while (download_offset < download_size)
     {

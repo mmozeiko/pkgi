@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -11,6 +12,9 @@
 class FileDownload
 {
 public:
+    std::function<void(uint64_t download_offset, uint64_t download_size)>
+            update_progress_cb;
+
     FileDownload(std::unique_ptr<Http> http);
 
     void download(
@@ -27,6 +31,8 @@ private:
     std::string download_url;
 
     void* item_file;
+
+    void update_progress();
 
     void start_download();
     void download_data(uint32_t size);

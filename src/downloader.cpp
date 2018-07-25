@@ -193,6 +193,12 @@ void Downloader::do_download_comppack(const DownloadItem& item)
     auto download =
             std::make_unique<FileDownload>(std::make_unique<VitaHttp>());
 
+    download->update_progress_cb = [this](uint64_t download_offset,
+                                          uint64_t download_size) {
+        _download_offset = download_offset;
+        _download_size = download_size;
+    };
+
     download->download(
             item.partition.c_str(), item.content.c_str(), item.url.c_str());
     LOGF("download of comppack {} completed!", item.url);
