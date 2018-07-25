@@ -523,7 +523,6 @@ bool lower(const DbItem& a, const DbItem& b, DbSort sort, DbSortOrder order)
 }
 
 void TitleDatabase::reload(
-        const std::string& max_fw_version,
         uint32_t region_filter,
         DbSort sort_by,
         DbSortOrder sort_order,
@@ -538,7 +537,7 @@ void TitleDatabase::reload(
     std::string query =
             "SELECT id, content, name, name_org, zrif, url, digest, size, "
             "last_modification "
-            "FROM titles WHERE fw_version <= ? ";
+            "FROM titles WHERE 1 ";
 
     if ((region_filter & DbFilterAllRegions) != DbFilterAllRegions)
         query += " AND region IN (" +
@@ -556,12 +555,10 @@ void TitleDatabase::reload(
         sqlite3_finalize(stmt);
     };
 
-    sqlite3_bind_text(
-            stmt, 1, max_fw_version.data(), max_fw_version.size(), nullptr);
     if (!search.empty())
     {
         const auto like = '%' + search + '%';
-        sqlite3_bind_text(stmt, 2, like.data(), like.size(), SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 1, like.data(), like.size(), SQLITE_TRANSIENT);
     }
 
     LOG("filling memory cache");

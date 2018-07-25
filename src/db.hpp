@@ -87,7 +87,6 @@ public:
     TitleDatabase(Mode mode, const std::string& dbPath);
 
     void reload(
-            const std::string& max_fw_version,
             uint32_t region_filter,
             DbSort sort_by,
             DbSortOrder sort_order,

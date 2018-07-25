@@ -59,7 +59,7 @@ int refreshlist(int argc, char* argv[])
 
     auto db = std::make_unique<TitleDatabase>(ModeGames, "db.db");
     db->update(http.get(), argv[3]);
-    db->reload("3.65", DbFilterAllRegions, SortBySize, SortDescending, "the");
+    db->reload(DbFilterAllRegions, SortBySize, SortDescending, "the");
     for (unsigned int i = 0; i < db->count(); ++i)
         fmt::print("{}: {}\n", db->get(i)->name, db->get(i)->size);
     fmt::print("{}/{}\n", db->count(), db->total());

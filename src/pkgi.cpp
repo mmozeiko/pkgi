@@ -51,8 +51,6 @@ static int bottom_y;
 static char search_text[256];
 static char error_state[256];
 
-static std::string fw_version;
-
 static std::unique_ptr<TitleDatabase> db;
 static std::unique_ptr<CompPackDatabase> comppack_db;
 
@@ -74,7 +72,6 @@ static void configure_db(
     try
     {
         db->reload(
-                fw_version,
                 config->filter,
                 config->sort,
                 config->order,
@@ -978,8 +975,6 @@ int main()
             throw std::runtime_error(
                     "pkgj requires unsafe mode to be enabled in Henkaku "
                     "settings!");
-
-        fw_version = pkgi_get_system_version();
 
         Downloader downloader;
 
