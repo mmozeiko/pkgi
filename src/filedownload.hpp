@@ -14,6 +14,7 @@ class FileDownload
 public:
     std::function<void(uint64_t download_offset, uint64_t download_size)>
             update_progress_cb;
+    std::function<bool()> is_canceled;
 
     FileDownload(std::unique_ptr<Http> http);
 

@@ -198,6 +198,7 @@ void Downloader::do_download_comppack(const DownloadItem& item)
         _download_offset = download_offset;
         _download_size = download_size;
     };
+    download->is_canceled = [this] { return _cancel_current || _dying; };
 
     download->download(
             item.partition.c_str(), item.content.c_str(), item.url.c_str());
