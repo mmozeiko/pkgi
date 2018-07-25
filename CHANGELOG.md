@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.31
+
+What's new:
+
+- Added support for downloading compatibility packs with the `url_comppack`
+    configuration option
+
 ## 0.30
 
 What's new:
