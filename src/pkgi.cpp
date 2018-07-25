@@ -620,6 +620,9 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
     }
     else if (input && (input->pressed & PKGI_BUTTON_LT))
     {
+        if (mode != ModeGames)
+            return;
+
         input->pressed &= ~PKGI_BUTTON_LT;
 
         if (selected_item >= db->count())
@@ -879,7 +882,7 @@ static void pkgi_do_tail(Downloader& downloader)
     else
     {
         DbItem* item = db->get(selected_item);
-        if (item && item->presence == PresenceInstalled)
+        if (mode == ModeGames && item && item->presence == PresenceInstalled)
             bottom_text = fmt::format(
                     "L {} ",
                     downloader.is_in_queue(item->titleid)
