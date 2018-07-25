@@ -862,25 +862,28 @@ static void pkgi_do_tail(Downloader& downloader)
     int left = pkgi_text_width(text) + PKGI_MAIN_TEXT_PADDING;
     int right = rightw + PKGI_MAIN_TEXT_PADDING;
 
+    std::string bottom_text;
     if (pkgi_menu_is_open())
     {
-        pkgi_snprintf(
-                text,
-                sizeof(text),
-                "%s select  " PKGI_UTF8_T " close  %s cancel",
+        bottom_text = fmt::format(
+                "{} select  " PKGI_UTF8_T " close  {} cancel",
                 pkgi_get_ok_str(),
                 pkgi_get_cancel_str());
     }
     else
     {
         DbItem* item = db->get(selected_item);
-        pkgi_snprintf(
-                text,
-                sizeof(text),
-                "%s %s  " PKGI_UTF8_T " menu",
-                pkgi_get_ok_str(),
-                item && item->presence == PresenceInstalling ? "cancel"
-                                                             : "install");
+        if (item && item->presence == PresenceInstalled)
+            bottom_text = fmt::format(
+                    "L {} ",
+                    downloader.is_in_queue(item->titleid)
+                            ? "cancel comp pack"
+                            : "install comp pack");
+        if (item && item->presence == PresenceInstalling)
+            bottom_text += fmt::format("{} cancel ", pkgi_get_ok_str());
+        else if (item && item->presence != PresenceInstalled)
+            bottom_text += fmt::format("{} install ", pkgi_get_ok_str());
+        bottom_text += PKGI_UTF8_T " menu";
     }
 
     pkgi_clip_set(
@@ -892,7 +895,7 @@ static void pkgi_do_tail(Downloader& downloader)
             (VITA_WIDTH - pkgi_text_width(text)) / 2,
             second_line,
             PKGI_COLOR_TEXT_TAIL,
-            text);
+            bottom_text.c_str());
     pkgi_clip_remove();
 }
 
