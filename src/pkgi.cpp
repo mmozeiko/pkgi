@@ -201,6 +201,12 @@ static void pkgi_start_download_comppack(Downloader& downloader)
         return;
     }
 
+    if (item->presence != PresenceInstalled)
+    {
+        LOGF("{} is not installed", item->content);
+        return;
+    }
+
     const auto entry = comppack_db->get(item->titleid);
     if (!entry)
     {
@@ -587,7 +593,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         case ModePspGames:
             if (item->presence == PresenceInstalled)
             {
-                LOGF("[{}] {} - alreay installed", item->titleid, item->name);
+                LOGF("[{}] {} - already installed", item->titleid, item->name);
                 pkgi_dialog_error("Already installed");
                 return;
             }
@@ -595,7 +601,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         case ModeDlcs:
             if (item->presence == PresenceInstalled)
             {
-                LOGF("[{}] {} - alreay installed", item->content, item->name);
+                LOGF("[{}] {} - already installed", item->content, item->name);
                 pkgi_dialog_error("Already installed");
                 return;
             }
