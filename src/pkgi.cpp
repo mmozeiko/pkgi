@@ -222,6 +222,19 @@ static void pkgi_start_download_comppack(Downloader& downloader)
         return;
     }
 
+    const auto app_version = fmt::format("{:0>5}", item->app_version);
+    if (!item->app_version.empty() && entry->app_version != app_version)
+    {
+        pkgi_dialog_error(fmt::format(
+                                  "No compatibility pack found for {}, version "
+                                  "{}, got {}",
+                                  item->titleid,
+                                  app_version,
+                                  entry->app_version)
+                                  .c_str());
+        return;
+    }
+
     downloader.add(DownloadItem{CompPack,
                                 item->name,
                                 item->titleid,
