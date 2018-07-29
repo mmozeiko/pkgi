@@ -10,6 +10,10 @@ What's new:
 - When updates are installed, they now correctly appear as a white bullet
 - New LiveArea design from JesterIOS
 
+Bug fixes:
+
+- Sort by date option is now correctly saved to configuration
+
 ## 0.31
 
 What's new:

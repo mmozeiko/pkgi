@@ -38,6 +38,10 @@ static DbSort parse_sort(const char* value, DbSort sort)
     {
         return SortBySize;
     }
+    else if (pkgi_stricmp(value, "date") == 0)
+    {
+        return SortByDate;
+    }
     else
     {
         return sort;
@@ -203,9 +207,10 @@ static const char* sort_str(DbSort sort)
         return "name";
     case SortBySize:
         return "size";
-    default:
-        return "";
+    case SortByDate:
+        return "date";
     }
+    return "";
 }
 
 static const char* order_str(DbSortOrder order)
@@ -216,9 +221,8 @@ static const char* order_str(DbSortOrder order)
         return "asc";
     case SortDescending:
         return "desc";
-    default:
-        return "";
     }
+    return "";
 }
 
 void pkgi_save_config(const Config& config)
