@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.32
+
+What's new:
+
+- Added support for downloading patches compatibility packs. No changes to
+    config.txt
+
 ## 0.31
 
 What's new:

@@ -118,7 +118,12 @@ static void pkgi_refresh_comppack_thread()
     try
     {
         auto const http = std::make_unique<VitaHttp>();
-        comppack_db->update(http.get(), config.comppack_url + "entries.txt");
+        if (mode == ModeUpdates)
+            comppack_db->update(
+                    http.get(), config.comppack_url + "entries_patch.txt");
+        else
+            comppack_db->update(
+                    http.get(), config.comppack_url + "entries.txt");
     }
     catch (const std::exception& e)
     {
@@ -201,7 +206,8 @@ static void pkgi_start_download_comppack(Downloader& downloader)
         return;
     }
 
-    if (item->presence != PresenceInstalled)
+    if ((mode == ModeGames && item->presence != PresenceInstalled) ||
+        (mode == ModeUpdates && item->presence != PresenceGamePresent))
     {
         LOGF("{} is not installed", item->content);
         return;
@@ -620,7 +626,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
     }
     else if (input && (input->pressed & PKGI_BUTTON_LT))
     {
-        if (mode != ModeGames)
+        if (mode != ModeGames && mode != ModeUpdates)
             return;
 
         input->pressed &= ~PKGI_BUTTON_LT;
@@ -882,7 +888,10 @@ static void pkgi_do_tail(Downloader& downloader)
     else
     {
         DbItem* item = db->get(selected_item);
-        if (mode == ModeGames && item && item->presence == PresenceInstalled)
+        if ((mode == ModeGames && item &&
+             item->presence == PresenceInstalled) ||
+            (mode == ModeUpdates && item &&
+             item->presence == PresenceGamePresent))
             bottom_text = fmt::format(
                     "L {} ",
                     downloader.is_in_queue(item->titleid)
@@ -901,7 +910,7 @@ static void pkgi_do_tail(Downloader& downloader)
             VITA_WIDTH - right - left,
             VITA_HEIGHT - second_line);
     pkgi_draw_text(
-            (VITA_WIDTH - pkgi_text_width(text)) / 2,
+            (VITA_WIDTH - pkgi_text_width(bottom_text.c_str())) / 2,
             second_line,
             PKGI_COLOR_TEXT_TAIL,
             bottom_text.c_str());
@@ -972,8 +981,13 @@ static void pkgi_open_db()
                 std::string(pkgi_get_config_folder()) + '/' +
                         modeToDbName(mode));
 
-        comppack_db = std::make_unique<CompPackDatabase>(
-                std::string(pkgi_get_config_folder()) + "/comppack.db");
+        if (mode == ModeUpdates)
+            comppack_db = std::make_unique<CompPackDatabase>(
+                    std::string(pkgi_get_config_folder()) +
+                    "/comppack_updates.db");
+        else
+            comppack_db = std::make_unique<CompPackDatabase>(
+                    std::string(pkgi_get_config_folder()) + "/comppack.db");
     }
     catch (const std::exception& e)
     {

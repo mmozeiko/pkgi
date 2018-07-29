@@ -814,8 +814,6 @@ void pkgi_install_comppack(const char* titleid)
 
     pkgi_mkdirs(dest.c_str());
 
-    LOGF("deleting previous pack at {}", dest);
-    pkgi_delete_dir(dest);
     pkgi_mkdirs(dest.c_str());
 
     LOGF("installing comp pack from {} to {}", src, dest);
