@@ -152,14 +152,6 @@ int64_t VitaHttp::get_length()
     if (status != 200 && status != 206)
         throw HttpError(fmt::format("bad http status: {}", status));
 
-    char* headers;
-    unsigned int size;
-    if (sceHttpGetAllResponseHeaders(_http->req, &headers, &size) >= 0)
-    {
-        LOG("response headers:");
-        LOG("%.*s", (int)size, headers);
-    }
-
     uint64_t content_length;
     res = sceHttpGetResponseContentLength(_http->req, &content_length);
     if (res < 0)
