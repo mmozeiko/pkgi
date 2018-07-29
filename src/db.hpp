@@ -61,6 +61,7 @@ typedef struct
     std::array<uint8_t, 32> digest;
     int64_t size;
     std::string date;
+    std::string app_version;
 } DbItem;
 
 typedef enum {

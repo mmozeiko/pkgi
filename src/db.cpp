@@ -92,7 +92,8 @@ void TitleDatabase::reopen()
                         _sqliteDb.get(),
                         R"(
                         SELECT id, content, name, name_org, zrif, url,
-                            digest, size, fw_version, last_modification, region
+                            digest, size, fw_version, last_modification, region,
+                            app_version
                         FROM titles
                         WHERE 0)",
                         -1,
@@ -122,7 +123,8 @@ void TitleDatabase::reopen()
             size INT,
             fw_version TEXT,
             last_modification DATETIME,
-            region TEXT NOT NULL
+            region TEXT NOT NULL,
+            app_version TEXT
         ))", "can't create table");
 }
 
@@ -163,6 +165,7 @@ enum class Column
     Content,
     Name,
     NameOrg,
+    AppVersion,
     Zrif,
     Url,
     Digest,
@@ -192,6 +195,7 @@ int pkgi_get_column_number(Mode mode, Column column)
             MAP_COL(Size, 8);
             MAP_COL(Digest, 9);
             MAP_COL(FwVersion, 10);
+            MAP_COL(AppVersion, -1);
         default:
             throw std::runtime_error("invalid column");
         }
@@ -200,6 +204,7 @@ int pkgi_get_column_number(Mode mode, Column column)
         {
             MAP_COL(Region, 1);
             MAP_COL(Name, 2);
+            MAP_COL(AppVersion, 3);
             MAP_COL(Url, 5);
             MAP_COL(LastModification, 7);
             MAP_COL(Size, 8);
@@ -224,6 +229,7 @@ int pkgi_get_column_number(Mode mode, Column column)
             MAP_COL(Digest, 8);
             MAP_COL(NameOrg, -1);
             MAP_COL(FwVersion, -1);
+            MAP_COL(AppVersion, -1);
         default:
             throw std::runtime_error("invalid column");
         }
@@ -240,6 +246,7 @@ int pkgi_get_column_number(Mode mode, Column column)
             MAP_COL(Digest, 8);
             MAP_COL(Zrif, -1);
             MAP_COL(FwVersion, -1);
+            MAP_COL(AppVersion, -1);
         default:
             throw std::runtime_error("invalid column");
         }
@@ -256,6 +263,7 @@ int pkgi_get_column_number(Mode mode, Column column)
             MAP_COL(FwVersion, -1);
             MAP_COL(NameOrg, -1);
             MAP_COL(Zrif, -1);
+            MAP_COL(AppVersion, -1);
         default:
             throw std::runtime_error("invalid column");
         }
@@ -300,8 +308,8 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
             sqlite3_prepare_v2(
                     _sqliteDb.get(),
                     R"(INSERT INTO titles
-                    (content, name, name_org, zrif, url, digest, size, fw_version, last_modification, region)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?))",
+                    (content, name, name_org, zrif, url, digest, size, fw_version, last_modification, region, app_version)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))",
                     -1,
                     &stmt,
                     nullptr),
@@ -339,6 +347,8 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
                     get_or_empty(mode, fields, Column::FwVersion);
             const auto last_modification =
                     get_or_empty(mode, fields, Column::LastModification);
+            const auto app_version =
+                    get_or_empty(mode, fields, Column::AppVersion);
 
             if (*url == '\0' || std::string(url) == "MISSING" ||
                 std::string(url) == "CART ONLY" ||
@@ -386,6 +396,8 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
                     strlen(last_modification),
                     nullptr);
             sqlite3_bind_text(stmt, 10, region, strlen(region), nullptr);
+            sqlite3_bind_text(
+                    stmt, 11, app_version, strlen(app_version), nullptr);
 
             auto err = sqlite3_step(stmt);
             if (err != SQLITE_DONE)
@@ -536,7 +548,7 @@ void TitleDatabase::reload(
 
     std::string query =
             "SELECT id, content, name, name_org, zrif, url, digest, size, "
-            "last_modification "
+            "last_modification, app_version "
             "FROM titles WHERE 1 ";
 
     if ((region_filter & DbFilterAllRegions) != DbFilterAllRegions)
@@ -596,6 +608,8 @@ void TitleDatabase::reload(
         const auto size = sqlite3_column_int64(stmt, 7);
         const char* date =
                 reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8));
+        const auto app_version =
+                reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9));
 
         db.push_back(DbItem{
                 PresenceUnknown,
@@ -610,6 +624,7 @@ void TitleDatabase::reload(
                 bdigest ? digest : std::array<uint8_t, 32>{},
                 size,
                 date,
+                app_version,
         });
     }
 

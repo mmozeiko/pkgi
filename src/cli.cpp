@@ -47,6 +47,35 @@ int extract(int argc, char* argv[])
     return 0;
 }
 
+Mode arg_to_mode(std::string const& arg)
+{
+    if (arg == "PSVGAMES")
+        return ModeGames;
+    else if (arg == "PSVUPDATES")
+        return ModeUpdates;
+    else
+        throw std::runtime_error("unsupported arg: " + arg);
+}
+
+std::string modeToDbName(Mode mode)
+{
+    switch (mode)
+    {
+    case ModeGames:
+        return "pkgj_games.db";
+    case ModeDlcs:
+        return "pkgj_dlcs.db";
+    case ModeUpdates:
+        return "pkgj_updates.db";
+    case ModePspGames:
+        return "pkgj_pspgames.db";
+    case ModePsxGames:
+        return "pkgj_psxgames.db";
+    }
+    throw std::runtime_error(
+            fmt::format("unknown mode: {}", static_cast<int>(mode)));
+}
+
 int refreshlist(int argc, char* argv[])
 {
     if (argc != 4)
@@ -57,7 +86,9 @@ int refreshlist(int argc, char* argv[])
 
     const auto http = std::make_unique<FileHttp>();
 
-    const auto db = std::make_unique<TitleDatabase>(ModeGames, "db.db");
+    const auto mode = arg_to_mode(argv[2]);
+
+    const auto db = std::make_unique<TitleDatabase>(mode, modeToDbName(mode));
     db->update(http.get(), argv[3]);
     db->reload(DbFilterAllRegions, SortBySize, SortDescending, "the");
     for (unsigned int i = 0; i < db->count(); ++i)
