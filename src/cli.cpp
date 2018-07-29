@@ -79,7 +79,7 @@ int refreshcomppack(int argc, char* argv[])
 
     auto db = std::make_unique<CompPackDatabase>("comppack.db");
     db->update(http.get(), argv[2]);
-    fmt::print("got {}\n", db->get("PCSH10119").value());
+    fmt::print("got {}\n", db->get("PCSA00134").value());
 
     return 0;
 }

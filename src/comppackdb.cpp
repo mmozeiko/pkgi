@@ -13,6 +13,7 @@ extern "C" {
 
 #include <algorithm>
 #include <cstring>
+#include <regex>
 #include <stdexcept>
 #include <string>
 
@@ -37,7 +38,7 @@ void CompPackDatabase::reopen()
                 sqlite3_prepare_v2(
                         _sqliteDb.get(),
                         R"(
-                        SELECT titleid, path
+                        SELECT titleid, app_version, path
                         FROM entries
                         WHERE 0)",
                         -1,
@@ -57,8 +58,10 @@ void CompPackDatabase::reopen()
 
     SQLITE_EXEC(_sqliteDb, R"(
         CREATE TABLE IF NOT EXISTS entries (
-            titleid TEXT NOT NULL PRIMARY KEY,
-            path TEXT NOT NULL
+            titleid TEXT NOT NULL,
+            app_version TEXT NOT NULL,
+            path TEXT NOT NULL,
+            PRIMARY KEY (titleid, app_version)
         ))", "can't create comp pack table");
 }
 
@@ -122,8 +125,8 @@ void CompPackDatabase::parse_entries(std::string& db_data)
             sqlite3_prepare_v2(
                     _sqliteDb.get(),
                     R"(INSERT INTO entries
-                    (titleid, path)
-                    VALUES (?, ?))",
+                    (titleid, path, app_version)
+                    VALUES (?, ?, ?))",
                     -1,
                     &stmt,
                     nullptr),
@@ -136,21 +139,32 @@ void CompPackDatabase::parse_entries(std::string& db_data)
     char* ptr = db_data.data();
     char* end = db_data.data() + db_data.size();
 
+    const auto regex = std::regex(
+            R"(([A-Z]{4}\d{5})-(\d{2}_\d{3})-(\d{2}_\d{2})-(\d{2}_\d{2}).ppk)");
+
+    const char* current_line = ptr;
     while (ptr < end && *ptr)
     {
         try
         {
+            current_line = ptr;
             const auto fields = pkgi_split_row(&ptr, end);
             if (fields.size() < 1)
                 throw std::runtime_error("failed to split line");
 
-            const auto path = fields[0];
+            const auto path = std::string(fields[0]);
 
-            const auto titleid = std::string(path, 9);
+            std::smatch matches;
+            if (!std::regex_search(path, matches, regex))
+                throw formatEx<std::runtime_error>("regex didn't match");
+            const auto titleid = matches.str(1);
+            const auto app_version = matches.str(3);
 
             sqlite3_reset(stmt);
             sqlite3_bind_text(stmt, 1, titleid.data(), titleid.size(), nullptr);
-            sqlite3_bind_text(stmt, 2, path, strlen(path), nullptr);
+            sqlite3_bind_text(stmt, 2, path.data(), path.size(), nullptr);
+            sqlite3_bind_text(
+                    stmt, 3, app_version.data(), app_version.size(), nullptr);
 
             auto err = sqlite3_step(stmt);
             if (err != SQLITE_DONE)
@@ -161,7 +175,7 @@ void CompPackDatabase::parse_entries(std::string& db_data)
         catch (const std::exception& e)
         {
             throw formatEx<std::runtime_error>(
-                    "failed to parse line\n{}\n{}", ptr, e.what());
+                    "failed to parse line\n{}\n{}", current_line, e.what());
         }
     }
 }
