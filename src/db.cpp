@@ -548,7 +548,7 @@ void TitleDatabase::reload(
 
     std::string query =
             "SELECT id, content, name, name_org, zrif, url, digest, size, "
-            "last_modification, app_version "
+            "last_modification, app_version, fw_version "
             "FROM titles WHERE 1 ";
 
     if ((region_filter & DbFilterAllRegions) != DbFilterAllRegions)
@@ -588,7 +588,7 @@ void TitleDatabase::reload(
 
         std::string content =
                 reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        const char* name =
+        const std::string name =
                 reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
         const char* name_org =
                 reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
@@ -608,15 +608,23 @@ void TitleDatabase::reload(
         const auto size = sqlite3_column_int64(stmt, 7);
         const char* date =
                 reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8));
-        const auto app_version =
+        const std::string app_version =
                 reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9));
+        const std::string fw_version =
+                reinterpret_cast<const char*>(sqlite3_column_text(stmt, 10));
+
+        std::string full_name = name;
+        if (!app_version.empty())
+            full_name = fmt::format("{} ({})", name, app_version);
+        if (!name.empty() && name.back() != ']' && fw_version > "3.60")
+            full_name = fmt::format("{} [{}]", full_name, fw_version);
 
         db.push_back(DbItem{
                 PresenceUnknown,
                 content.size() >= 7 + 9 ? content.substr(7, 9) : "",
                 content,
                 0,
-                name,
+                full_name,
                 name_org ? name_org : "",
                 zrif ? zrif : "",
                 url,
