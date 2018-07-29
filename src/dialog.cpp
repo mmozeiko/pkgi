@@ -63,6 +63,8 @@ void pkgi_dialog_message(const char* text)
 
 void pkgi_dialog_error(const char* text)
 {
+    LOGF("Error dialog: {}", text);
+
     pkgi_dialog_lock();
 
     pkgi_strncpy(dialog_title, sizeof(dialog_title), "ERROR");
