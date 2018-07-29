@@ -92,6 +92,8 @@ uint64_t pkgi_get_free_space(const char*);
 const char* pkgi_get_config_folder(void);
 int pkgi_is_incomplete(const char* partition, const char* titleid);
 int pkgi_is_installed(const char* titleid);
+bool pkgi_update_is_installed(
+        const std::string& titleid, const std::string& request_version);
 int pkgi_dlc_is_installed(const char* content);
 int pkgi_psp_is_installed(const char* psppartition, const char* content);
 int pkgi_psx_is_installed(const char* psppartition, const char* content);

@@ -7,6 +7,7 @@ What's new:
 - Added support for downloading patches compatibility packs. No changes to
     config.txt
 - Added app version and required firmware on game update list
+- When updates are installed, they now correctly appear as a white bullet
 
 ## 0.31
 

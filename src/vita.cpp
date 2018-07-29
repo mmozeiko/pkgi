@@ -650,6 +650,26 @@ int pkgi_is_installed(const char* titleid)
     return res == 0;
 }
 
+bool pkgi_update_is_installed(
+        const std::string& titleid, const std::string& request_version)
+{
+    const auto patch_dir = fmt::format("ux0:patch/{}", titleid);
+
+    if (!pkgi_file_exists(patch_dir.c_str()))
+        return false;
+
+    const auto sfo = pkgi_load(fmt::format("{}/sce_sys/param.sfo", patch_dir));
+    const auto installed_version =
+            pkgi_sfo_get_string(sfo.data(), sfo.size(), "APP_VER");
+
+    const auto full_request_version = fmt::format("{:0>5}", request_version);
+
+    if (installed_version != full_request_version)
+        return false;
+
+    return true;
+}
+
 int pkgi_dlc_is_installed(const char* content)
 {
     return pkgi_file_exists(

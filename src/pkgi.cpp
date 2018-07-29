@@ -207,7 +207,7 @@ static void pkgi_start_download_comppack(Downloader& downloader)
     }
 
     if ((mode == ModeGames && item->presence != PresenceInstalled) ||
-        (mode == ModeUpdates && item->presence != PresenceGamePresent))
+        (mode == ModeUpdates && item->presence != PresenceInstalled))
     {
         LOGF("{} is not installed", item->content);
         return;
@@ -419,40 +419,47 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 
         if (item->presence == PresenceUnknown)
         {
-            if (mode == ModeGames)
+            switch (mode)
             {
+            case ModeGames:
                 if (pkgi_is_installed(titleid))
                     item->presence = PresenceInstalled;
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
-            }
-            else if (mode == ModePspGames)
-            {
+                break;
+            case ModePspGames:
                 if (pkgi_psp_is_installed(
                             pkgi_get_mode_partition(), item->content.c_str()))
                     item->presence = PresenceInstalled;
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
-            }
-            else if (mode == ModePsxGames)
-            {
+                break;
+            case ModePsxGames:
                 if (pkgi_psx_is_installed(
                             pkgi_get_mode_partition(), item->content.c_str()))
                     item->presence = PresenceInstalled;
                 else if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
-            }
-            else
-            {
+                break;
+            case ModeDlcs:
                 if (downloader.is_in_queue(item->content))
                     item->presence = PresenceInstalling;
-                else if (
-                        mode == ModeDlcs &&
-                        pkgi_dlc_is_installed(item->content.c_str()))
+                else if (pkgi_dlc_is_installed(item->content.c_str()))
                     item->presence = PresenceInstalled;
                 else if (pkgi_is_installed(titleid))
                     item->presence = PresenceGamePresent;
+                break;
+            case ModeUpdates:
+                if (downloader.is_in_queue(item->content))
+                    item->presence = PresenceInstalling;
+                else if (pkgi_update_is_installed(
+                                 item->titleid, item->app_version))
+                    item->presence = PresenceInstalled;
+                else if (pkgi_is_installed(titleid))
+                    item->presence = PresenceGamePresent;
+                break;
             }
+
             if (item->presence == PresenceUnknown)
             {
                 if (pkgi_is_incomplete(
@@ -618,14 +625,13 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
             }
             break;
         case ModeDlcs:
+        case ModeUpdates:
             if (item->presence == PresenceInstalled)
             {
                 LOGF("[{}] {} - already installed", item->content, item->name);
                 pkgi_dialog_error("Already installed");
                 return;
             }
-            // fallthrough
-        case ModeUpdates:
             if (item->presence != PresenceGamePresent)
             {
                 LOGF("[{}] {} - game not installed", item->titleid, item->name);
@@ -901,10 +907,8 @@ static void pkgi_do_tail(Downloader& downloader)
     else
     {
         DbItem* item = db->get(selected_item);
-        if ((mode == ModeGames && item &&
-             item->presence == PresenceInstalled) ||
-            (mode == ModeUpdates && item &&
-             item->presence == PresenceGamePresent))
+        if ((mode == ModeGames || mode == ModeUpdates) && item &&
+            item->presence == PresenceInstalled)
             bottom_text = fmt::format(
                     "L {} ",
                     downloader.is_in_queue(item->titleid)
