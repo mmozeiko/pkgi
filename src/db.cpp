@@ -205,6 +205,7 @@ int pkgi_get_column_number(Mode mode, Column column)
             MAP_COL(Region, 1);
             MAP_COL(Name, 2);
             MAP_COL(AppVersion, 3);
+            MAP_COL(FwVersion, 4);
             MAP_COL(Url, 5);
             MAP_COL(LastModification, 7);
             MAP_COL(Size, 8);
@@ -212,7 +213,6 @@ int pkgi_get_column_number(Mode mode, Column column)
             MAP_COL(Content, -1);
             MAP_COL(NameOrg, -1);
             MAP_COL(Zrif, -1);
-            MAP_COL(FwVersion, -1);
         default:
             throw std::runtime_error("invalid column");
         }
