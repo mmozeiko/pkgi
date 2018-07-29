@@ -221,7 +221,8 @@ void CompPackDatabase::update(Http* http, const std::string& update_url)
     LOG("finished parsing");
 }
 
-std::optional<std::string> CompPackDatabase::get(const std::string& titleid)
+std::optional<CompPackDatabase::Item> CompPackDatabase::get(
+        const std::string& titleid)
 {
     // we need to reopen the db before every query because for some reason,
     // after the app is suspended, all further query will return disk I/O error
@@ -233,7 +234,7 @@ std::optional<std::string> CompPackDatabase::get(const std::string& titleid)
     SQLITE_CHECK(
             sqlite3_prepare_v2(
                     _sqliteDb.get(),
-                    "SELECT path "
+                    "SELECT path, app_version "
                     "FROM entries "
                     "WHERE titleid = ? ",
                     -1,
@@ -255,5 +256,13 @@ std::optional<std::string> CompPackDatabase::get(const std::string& titleid)
                 "can't execute SQL statement:\n{}",
                 sqlite3_errmsg(_sqliteDb.get())));
 
-    return reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+    std::string app_version =
+            reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+    // replace _ by .
+    app_version[2] = '.';
+
+    return Item{
+            reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)),
+            app_version,
+    };
 }

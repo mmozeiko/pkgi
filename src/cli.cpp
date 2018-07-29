@@ -55,9 +55,9 @@ int refreshlist(int argc, char* argv[])
         return 1;
     }
 
-    auto const http = std::make_unique<FileHttp>();
+    const auto http = std::make_unique<FileHttp>();
 
-    auto db = std::make_unique<TitleDatabase>(ModeGames, "db.db");
+    const auto db = std::make_unique<TitleDatabase>(ModeGames, "db.db");
     db->update(http.get(), argv[3]);
     db->reload(DbFilterAllRegions, SortBySize, SortDescending, "the");
     for (unsigned int i = 0; i < db->count(); ++i)
@@ -75,11 +75,12 @@ int refreshcomppack(int argc, char* argv[])
         return 1;
     }
 
-    auto const http = std::make_unique<FileHttp>();
+    const auto http = std::make_unique<FileHttp>();
 
-    auto db = std::make_unique<CompPackDatabase>("comppack.db");
+    const auto db = std::make_unique<CompPackDatabase>("comppack.db");
     db->update(http.get(), argv[2]);
-    fmt::print("got {}\n", db->get("PCSA00134").value());
+    const auto item = db->get("PCSA00134").value();
+    fmt::print("got {} {}\n", item.path, item.app_version);
 
     return 0;
 }

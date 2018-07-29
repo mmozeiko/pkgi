@@ -14,11 +14,17 @@
 class CompPackDatabase
 {
 public:
+    struct Item
+    {
+        std::string path;
+        std::string app_version;
+    };
+
     CompPackDatabase(const std::string& dbPath);
 
     void update(Http* http, const std::string& update_url);
 
-    std::optional<std::string> get(const std::string& titleid);
+    std::optional<Item> get(const std::string& titleid);
 
 private:
     static constexpr auto MAX_DB_SIZE = 4 * 1024 * 1024;

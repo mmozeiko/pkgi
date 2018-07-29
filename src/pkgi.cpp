@@ -219,7 +219,7 @@ static void pkgi_start_download_comppack(Downloader& downloader)
     downloader.add(DownloadItem{CompPack,
                                 item->name,
                                 item->titleid,
-                                config.comppack_url + *entry,
+                                config.comppack_url + entry->path,
                                 std::vector<uint8_t>{},
                                 std::vector<uint8_t>{},
                                 false,
