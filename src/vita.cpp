@@ -720,7 +720,7 @@ void pkgi_delete_dir(const std::string& path)
 
     if (dfd < 0)
         throw formatEx<std::runtime_error>(
-                "failed sceIoDopen({}): {:#08x}",
+                "failed sceIoDopen({}):\n{:#08x}",
                 path,
                 static_cast<uint32_t>(dfd));
 
@@ -750,7 +750,7 @@ void pkgi_delete_dir(const std::string& path)
             const auto ret = sceIoRemove(new_path.c_str());
             if (ret < 0)
                 throw formatEx<std::runtime_error>(
-                        "failed sceIoRemove({}): {:#08x}",
+                        "failed sceIoRemove({}):\n{:#08x}",
                         new_path,
                         static_cast<uint32_t>(ret));
         }
@@ -762,7 +762,7 @@ void pkgi_delete_dir(const std::string& path)
     res = sceIoRmdir(path.c_str());
     if (res < 0)
         throw formatEx<std::runtime_error>(
-                "failed sceIoRmdir({}): {:#08x}",
+                "failed sceIoRmdir({}):\n{:#08x}",
                 path,
                 static_cast<uint32_t>(res));
 }
@@ -957,7 +957,7 @@ std::vector<uint8_t> pkgi_load(const std::string& path)
     SceUID fd = sceIoOpen(path.c_str(), SCE_O_RDONLY, 0777);
     if (fd < 0)
         throw std::runtime_error(fmt::format(
-                "sceIoOpen({}) failed: {:#08x}",
+                "sceIoOpen({}) failed:\n{:#08x}",
                 path.c_str(),
                 static_cast<uint32_t>(fd)));
 
@@ -969,7 +969,7 @@ std::vector<uint8_t> pkgi_load(const std::string& path)
     const auto read = sceIoRead(fd, data.data(), data.size());
     if (read < 0)
         throw std::runtime_error(fmt::format(
-                "sceIoRead({}) failed: {:#08x}",
+                "sceIoRead({}) failed:\n{:#08x}",
                 path.c_str(),
                 static_cast<uint32_t>(read)));
 
@@ -1098,7 +1098,7 @@ void pkgi_mkdirs(const char* ppath)
         int err = sceIoMkdir(path.c_str(), 0777);
         if (err < 0 && err != PKGI_ERRNO_EEXIST)
             throw std::runtime_error(fmt::format(
-                    "sceIoMkdir({}) failed: {:#08x}",
+                    "sceIoMkdir({}) failed:\n{:#08x}",
                     path.c_str(),
                     static_cast<uint32_t>(err)));
         *ptr = last;
@@ -1138,7 +1138,7 @@ void pkgi_rename(const char* from, const char* to)
     int res = sceIoRename(from, to);
     if (res < 0)
         throw std::runtime_error(fmt::format(
-                "failed to rename from {} to {}: {:#08x}",
+                "failed to rename from {} to {}:\n{:#08x}",
                 from,
                 to,
                 static_cast<uint32_t>(res)));
