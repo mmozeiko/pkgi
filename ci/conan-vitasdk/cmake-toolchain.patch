@@ -1,0 +1,12 @@
+diff -r -u vitasdk/share/vita.toolchain.cmake vitasdk2/share/vita.toolchain.cmake
+--- vitasdk/share/vita.toolchain.cmake	2018-06-06 18:35:09.000000000 +0200
++++ vitasdk2/share/vita.toolchain.cmake	2018-07-23 20:46:20.495333991 +0200
+@@ -108,6 +108,5 @@
+ set( CMAKE_FIND_ROOT_PATH "${VITASDK}/bin" "${VITASDK}/arm-vita-eabi" "${CMAKE_INSTALL_PREFIX}" "${CMAKE_INSTALL_PREFIX}/share" )
+ set( CMAKE_INSTALL_PREFIX "${VITASDK}/arm-vita-eabi" CACHE PATH "default install path" )
+ 
+-# only search for libraries and includes in vita toolchain
+-set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )
+-set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )
++set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH )
++set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE BOTH )

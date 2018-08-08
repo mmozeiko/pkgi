@@ -1,0 +1,15 @@
+diff --git a/libsqlite/sqlite.c b/libsqlite/sqlite.c
+index 68fbfbd..fa795e0 100644
+--- a/libsqlite/sqlite.c
++++ b/libsqlite/sqlite.c
+@@ -200,6 +200,10 @@ static int vita_xSync(sqlite3_file *file, int flags)
+ 
+ static int vita_xOpen(sqlite3_vfs *vfs, const char *name, sqlite3_file *file, int flags, int *out_flags)
+ {
++	char tempbuf[] = "ux0:data/sqlite-tmp-XXXXXX";
++	if (name == NULL)
++		name = mktemp(tempbuf);
++
+ 	sqlite3_vfs* org_vfs = (sqlite3_vfs*)vfs->pAppData;
+ 
+ 	LOG("open %s: flags = %08x, ", name, flags);
