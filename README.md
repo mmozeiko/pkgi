@@ -113,8 +113,8 @@ Press left or right button to move page up or down.
 8. The PSM Games don't work.
 
   If you followed the instructions for [NoPsmDrm][], you can try to activate
-  your account for psm games using [NoPsmDrm
-  Fixer][https://github.com/Yoti/psv_npdrmfix].
+  your account for psm games using
+  [NoPsmDrm Fixer](https://github.com/Yoti/psv_npdrmfix).
 
 9. I don't want to loose my livearea layout/This is too much effort, there
    should be a better way.
