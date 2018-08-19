@@ -30,7 +30,9 @@ class Bzip2Conan(ConanFile):
 
     def source(self):
         zip_name = "bzip2-%s.tar.gz" % self.version
-        tools.download("http://www.bzip.org/%s/%s" % (self.version, zip_name), zip_name)
+        # url = "http://www.bzip.org/%s/%s" % (self.version, zip_name)
+        url = "https://bintray.com/conan/Sources/download_file?file_path=%s" % zip_name
+        tools.download(url, zip_name)
         tools.check_md5(zip_name, "00b516f4704d4a7cb50a1d97e6e8e15b")
         tools.unzip(zip_name)
         os.unlink(zip_name)
