@@ -38,6 +38,7 @@ add_executable(pkgj
   src/menu.cpp
   src/sfo.cpp
   src/sha256.c
+  src/update.cpp
   src/vita.cpp
   src/zrif.c
   src/puff.c

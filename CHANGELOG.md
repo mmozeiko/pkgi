@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.34
+
+What's new:
+
+- If a new version is available, a message will appear on start (unless `no_version_check 1` is in the config file)
+
 ## 0.33
 
 What's new:

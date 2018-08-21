@@ -55,7 +55,7 @@ Press left or right button to move page up or down.
 
 # Q&A
 
-1. Where to get zRIF string? 
+1. Where to get zRIF string?
 
   You must use [NoNpDrm][] plugin to dump existing games you have. Plugin will generate rif file with fake license.
   Then you can use either [web page][zrif_online_converter] or [make_key][pkg_dec] to convert rif file to zRIF string.
@@ -132,6 +132,10 @@ Press left or right button to move page up or down.
 10. I'VE ADDED THE PSM URL TO THE CONFIG AND THERES NO MENU OPTION!!
 
   Please read this Q&A carefully
+
+11. I want to disable version checking on start
+
+  Add `no_version_check 1` to your config file
 
 # Building
 

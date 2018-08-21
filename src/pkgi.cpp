@@ -1,6 +1,7 @@
 #include "pkgi.hpp"
 
-extern "C" {
+extern "C"
+{
 #include "dialog.h"
 #include "style.h"
 #include "utils.h"
@@ -12,6 +13,7 @@ extern "C" {
 #include "download.hpp"
 #include "downloader.hpp"
 #include "menu.hpp"
+#include "update.hpp"
 #include "vitahttp.hpp"
 
 #include <fmt/format.h>
@@ -24,7 +26,8 @@ extern "C" {
 #define PKGI_UPDATE_URL \
     "https://api.github.com/repos/blastrock/pkgj/releases/latest"
 
-typedef enum {
+typedef enum
+{
     StateError,
     StateRefreshing,
     StateCPRefreshing,
@@ -672,12 +675,14 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         input->pressed &= ~PKGI_BUTTON_T;
 
         config_temp = config;
-        int allow_refresh = !config.games_url.empty() << 0 |
-                            !config.updates_url.empty() << 1 |
-                            !config.dlcs_url.empty() << 2 |
-                            !config.psx_games_url.empty() << 3 |
-                            !config.psp_games_url.empty() << 4 |
-                            (!config.psm_games_url.empty() && config.psm_readme_disclaimer) << 5;
+        int allow_refresh =
+                !config.games_url.empty() << 0 |
+                !config.updates_url.empty() << 1 |
+                !config.dlcs_url.empty() << 2 |
+                !config.psx_games_url.empty() << 3 |
+                !config.psp_games_url.empty() << 4 |
+                (!config.psm_games_url.empty() && config.psm_readme_disclaimer)
+                        << 5;
         pkgi_menu_start(search_active, &config, allow_refresh);
     }
 }
@@ -1070,6 +1075,9 @@ int main()
         pkgi_open_db();
 
         pkgi_texture background = pkgi_load_png(background);
+
+        if (!config.no_version_check)
+            start_update_thread();
 
         pkgi_input input;
         while (pkgi_update(&input))
