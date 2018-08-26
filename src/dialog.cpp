@@ -19,7 +19,6 @@ typedef enum
 DialogType dialog_type;
 std::string dialog_title;
 std::string dialog_text;
-std::string dialog_extra;
 int dialog_allow_close;
 int dialog_cancelled;
 
@@ -57,7 +56,6 @@ void pkgi_dialog_message(const char* text)
 
     dialog_text = text;
     dialog_title = "";
-    dialog_extra = "";
 
     dialog_cancelled = 0;
     dialog_type = DialogMessage;
@@ -74,7 +72,6 @@ void pkgi_dialog_error(const char* text)
 
     dialog_title = "ERROR";
     dialog_text = text;
-    dialog_extra = "";
 
     dialog_cancelled = 0;
     dialog_type = DialogError;
@@ -114,7 +111,6 @@ void pkgi_do_dialog(pkgi_input* input)
         {
             dialog_type = DialogNone;
             dialog_text = "";
-            dialog_extra[0] = 0;
 
             dialog_width = 0;
             dialog_height = 0;
@@ -137,14 +133,12 @@ void pkgi_do_dialog(pkgi_input* input)
     DialogType local_type = dialog_type;
     std::string local_title;
     std::string local_text;
-    std::string local_extra;
     int local_allow_close = dialog_allow_close;
     int32_t local_width = dialog_width;
     int32_t local_height = dialog_height;
 
     local_title = dialog_title;
     local_text = dialog_text;
-    local_extra = dialog_extra;
 
     pkgi_dialog_unlock();
 
