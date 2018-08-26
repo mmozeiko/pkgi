@@ -51,6 +51,7 @@ target_link_libraries(pkgj
   CONAN_PKG::vitasqlite
   CONAN_PKG::cereal
   CONAN_PKG::libzip
+  CONAN_PKG::imgui
   png
   z
   m
