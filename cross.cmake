@@ -34,7 +34,11 @@ _binary_${symbol}_end:"
   set(${target} "${result}" PARENT_SCOPE)
 endfunction()
 
-add_assets(assets assets/background.png)
+add_assets(assets
+  assets/background.png
+  assets/imgui_v_cg.gxp
+  assets/imgui_f_cg.gxp
+)
 
 add_executable(pkgj
   ${assets}
@@ -48,6 +52,7 @@ add_executable(pkgj
   src/downloader.cpp
   src/extractzip.cpp
   src/filedownload.cpp
+  src/imgui.cpp
   src/vitahttp.cpp
   src/menu.cpp
   src/sfo.cpp

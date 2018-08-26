@@ -1,0 +1,13 @@
+void main(
+	float2 aPosition,
+	float2 aTexcoord,
+    float4 aColor,
+	uniform float4x4 wvp,
+	out float4 vPosition : POSITION,
+	out float2 vTexcoord : TEXCOORD0,
+	out float4 vColor : COLOR)
+{
+	vPosition = mul(float4(aPosition, 0.5f, 1.f), wvp);
+	vTexcoord = aTexcoord;
+    vColor = aColor;
+}

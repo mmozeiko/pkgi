@@ -12,9 +12,12 @@ extern "C"
 #include "db.hpp"
 #include "download.hpp"
 #include "downloader.hpp"
+#include "imgui.hpp"
 #include "menu.hpp"
 #include "update.hpp"
 #include "vitahttp.hpp"
+
+#include <vita2d.h>
 
 #include <fmt/format.h>
 
@@ -1079,9 +1082,36 @@ int main()
         if (!config.no_version_check)
             start_update_thread();
 
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO();
+
+        // Build and load the texture atlas into a texture
+        uint32_t* pixels = NULL;
+        int width, height;
+        io.Fonts->GetTexDataAsRGBA32((uint8_t**)&pixels, &width, &height);
+        vita2d_texture* font_texture =
+                vita2d_create_empty_texture(width, height);
+        const auto stride = vita2d_texture_get_stride(font_texture) / 4;
+        auto texture_data = (uint32_t*)vita2d_texture_get_datap(font_texture);
+
+        for (auto y = 0; y < height; ++y)
+            for (auto x = 0; x < width; ++x)
+                texture_data[y * stride + x] = pixels[y * width + x];
+
+        io.Fonts->TexID = font_texture;
+
+        init_imgui();
+
         pkgi_input input;
         while (pkgi_update(&input))
         {
+            ImGuiIO& io = ImGui::GetIO();
+            io.DeltaTime = 1.0f / 60.0f;
+            io.DisplaySize.x = VITA_WIDTH;
+            io.DisplaySize.y = VITA_HEIGHT;
+
+            ImGui::NewFrame();
+
             pkgi_draw_texture(background, 0, 0);
 
             pkgi_do_head();
@@ -1196,6 +1226,11 @@ int main()
                     }
                 }
             }
+
+            ImGui::EndFrame();
+            ImGui::Render();
+
+            pkgi_imgui_render(ImGui::GetDrawData());
 
             pkgi_swap();
         }
