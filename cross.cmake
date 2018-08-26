@@ -5,12 +5,26 @@ set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 function(add_assets target)
   set(result)
   foreach(in_f ${ARGN})
-    set(out_f "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${in_f}.o")
+    set(asm_f "${CMAKE_CURRENT_BINARY_DIR}/${in_f}.S")
+    set(out_f "${CMAKE_CURRENT_BINARY_DIR}/${in_f}.o")
+    string(REPLACE "/" "_" symbol ${in_f})
+    string(REPLACE "." "_" symbol ${symbol})
     get_filename_component(out_dir ${out_f} DIRECTORY)
+    # we use this embedding method to enforce alignment on resources
+    # which is needed for shaders
+    file(WRITE ${asm_f}
+".section .rodata
+.global _binary_${symbol}_start
+.global _binary_${symbol}_end
+.align  4
+_binary_${symbol}_start:
+.incbin \"${CMAKE_CURRENT_SOURCE_DIR}/${in_f}\"
+_binary_${symbol}_end:"
+    )
     add_custom_command(OUTPUT ${out_f}
       COMMAND ${CMAKE_COMMAND} -E make_directory ${out_dir}
-      COMMAND ${CMAKE_LINKER} -r -b binary -o ${out_f} ${in_f}
-      DEPENDS ${in_f}
+      COMMAND ${CMAKE_ASM_COMPILER} -c -o ${out_f} ${asm_f}
+      DEPENDS ${in_f} ${asm_f}
       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
       COMMENT "Using ${in_f}"
       VERBATIM
