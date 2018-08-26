@@ -1,7 +1,4 @@
-extern "C"
-{
-#include "dialog.h"
-}
+#include "dialog.hpp"
 #include "pkgi.hpp"
 #include "vitahttp.hpp"
 

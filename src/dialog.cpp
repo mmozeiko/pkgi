@@ -1,12 +1,14 @@
-extern "C" {
-#include "dialog.h"
+#include "dialog.hpp"
 
+extern "C"
+{
 #include "style.h"
 #include "utils.h"
 }
 #include "pkgi.hpp"
 
-typedef enum {
+typedef enum
+{
     DialogNone,
     DialogMessage,
     DialogError,

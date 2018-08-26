@@ -2,7 +2,6 @@
 
 extern "C"
 {
-#include "dialog.h"
 #include "style.h"
 #include "utils.h"
 #include "zrif.h"
@@ -10,6 +9,7 @@ extern "C"
 #include "comppackdb.hpp"
 #include "config.hpp"
 #include "db.hpp"
+#include "dialog.hpp"
 #include "download.hpp"
 #include "downloader.hpp"
 #include "imgui.hpp"
