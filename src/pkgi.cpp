@@ -1010,10 +1010,6 @@ static void pkgi_open_db()
     {
         first_item = 0;
         selected_item = 0;
-        // can't allocate two databases at the same time, a database class is
-        // 16MB at the moment, doesn't seem huge to me, but let's work around
-        // that
-        db = nullptr;
         db = std::make_unique<TitleDatabase>(
                 mode,
                 std::string(pkgi_get_config_folder()) + '/' +
