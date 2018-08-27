@@ -109,10 +109,13 @@ void pkgi_do_dialog()
                     ImGuiWindowFlags_NoCollapse |
                     ImGuiWindowFlags_NoSavedSettings |
                     ImGuiWindowFlags_NoInputs);
+    ImGui::PushTextWrapPos(0.f);
     if (local_type == DialogMessage)
-        ImGui::Text(local_text.c_str());
+        ImGui::TextUnformatted(local_text.c_str());
     else
-        ImGui::TextColored(ImVec4{1.f, .2f, .2f, 1.f}, local_text.c_str());
+        ImGui::TextColored(
+                ImVec4{1.f, .2f, .2f, 1.f}, "%s", local_text.c_str());
+    ImGui::PopTextWrapPos();
     ImGui::Separator();
     if (local_allow_close)
         if (ImGui::Button(
