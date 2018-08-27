@@ -7,6 +7,8 @@ extern "C"
 }
 #include "pkgi.hpp"
 
+#include <imgui.h>
+
 namespace
 {
 typedef enum
@@ -21,10 +23,6 @@ std::string dialog_title;
 std::string dialog_text;
 int dialog_allow_close;
 int dialog_cancelled;
-
-int32_t dialog_width;
-int32_t dialog_height;
-int32_t dialog_delta;
 }
 
 void pkgi_dialog_init()
@@ -59,7 +57,6 @@ void pkgi_dialog_message(const char* text)
 
     dialog_cancelled = 0;
     dialog_type = DialogMessage;
-    dialog_delta = 1;
 
     pkgi_dialog_unlock();
 }
@@ -75,173 +72,55 @@ void pkgi_dialog_error(const char* text)
 
     dialog_cancelled = 0;
     dialog_type = DialogError;
-    dialog_delta = 1;
 
     pkgi_dialog_unlock();
 }
 
 void pkgi_dialog_close()
 {
-    dialog_delta = -1;
+    pkgi_dialog_lock();
+    dialog_type = DialogNone;
+    pkgi_dialog_unlock();
 }
 
-void pkgi_do_dialog(pkgi_input* input)
+void pkgi_do_dialog()
 {
     pkgi_dialog_lock();
-
-    if (dialog_allow_close)
-    {
-        if ((dialog_type == DialogMessage || dialog_type == DialogError) &&
-            (input->pressed & pkgi_ok_button()))
-        {
-            dialog_delta = -1;
-        }
-    }
-
-    if (dialog_delta != 0)
-    {
-        dialog_width +=
-                dialog_delta *
-                (int32_t)(input->delta * PKGI_ANIMATION_SPEED / 1000000);
-        dialog_height +=
-                dialog_delta *
-                (int32_t)(input->delta * PKGI_ANIMATION_SPEED / 1000000);
-
-        if (dialog_delta < 0 && (dialog_width <= 0 || dialog_height <= 0))
-        {
-            dialog_type = DialogNone;
-            dialog_text = "";
-
-            dialog_width = 0;
-            dialog_height = 0;
-            dialog_delta = 0;
-            pkgi_dialog_unlock();
-            return;
-        }
-        else if (dialog_delta > 0)
-        {
-            if (dialog_width >= PKGI_DIALOG_WIDTH &&
-                dialog_height >= PKGI_DIALOG_HEIGHT)
-            {
-                dialog_delta = 0;
-            }
-            dialog_width = min32(dialog_width, PKGI_DIALOG_WIDTH);
-            dialog_height = min32(dialog_height, PKGI_DIALOG_HEIGHT);
-        }
-    }
 
     DialogType local_type = dialog_type;
     std::string local_title;
     std::string local_text;
     int local_allow_close = dialog_allow_close;
-    int32_t local_width = dialog_width;
-    int32_t local_height = dialog_height;
 
     local_title = dialog_title;
     local_text = dialog_text;
 
     pkgi_dialog_unlock();
 
-    if (local_width != 0 && local_height != 0)
-    {
-        pkgi_draw_rect(
-                (VITA_WIDTH - local_width) / 2,
-                (VITA_HEIGHT - local_height) / 2,
-                local_width,
-                local_height,
-                PKGI_COLOR_MENU_BACKGROUND);
-    }
-
-    if (local_width != PKGI_DIALOG_WIDTH || local_height != PKGI_DIALOG_HEIGHT)
-    {
-        return;
-    }
-
-    int font_height = pkgi_text_height("M");
-
-    int w = VITA_WIDTH - 2 * PKGI_DIALOG_HMARGIN;
-    int h = VITA_HEIGHT - 2 * PKGI_DIALOG_VMARGIN;
-
-    if (!local_title.empty())
-    {
-        uint32_t color;
-        if (local_type == DialogError)
-        {
-            color = PKGI_COLOR_TEXT_ERROR;
-        }
-        else
-        {
-            color = PKGI_COLOR_TEXT_DIALOG;
-        }
-
-        int width = pkgi_text_width(local_title.c_str());
-        if (width > w + 2 * PKGI_DIALOG_PADDING)
-        {
-            pkgi_clip_set(
-                    PKGI_DIALOG_HMARGIN + PKGI_DIALOG_PADDING,
-                    PKGI_DIALOG_VMARGIN + PKGI_DIALOG_PADDING,
-                    w - 2 * PKGI_DIALOG_PADDING,
-                    h - 2 * PKGI_DIALOG_PADDING);
-            pkgi_draw_text(
-                    (VITA_WIDTH - width) / 2,
-                    PKGI_DIALOG_VMARGIN + font_height,
-                    color,
-                    local_title.c_str());
-            pkgi_clip_remove();
-        }
-        else
-        {
-            pkgi_draw_text(
-                    (VITA_WIDTH - width) / 2,
-                    PKGI_DIALOG_VMARGIN + font_height,
-                    color,
-                    local_title.c_str());
-        }
-    }
-
-    uint32_t color;
+    ImGui::SetNextWindowPos(
+            ImVec2{VITA_WIDTH / 2, VITA_HEIGHT / 2}, 0, ImVec2{.5f, .5f});
+    ImGui::SetNextWindowSize(ImVec2{PKGI_DIALOG_WIDTH, -1});
+    ImGui::Begin(
+            local_title.c_str(),
+            nullptr,
+            ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                    ImGuiWindowFlags_NoScrollbar |
+                    ImGuiWindowFlags_NoScrollWithMouse |
+                    ImGuiWindowFlags_NoCollapse |
+                    ImGuiWindowFlags_NoSavedSettings |
+                    ImGuiWindowFlags_NoInputs);
     if (local_type == DialogMessage)
-    {
-        color = PKGI_COLOR_TEXT_DIALOG;
-    }
-    else // local_type == DialogError
-    {
-        color = PKGI_COLOR_TEXT_ERROR;
-    }
-
-    int textw = pkgi_text_width(local_text.c_str());
-    if (textw > w + 2 * PKGI_DIALOG_PADDING)
-    {
-        pkgi_clip_set(
-                PKGI_DIALOG_HMARGIN + PKGI_DIALOG_PADDING,
-                PKGI_DIALOG_VMARGIN + PKGI_DIALOG_PADDING,
-                w - 2 * PKGI_DIALOG_PADDING,
-                h - 2 * PKGI_DIALOG_PADDING);
-        pkgi_draw_text(
-                PKGI_DIALOG_HMARGIN + PKGI_DIALOG_PADDING,
-                VITA_HEIGHT / 2 - font_height / 2,
-                color,
-                local_text.c_str());
-        pkgi_clip_remove();
-    }
+        ImGui::Text(local_text.c_str());
     else
-    {
-        pkgi_draw_text(
-                (VITA_WIDTH - textw) / 2,
-                VITA_HEIGHT / 2 - font_height / 2,
-                color,
-                local_text.c_str());
-    }
-
+        ImGui::TextColored(ImVec4{1.f, .2f, .2f, 1.f}, local_text.c_str());
+    ImGui::Separator();
     if (local_allow_close)
-    {
-        std::string text = fmt::format(
-                "press {} to close",
-                pkgi_ok_button() == PKGI_BUTTON_X ? PKGI_UTF8_X : PKGI_UTF8_O);
-        pkgi_draw_text(
-                (VITA_WIDTH - pkgi_text_width(text.c_str())) / 2,
-                PKGI_DIALOG_VMARGIN + h - 2 * font_height,
-                PKGI_COLOR_TEXT_DIALOG,
-                text.c_str());
-    }
+        if (ImGui::Button(
+                    "OK", ImVec2{ImGui::GetWindowContentRegionWidth(), 20}))
+        {
+            pkgi_dialog_lock();
+            dialog_type = DialogNone;
+            pkgi_dialog_unlock();
+        }
+    ImGui::End();
 }

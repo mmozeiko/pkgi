@@ -1106,6 +1106,22 @@ int main()
             io.DisplaySize.x = VITA_WIDTH;
             io.DisplaySize.y = VITA_HEIGHT;
 
+            if (pkgi_dialog_is_open())
+            {
+                if (input.active & PKGI_BUTTON_UP)
+                    io.NavInputs[ImGuiNavInput_DpadUp] = 1.0f;
+                if (input.active & PKGI_BUTTON_DOWN)
+                    io.NavInputs[ImGuiNavInput_DpadDown] = 1.0f;
+                if (input.active & PKGI_BUTTON_LEFT)
+                    io.NavInputs[ImGuiNavInput_DpadLeft] = 1.0f;
+                if (input.active & PKGI_BUTTON_RIGHT)
+                    io.NavInputs[ImGuiNavInput_DpadRight] = 1.0f;
+                if (input.active & PKGI_BUTTON_X)
+                    io.NavInputs[ImGuiNavInput_Activate] = 1.0f;
+                input.active = 0;
+                input.pressed = 0;
+            }
+
             ImGui::NewFrame();
 
             pkgi_draw_texture(background, 0, 0);
@@ -1137,7 +1153,7 @@ int main()
 
             if (pkgi_dialog_is_open())
             {
-                pkgi_do_dialog(&input);
+                pkgi_do_dialog();
             }
 
             if (pkgi_dialog_input_update())
