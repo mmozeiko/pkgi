@@ -79,6 +79,7 @@ static void configure_db(
     try
     {
         db->reload(
+                mode,
                 config->filter,
                 config->sort,
                 config->order,
@@ -102,7 +103,7 @@ static void pkgi_refresh_thread(void)
     try
     {
         auto const http = std::make_unique<VitaHttp>();
-        db->update(http.get(), url);
+        db->update(mode, http.get(), url);
         first_item = 0;
         selected_item = 0;
         configure_db(db.get(), NULL, &config);
@@ -146,27 +147,6 @@ static const char* pkgi_get_mode_partition()
     return mode == ModePspGames || mode == ModePsxGames
                    ? config.install_psp_psx_location.c_str()
                    : "ux0:";
-}
-
-static std::string modeToDbName(Mode mode)
-{
-    switch (mode)
-    {
-    case ModeGames:
-        return "pkgj_games.db";
-    case ModeDlcs:
-        return "pkgj_dlcs.db";
-    case ModeUpdates:
-        return "pkgj_updates.db";
-    case ModePsmGames:
-        return "pkgj_psmgames.db";
-    case ModePspGames:
-        return "pkgj_pspgames.db";
-    case ModePsxGames:
-        return "pkgj_psxgames.db";
-    }
-    throw std::runtime_error(
-            fmt::format("unknown mode: {}", static_cast<int>(mode)));
 }
 
 static void pkgi_start_download(Downloader& downloader)
@@ -1012,9 +992,7 @@ static void pkgi_open_db()
         first_item = 0;
         selected_item = 0;
         db = std::make_unique<TitleDatabase>(
-                mode,
-                std::string(pkgi_get_config_folder()) + '/' +
-                        modeToDbName(mode));
+                std::string(pkgi_get_config_folder()) + "/pkgj.db");
 
         if (mode == ModeUpdates)
             comppack_db = std::make_unique<CompPackDatabase>(

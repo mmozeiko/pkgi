@@ -10,7 +10,8 @@
 
 #include <cstdint>
 
-typedef enum {
+typedef enum
+{
     PresenceUnknown,
     PresenceIncomplete,
     PresenceInstalling,
@@ -19,7 +20,8 @@ typedef enum {
     PresenceGamePresent,
 } DbPresence;
 
-typedef enum {
+typedef enum
+{
     SortByTitle,
     SortByRegion,
     SortByName,
@@ -27,12 +29,14 @@ typedef enum {
     SortByDate,
 } DbSort;
 
-typedef enum {
+typedef enum
+{
     SortAscending,
     SortDescending,
 } DbSortOrder;
 
-typedef enum {
+typedef enum
+{
     DbFilterRegionASA = 0x01,
     DbFilterRegionEUR = 0x02,
     DbFilterRegionJPN = 0x04,
@@ -64,7 +68,8 @@ typedef struct
     std::string app_version;
 } DbItem;
 
-typedef enum {
+typedef enum
+{
     RegionASA,
     RegionEUR,
     RegionJPN,
@@ -72,7 +77,8 @@ typedef enum {
     RegionUnknown,
 } GameRegion;
 
-typedef enum {
+typedef enum
+{
     ModeGames,
     ModeUpdates,
     ModeDlcs,
@@ -81,20 +87,23 @@ typedef enum {
     ModePspGames,
 } Mode;
 
+static constexpr auto ModeCount = 6;
+
 std::string pkgi_mode_to_string(Mode mode);
 
 class TitleDatabase
 {
 public:
-    TitleDatabase(Mode mode, const std::string& dbPath);
+    TitleDatabase(const std::string& dbPath);
 
     void reload(
+            Mode mode,
             uint32_t region_filter,
             DbSort sort_by,
             DbSortOrder sort_order,
             const std::string& search);
 
-    void update(Http* http, const char* update_url);
+    void update(Mode mode, Http* http, const char* update_url);
     void get_update_status(uint32_t* updated, uint32_t* total);
 
     uint32_t count();
@@ -106,7 +115,6 @@ private:
     static constexpr auto MAX_DB_SIZE = 4 * 1024 * 1024;
     static constexpr auto MAX_DB_ITEMS = 8192;
 
-    Mode mode;
     std::string _dbPath;
     uint32_t db_total;
     uint32_t db_size;
@@ -116,7 +124,7 @@ private:
 
     SqlitePtr _sqliteDb = nullptr;
 
-    void parse_tsv_file(std::string& db_data);
+    void parse_tsv_file(Mode mode, std::string& db_data);
 
     void reopen();
 };

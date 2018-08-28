@@ -1,6 +1,7 @@
 #include "db.hpp"
 
-extern "C" {
+extern "C"
+{
 #include "sha256.h"
 #include "utils.h"
 }
@@ -72,8 +73,28 @@ static std::array<uint8_t, 32> pkgi_hexbytes(
     return result;
 }
 
-TitleDatabase::TitleDatabase(Mode mode, std::string const& dbPath)
-    : mode(mode), _dbPath(dbPath)
+static const char* pkgi_mode_to_table_name(Mode mode)
+{
+    switch (mode)
+    {
+    case ModeGames:
+        return "titles_psvgames";
+    case ModeUpdates:
+        return "titles_psvupdates";
+    case ModeDlcs:
+        return "titles_psvdlcs";
+    case ModePsmGames:
+        return "titles_psmgames";
+    case ModePspGames:
+        return "titles_pspgames";
+    case ModePsxGames:
+        return "titles_psxgames";
+    }
+    throw formatEx<std::runtime_error>(
+            "unknown mode {}", static_cast<int>(mode));
+}
+
+TitleDatabase::TitleDatabase(std::string const& dbPath) : _dbPath(dbPath)
 {
     reopen();
 }
@@ -85,48 +106,28 @@ void TitleDatabase::reopen()
     SQLITE_CHECK(sqlite3_open(_dbPath.c_str(), &db), "can't open database");
     _sqliteDb.reset(db);
 
-    try
-    {
-        sqlite3_stmt* stmt;
-        SQLITE_CHECK(
-                sqlite3_prepare_v2(
-                        _sqliteDb.get(),
-                        R"(
-                        SELECT id, content, name, name_org, zrif, url,
-                            digest, size, fw_version, last_modification, region,
-                            app_version
-                        FROM titles
-                        WHERE 0)",
-                        -1,
-                        &stmt,
-                        nullptr),
-                "sanity select failed");
-        sqlite3_finalize(stmt);
-    }
-    catch (const std::exception& e)
-    {
-        LOG("%s. Trying migration.", e.what());
+    for (int i = 0; i < ModeCount; ++i)
         SQLITE_EXEC(
                 _sqliteDb,
-                R"(DROP TABLE IF EXISTS titles)",
-                "drop table failed");
-    }
-
-    SQLITE_EXEC(_sqliteDb, R"(
-        CREATE TABLE IF NOT EXISTS titles (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            content TEXT NOT NULL,
-            name TEXT NOT NULL,
-            name_org TEXT,
-            zrif TEXT,
-            url TEXT NOT NULL,
-            digest BLOB,
-            size INT,
-            fw_version TEXT,
-            last_modification DATETIME,
-            region TEXT NOT NULL,
-            app_version TEXT
-        ))", "can't create table");
+                fmt::format(
+                        R"(
+                        CREATE TABLE IF NOT EXISTS {} (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            content TEXT NOT NULL,
+                            name TEXT NOT NULL,
+                            name_org TEXT,
+                            zrif TEXT,
+                            url TEXT NOT NULL,
+                            digest BLOB,
+                            size INT,
+                            fw_version TEXT,
+                            last_modification DATETIME,
+                            region TEXT NOT NULL,
+                            app_version TEXT
+                        ))",
+                        pkgi_mode_to_table_name(static_cast<Mode>(i)))
+                        .c_str(),
+                "can't create table");
 }
 
 namespace
@@ -301,7 +302,7 @@ const char* get_or_empty(
 }
 }
 
-void TitleDatabase::parse_tsv_file(std::string& db_data)
+void TitleDatabase::parse_tsv_file(Mode mode, std::string& db_data)
 {
     SQLITE_EXEC(_sqliteDb, "BEGIN", "can't begin transaction");
 
@@ -319,15 +320,22 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
         }
     };
 
-    SQLITE_EXEC(_sqliteDb, "DELETE FROM titles", "can't truncate table");
+    SQLITE_EXEC(
+            _sqliteDb,
+            fmt::format("DELETE FROM {}", pkgi_mode_to_table_name(mode))
+                    .c_str(),
+            "can't truncate table");
 
     sqlite3_stmt* stmt;
     SQLITE_CHECK(
             sqlite3_prepare_v2(
                     _sqliteDb.get(),
-                    R"(INSERT INTO titles
-                    (content, name, name_org, zrif, url, digest, size, fw_version, last_modification, region, app_version)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))",
+                    fmt::format(
+                            R"(INSERT INTO {}
+                            (content, name, name_org, zrif, url, digest, size, fw_version, last_modification, region, app_version)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))",
+                            pkgi_mode_to_table_name(mode))
+                            .c_str(),
                     -1,
                     &stmt,
                     nullptr),
@@ -431,7 +439,7 @@ void TitleDatabase::parse_tsv_file(std::string& db_data)
     }
 }
 
-void TitleDatabase::update(Http* http, const char* update_url)
+void TitleDatabase::update(Mode mode, Http* http, const char* update_url)
 {
     std::string db_data;
     db_data.resize(MAX_DB_SIZE);
@@ -471,7 +479,7 @@ void TitleDatabase::update(Http* http, const char* update_url)
     LOG("parsing items");
 
     db_data.resize(db_size);
-    parse_tsv_file(db_data);
+    parse_tsv_file(mode, db_data);
 
     LOG("finished parsing");
 }
@@ -553,6 +561,7 @@ bool lower(const DbItem& a, const DbItem& b, DbSort sort, DbSortOrder order)
 }
 
 void TitleDatabase::reload(
+        Mode mode,
         uint32_t region_filter,
         DbSort sort_by,
         DbSortOrder sort_order,
@@ -564,10 +573,11 @@ void TitleDatabase::reload(
 
     LOG("reloading database");
 
-    std::string query =
+    std::string query = fmt::format(
             "SELECT id, content, name, name_org, zrif, url, digest, size, "
             "last_modification, app_version, fw_version "
-            "FROM titles WHERE 1 ";
+            "FROM {} WHERE 1 ",
+            pkgi_mode_to_table_name(mode));
 
     if ((region_filter & DbFilterAllRegions) != DbFilterAllRegions)
         query += " AND region IN (" +
@@ -673,7 +683,9 @@ void TitleDatabase::reload(
 
     SQLITE_EXEC_RESULT(
             _sqliteDb,
-            R"(SELECT COUNT(*) FROM titles)",
+            fmt::format(
+                    "SELECT COUNT(*) FROM {}", pkgi_mode_to_table_name(mode))
+                    .c_str(),
             "failed to get title count",
             ([](void* data, int, char** row, char**) {
                 auto const title_count = static_cast<uint32_t*>(data);
