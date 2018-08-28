@@ -16,6 +16,7 @@ extern "C"
 #include "menu.hpp"
 #include "update.hpp"
 #include "vitahttp.hpp"
+#include <imgui_internal.h>
 
 #include <vita2d.h>
 
@@ -1078,7 +1079,9 @@ int main()
         if (!config.no_version_check)
             start_update_thread();
 
-        ImGui::CreateContext();
+        const auto imgui_context = ImGui::CreateContext();
+        // Force enabling of navigation
+        imgui_context->NavDisableHighlight = false;
         ImGuiIO& io = ImGui::GetIO();
 
         // Build and load the texture atlas into a texture

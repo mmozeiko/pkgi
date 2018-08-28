@@ -118,6 +118,7 @@ void pkgi_do_dialog()
     ImGui::PopTextWrapPos();
     ImGui::Separator();
     if (local_allow_close)
+    {
         if (ImGui::Button(
                     "OK", ImVec2{ImGui::GetWindowContentRegionWidth(), 20}))
         {
@@ -125,5 +126,7 @@ void pkgi_do_dialog()
             dialog_type = DialogNone;
             pkgi_dialog_unlock();
         }
+        ImGui::SetItemDefaultFocus();
+    }
     ImGui::End();
 }
