@@ -30,6 +30,8 @@ extern "C"
 #define PKGI_UPDATE_URL \
     "https://api.github.com/repos/blastrock/pkgj/releases/latest"
 
+namespace
+{
 typedef enum
 {
     StateError,
@@ -38,43 +40,42 @@ typedef enum
     StateMain,
 } State;
 
-static State state = StateMain;
-static Mode mode = ModeGames;
+State state = StateMain;
+Mode mode = ModeGames;
 
-static uint32_t first_item;
-static uint32_t selected_item;
+uint32_t first_item;
+uint32_t selected_item;
 
-static int search_active;
+int search_active;
 
-static const char* current_url = nullptr;
+const char* current_url = nullptr;
 
-static Config config;
-static Config config_temp;
+Config config;
+Config config_temp;
 
-static int font_height;
-static int avail_height;
-static int bottom_y;
+int font_height;
+int avail_height;
+int bottom_y;
 
-static char search_text[256];
-static char error_state[256];
+char search_text[256];
+char error_state[256];
 
-static std::unique_ptr<TitleDatabase> db;
-static std::unique_ptr<CompPackDatabase> comppack_db;
+std::unique_ptr<TitleDatabase> db;
+std::unique_ptr<CompPackDatabase> comppack_db;
 
-static void pkgi_open_db();
+void pkgi_open_db();
 
-static const char* pkgi_get_ok_str(void)
+const char* pkgi_get_ok_str(void)
 {
     return pkgi_ok_button() == PKGI_BUTTON_X ? PKGI_UTF8_X : PKGI_UTF8_O;
 }
 
-static const char* pkgi_get_cancel_str(void)
+const char* pkgi_get_cancel_str(void)
 {
     return pkgi_cancel_button() == PKGI_BUTTON_O ? PKGI_UTF8_O : PKGI_UTF8_X;
 }
 
-static void configure_db(
-        TitleDatabase* db, const char* search, const Config* config)
+void configure_db(TitleDatabase* db, const char* search, const Config* config)
 {
     try
     {
@@ -96,7 +97,7 @@ static void configure_db(
     }
 }
 
-static void pkgi_refresh_thread(void)
+void pkgi_refresh_thread(void)
 {
     LOG("starting update");
     const char* url = current_url;
@@ -120,7 +121,7 @@ static void pkgi_refresh_thread(void)
     state = StateMain;
 }
 
-static void pkgi_refresh_comppack_thread()
+void pkgi_refresh_comppack_thread()
 {
     LOG("starting update comppack");
     try
@@ -142,14 +143,14 @@ static void pkgi_refresh_comppack_thread()
     state = StateMain;
 }
 
-static const char* pkgi_get_mode_partition()
+const char* pkgi_get_mode_partition()
 {
     return mode == ModePspGames || mode == ModePsxGames
                    ? config.install_psp_psx_location.c_str()
                    : "ux0:";
 }
 
-static void pkgi_start_download(Downloader& downloader)
+void pkgi_start_download(Downloader& downloader)
 {
     DbItem* item = db->get(selected_item);
 
@@ -185,7 +186,7 @@ static void pkgi_start_download(Downloader& downloader)
     state = StateMain;
 }
 
-static void pkgi_start_download_comppack(Downloader& downloader)
+void pkgi_start_download_comppack(Downloader& downloader)
 {
     DbItem* item = db->get(selected_item);
 
@@ -237,7 +238,7 @@ static void pkgi_start_download_comppack(Downloader& downloader)
     state = StateMain;
 }
 
-static void pkgi_friendly_size(char* text, uint32_t textlen, int64_t size)
+void pkgi_friendly_size(char* text, uint32_t textlen, int64_t size)
 {
     if (size <= 0)
     {
@@ -266,7 +267,7 @@ static void pkgi_friendly_size(char* text, uint32_t textlen, int64_t size)
     }
 }
 
-static std::string const& pkgi_get_url_from_mode(Mode mode)
+std::string const& pkgi_get_url_from_mode(Mode mode)
 {
     switch (mode)
     {
@@ -287,26 +288,26 @@ static std::string const& pkgi_get_url_from_mode(Mode mode)
             fmt::format("unknown mode: {}", static_cast<int>(mode)));
 }
 
-static void pkgi_set_mode(Mode set_mode)
+void pkgi_set_mode(Mode set_mode)
 {
     mode = set_mode;
     pkgi_open_db();
 }
 
-static void pkgi_refresh_list()
+void pkgi_refresh_list()
 {
     state = StateRefreshing;
     current_url = pkgi_get_url_from_mode(mode).c_str();
     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
 }
 
-static void pkgi_refresh_comppack()
+void pkgi_refresh_comppack()
 {
     state = StateCPRefreshing;
     pkgi_start_thread("refresh_thread", &pkgi_refresh_comppack_thread);
 }
 
-static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
+void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 {
     int col_titleid = 0;
     int col_region = col_titleid + pkgi_text_width("PCSE00000") +
@@ -671,7 +672,7 @@ static void pkgi_do_main(Downloader& downloader, pkgi_input* input)
     }
 }
 
-static void pkgi_do_refresh(void)
+void pkgi_do_refresh(void)
 {
     char text[256];
 
@@ -701,7 +702,7 @@ static void pkgi_do_refresh(void)
             (VITA_WIDTH - w) / 2, VITA_HEIGHT / 2, PKGI_COLOR_TEXT, text);
 }
 
-static void pkgi_do_refresh_comppack()
+void pkgi_do_refresh_comppack()
 {
     const auto text = "Downloading compatibility packs database...";
 
@@ -710,7 +711,7 @@ static void pkgi_do_refresh_comppack()
             (VITA_WIDTH - w) / 2, VITA_HEIGHT / 2, PKGI_COLOR_TEXT, text);
 }
 
-static void pkgi_do_head(void)
+void pkgi_do_head(void)
 {
     const char* version = PKGI_VERSION;
 
@@ -786,11 +787,11 @@ static void pkgi_do_head(void)
     pkgi_clip_remove();
 }
 
-static uint64_t last_progress_time;
-static uint64_t last_progress_offset;
-static uint64_t last_progress_speed;
+uint64_t last_progress_time;
+uint64_t last_progress_offset;
+uint64_t last_progress_speed;
 
-static uint64_t get_speed(const uint64_t download_offset)
+uint64_t get_speed(const uint64_t download_offset)
 {
     const uint64_t now = pkgi_time_msec();
     const uint64_t progress_time = now - last_progress_time;
@@ -805,7 +806,7 @@ static uint64_t get_speed(const uint64_t download_offset)
     return last_progress_speed;
 }
 
-static void pkgi_do_tail(Downloader& downloader)
+void pkgi_do_tail(Downloader& downloader)
 {
     char text[256];
 
@@ -936,7 +937,7 @@ static void pkgi_do_tail(Downloader& downloader)
     pkgi_clip_remove();
 }
 
-static void pkgi_do_error(void)
+void pkgi_do_error(void)
 {
     pkgi_draw_text(
             (VITA_WIDTH - pkgi_text_width(error_state)) / 2,
@@ -945,7 +946,7 @@ static void pkgi_do_error(void)
             error_state);
 }
 
-static void reposition(void)
+void reposition(void)
 {
     uint32_t count = db->count();
     if (first_item + selected_item < count)
@@ -969,7 +970,7 @@ static void reposition(void)
     }
 }
 
-static void pkgi_reload()
+void pkgi_reload()
 {
     try
     {
@@ -985,7 +986,7 @@ static void pkgi_reload()
     }
 }
 
-static void pkgi_open_db()
+void pkgi_open_db()
 {
     try
     {
@@ -1010,6 +1011,7 @@ static void pkgi_open_db()
     }
 
     pkgi_reload();
+}
 }
 
 int main()
