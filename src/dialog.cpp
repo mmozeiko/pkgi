@@ -120,7 +120,9 @@ void pkgi_do_dialog()
     if (local_allow_close)
     {
         if (ImGui::Button(
-                    "OK", ImVec2{ImGui::GetWindowContentRegionWidth(), 20}))
+                    "OK",
+                    ImVec2{ImGui::GetWindowContentRegionWidth(),
+                           ImGui::GetTextLineHeightWithSpacing()}))
         {
             pkgi_dialog_lock();
             dialog_type = DialogNone;

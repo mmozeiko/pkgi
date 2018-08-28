@@ -1087,6 +1087,18 @@ int main()
         // Build and load the texture atlas into a texture
         uint32_t* pixels = NULL;
         int width, height;
+        if (!io.Fonts->AddFontFromFileTTF(
+                    "sa0:/data/font/pvf/ltn0.pvf",
+                    20.0f,
+                    0,
+                    io.Fonts->GetGlyphRangesDefault()))
+            throw std::runtime_error("failed to load ltn0.pvf");
+        if (!io.Fonts->AddFontFromFileTTF(
+                    "sa0:/data/font/pvf/jpn0.pvf",
+                    20.0f,
+                    0,
+                    io.Fonts->GetGlyphRangesJapanese()))
+            throw std::runtime_error("failed to load jpn0.pvf");
         io.Fonts->GetTexDataAsRGBA32((uint8_t**)&pixels, &width, &height);
         vita2d_texture* font_texture =
                 vita2d_create_empty_texture(width, height);
