@@ -60,6 +60,8 @@ int bottom_y;
 char search_text[256];
 char error_state[256];
 
+Mutex refresh_mutex("refresh_mutex");
+std::string current_action;
 std::unique_ptr<TitleDatabase> db;
 std::unique_ptr<CompPackDatabase> comppack_db;
 
@@ -103,6 +105,11 @@ void pkgi_refresh_thread(void)
     const char* url = current_url;
     try
     {
+        {
+            std::lock_guard<Mutex> lock(refresh_mutex);
+            current_action =
+                    fmt::format("Refreshing {}", pkgi_mode_to_string(mode));
+        }
         auto const http = std::make_unique<VitaHttp>();
         db->update(mode, http.get(), url);
         first_item = 0;
@@ -674,32 +681,23 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 
 void pkgi_do_refresh(void)
 {
-    char text[256];
+    std::string text;
 
     uint32_t updated;
     uint32_t total;
     db->get_update_status(&updated, &total);
 
     if (total == 0)
-    {
-        pkgi_snprintf(
-                text,
-                sizeof(text),
-                "Refreshing... %.2f KB",
-                (uint32_t)updated / 1024.f);
-    }
+        text = fmt::format("{}...", current_action);
     else
-    {
-        pkgi_snprintf(
-                text,
-                sizeof(text),
-                "Refreshing... %u%%",
-                updated * 100U / total);
-    }
+        text = fmt::format("{}... {}%", current_action, updated * 100 / total);
 
-    int w = pkgi_text_width(text);
+    int w = pkgi_text_width(text.c_str());
     pkgi_draw_text(
-            (VITA_WIDTH - w) / 2, VITA_HEIGHT / 2, PKGI_COLOR_TEXT, text);
+            (VITA_WIDTH - w) / 2,
+            VITA_HEIGHT / 2,
+            PKGI_COLOR_TEXT,
+            text.c_str());
 }
 
 void pkgi_do_refresh_comppack()
