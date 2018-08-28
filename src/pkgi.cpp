@@ -48,8 +48,6 @@ uint32_t selected_item;
 
 int search_active;
 
-const char* current_url = nullptr;
-
 Config config;
 Config config_temp;
 
@@ -99,19 +97,50 @@ void configure_db(TitleDatabase* db, const char* search, const Config* config)
     }
 }
 
+std::string const& pkgi_get_url_from_mode(Mode mode)
+{
+    switch (mode)
+    {
+    case ModeGames:
+        return config.games_url;
+    case ModeUpdates:
+        return config.updates_url;
+    case ModeDlcs:
+        return config.dlcs_url;
+    case ModePsmGames:
+        return config.psm_games_url;
+    case ModePspGames:
+        return config.psp_games_url;
+    case ModePsxGames:
+        return config.psx_games_url;
+    }
+    throw std::runtime_error(
+            fmt::format("unknown mode: {}", static_cast<int>(mode)));
+}
+
 void pkgi_refresh_thread(void)
 {
     LOG("starting update");
-    const char* url = current_url;
     try
     {
+        ScopeProcessLock lock;
+        for (int i = 0; i < ModeCount; ++i)
         {
-            std::lock_guard<Mutex> lock(refresh_mutex);
-            current_action =
-                    fmt::format("Refreshing {}", pkgi_mode_to_string(mode));
+            const auto mode = static_cast<Mode>(i);
+            auto const url = pkgi_get_url_from_mode(mode);
+            if (url.empty())
+                continue;
+            {
+                std::lock_guard<Mutex> lock(refresh_mutex);
+                current_action = fmt::format(
+                        "Refreshing {} [{}/{}]",
+                        pkgi_mode_to_string(mode),
+                        i + 1,
+                        ModeCount);
+            }
+            auto const http = std::make_unique<VitaHttp>();
+            db->update(mode, http.get(), url);
         }
-        auto const http = std::make_unique<VitaHttp>();
-        db->update(mode, http.get(), url);
         first_item = 0;
         selected_item = 0;
         configure_db(db.get(), NULL, &config);
@@ -274,27 +303,6 @@ void pkgi_friendly_size(char* text, uint32_t textlen, int64_t size)
     }
 }
 
-std::string const& pkgi_get_url_from_mode(Mode mode)
-{
-    switch (mode)
-    {
-    case ModeGames:
-        return config.games_url;
-    case ModeUpdates:
-        return config.updates_url;
-    case ModeDlcs:
-        return config.dlcs_url;
-    case ModePsmGames:
-        return config.psm_games_url;
-    case ModePspGames:
-        return config.psp_games_url;
-    case ModePsxGames:
-        return config.psx_games_url;
-    }
-    throw std::runtime_error(
-            fmt::format("unknown mode: {}", static_cast<int>(mode)));
-}
-
 void pkgi_set_mode(Mode set_mode)
 {
     mode = set_mode;
@@ -304,7 +312,6 @@ void pkgi_set_mode(Mode set_mode)
 void pkgi_refresh_list()
 {
     state = StateRefreshing;
-    current_url = pkgi_get_url_from_mode(mode).c_str();
     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
 }
 
@@ -1043,7 +1050,6 @@ int main()
         LOG("started");
 
         config = pkgi_load_config();
-        current_url = config.games_url.c_str();
         pkgi_dialog_init();
 
         font_height = pkgi_text_height("M");
