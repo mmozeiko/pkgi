@@ -439,17 +439,17 @@ void TitleDatabase::parse_tsv_file(Mode mode, std::string& db_data)
     }
 }
 
-void TitleDatabase::update(Mode mode, Http* http, const char* update_url)
+void TitleDatabase::update(Mode mode, Http* http, const std::string& update_url)
 {
     std::string db_data;
     db_data.resize(MAX_DB_SIZE);
     db_total = 0;
     db_size = 0;
 
-    if (update_url[0] == 0)
+    if (update_url.empty())
         throw std::runtime_error("no update url");
 
-    LOG("loading update from %s", update_url);
+    LOGF("loading update from {}", update_url);
 
     http->start(update_url, 0);
 

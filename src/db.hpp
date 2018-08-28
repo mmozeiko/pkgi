@@ -103,7 +103,7 @@ public:
             DbSortOrder sort_order,
             const std::string& search);
 
-    void update(Mode mode, Http* http, const char* update_url);
+    void update(Mode mode, Http* http, const std::string& update_url);
     void get_update_status(uint32_t* updated, uint32_t* total);
 
     uint32_t count();
