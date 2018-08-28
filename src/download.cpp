@@ -1,6 +1,7 @@
 #include "download.hpp"
 
-extern "C" {
+extern "C"
+{
 #include "utils.h"
 }
 #include "pkgi.hpp"
@@ -58,7 +59,7 @@ void Download::update_progress()
     if (info_now >= info_update)
     {
         update_progress_cb(download_offset, download_size);
-        info_update = info_now + 500;
+        info_update = info_now + 100;
     }
 }
 
@@ -637,7 +638,7 @@ void Download::download_file_content(uint64_t encrypted_size)
 {
     static constexpr auto SAVE_PERIOD = 10 * 1024 * 1024;
 
-    std::vector<uint8_t> down(1 * 1024 * 1024);
+    std::vector<uint8_t> down(64 * 1024);
     while (encrypted_offset != encrypted_size)
     {
         const uint32_t read =
