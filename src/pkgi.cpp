@@ -61,7 +61,8 @@ char error_state[256];
 Mutex refresh_mutex("refresh_mutex");
 std::string current_action;
 std::unique_ptr<TitleDatabase> db;
-std::unique_ptr<CompPackDatabase> comppack_db;
+std::unique_ptr<CompPackDatabase> comppack_db_games;
+std::unique_ptr<CompPackDatabase> comppack_db_updates;
 
 void pkgi_open_db();
 
@@ -162,13 +163,16 @@ void pkgi_refresh_comppack_thread()
     LOG("starting update comppack");
     try
     {
-        auto const http = std::make_unique<VitaHttp>();
-        if (mode == ModeUpdates)
-            comppack_db->update(
-                    http.get(), config.comppack_url + "entries_patch.txt");
-        else
-            comppack_db->update(
+        {
+            auto const http = std::make_unique<VitaHttp>();
+            comppack_db_games->update(
                     http.get(), config.comppack_url + "entries.txt");
+        }
+        {
+            auto const http = std::make_unique<VitaHttp>();
+            comppack_db_updates->update(
+                    http.get(), config.comppack_url + "entries_patch.txt");
+        }
     }
     catch (const std::exception& e)
     {
@@ -240,7 +244,12 @@ void pkgi_start_download_comppack(Downloader& downloader)
         return;
     }
 
-    const auto entry = comppack_db->get(item->titleid);
+    const auto entry = [&] {
+        if (mode == ModeGames)
+            return comppack_db_games->get(item->titleid);
+        else
+            return comppack_db_updates->get(item->titleid);
+    }();
     if (!entry)
     {
         pkgi_dialog_error(
@@ -1000,13 +1009,10 @@ void pkgi_open_db()
         db = std::make_unique<TitleDatabase>(
                 std::string(pkgi_get_config_folder()) + "/pkgj.db");
 
-        if (mode == ModeUpdates)
-            comppack_db = std::make_unique<CompPackDatabase>(
-                    std::string(pkgi_get_config_folder()) +
-                    "/comppack_updates.db");
-        else
-            comppack_db = std::make_unique<CompPackDatabase>(
-                    std::string(pkgi_get_config_folder()) + "/comppack.db");
+        comppack_db_games = std::make_unique<CompPackDatabase>(
+                std::string(pkgi_get_config_folder()) + "/comppack.db");
+        comppack_db_updates = std::make_unique<CompPackDatabase>(
+                std::string(pkgi_get_config_folder()) + "/comppack_updates.db");
     }
     catch (const std::exception& e)
     {
