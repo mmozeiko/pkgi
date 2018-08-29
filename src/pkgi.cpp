@@ -63,7 +63,7 @@ std::unique_ptr<TitleDatabase> db;
 std::unique_ptr<CompPackDatabase> comppack_db_games;
 std::unique_ptr<CompPackDatabase> comppack_db_updates;
 
-void pkgi_open_db();
+void pkgi_reload();
 
 const char* pkgi_get_ok_str(void)
 {
@@ -316,7 +316,7 @@ void pkgi_friendly_size(char* text, uint32_t textlen, int64_t size)
 void pkgi_set_mode(Mode set_mode)
 {
     mode = set_mode;
-    pkgi_open_db();
+    pkgi_reload();
 }
 
 void pkgi_refresh_list()
