@@ -1,6 +1,7 @@
 #include "menu.hpp"
 
-extern "C" {
+extern "C"
+{
 #include "style.h"
 }
 #include "config.hpp"
@@ -17,14 +18,14 @@ static MenuResult menu_result;
 static int32_t menu_width;
 static int32_t menu_delta;
 
-typedef enum {
+typedef enum
+{
     MenuSearch,
     MenuSearchClear,
     MenuText,
     MenuSort,
     MenuFilter,
     MenuRefresh,
-    MenuRefreshCompPack,
     MenuShow,
 } MenuType;
 
@@ -53,7 +54,6 @@ static const MenuEntry menu_entries[] = {
         {MenuFilter, "USA", DbFilterRegionUSA},
 
         {MenuRefresh, "Refresh", 0},
-        {MenuRefreshCompPack, "Refresh comp pack", 0},
 
         {MenuShow, "Show games", 1},
         {MenuShow, "Show updates", 2},
@@ -177,22 +177,16 @@ int pkgi_do_menu(pkgi_input* input)
             menu_delta = -1;
             return 1;
         }
-        if (type == MenuSearchClear)
+        else if (type == MenuSearchClear)
         {
             menu_selected--;
             menu_result = MenuResultSearchClear;
             menu_delta = -1;
             return 1;
         }
-        if (type == MenuRefresh)
+        else if (type == MenuRefresh)
         {
             menu_result = MenuResultRefresh;
-            menu_delta = -1;
-            return 1;
-        }
-        if (type == MenuRefreshCompPack)
-        {
-            menu_result = MenuResultRefreshCompPack;
             menu_delta = -1;
             return 1;
         }
@@ -283,8 +277,7 @@ int pkgi_do_menu(pkgi_input* input)
 
         char text[64];
         if (type == MenuSearch || type == MenuSearchClear || type == MenuText ||
-            type == MenuRefresh || type == MenuRefreshCompPack ||
-            type == MenuShow)
+            type == MenuRefresh || type == MenuShow)
         {
             pkgi_strncpy(text, sizeof(text), entry->text);
         }

@@ -36,7 +36,6 @@ typedef enum
 {
     StateError,
     StateRefreshing,
-    StateCPRefreshing,
     StateMain,
 } State;
 
@@ -137,10 +136,37 @@ void pkgi_refresh_thread(void)
                         "Refreshing {} [{}/{}]",
                         pkgi_mode_to_string(mode),
                         i + 1,
-                        ModeCount);
+                        ModeCount + 2);
             }
             auto const http = std::make_unique<VitaHttp>();
             db->update(mode, http.get(), url);
+        }
+        if (!config.comppack_url.empty())
+        {
+            {
+                std::lock_guard<Mutex> lock(refresh_mutex);
+                current_action = fmt::format(
+                        "Refreshing games compatibility packs [{}/{}]",
+                        ModeCount + 2 - 1,
+                        ModeCount + 2);
+            }
+            {
+                auto const http = std::make_unique<VitaHttp>();
+                comppack_db_games->update(
+                        http.get(), config.comppack_url + "entries.txt");
+            }
+            {
+                std::lock_guard<Mutex> lock(refresh_mutex);
+                current_action = fmt::format(
+                        "Refreshing updates compatibility packs [{}/{}]",
+                        ModeCount + 2,
+                        ModeCount + 2);
+            }
+            {
+                auto const http = std::make_unique<VitaHttp>();
+                comppack_db_updates->update(
+                        http.get(), config.comppack_url + "entries_patch.txt");
+            }
         }
         first_item = 0;
         selected_item = 0;
@@ -154,31 +180,6 @@ void pkgi_refresh_thread(void)
                 "can't get list: %s",
                 e.what());
         pkgi_dialog_error(error_state);
-    }
-    state = StateMain;
-}
-
-void pkgi_refresh_comppack_thread()
-{
-    LOG("starting update comppack");
-    try
-    {
-        {
-            auto const http = std::make_unique<VitaHttp>();
-            comppack_db_games->update(
-                    http.get(), config.comppack_url + "entries.txt");
-        }
-        {
-            auto const http = std::make_unique<VitaHttp>();
-            comppack_db_updates->update(
-                    http.get(), config.comppack_url + "entries_patch.txt");
-        }
-    }
-    catch (const std::exception& e)
-    {
-        pkgi_dialog_error(
-                fmt::format("failed to refresh comppack db:\n{}", e.what())
-                        .c_str());
     }
     state = StateMain;
 }
@@ -322,12 +323,6 @@ void pkgi_refresh_list()
 {
     state = StateRefreshing;
     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
-}
-
-void pkgi_refresh_comppack()
-{
-    state = StateCPRefreshing;
-    pkgi_start_thread("refresh_thread", &pkgi_refresh_comppack_thread);
 }
 
 void pkgi_do_main(Downloader& downloader, pkgi_input* input)
@@ -714,15 +709,6 @@ void pkgi_do_refresh(void)
             VITA_HEIGHT / 2,
             PKGI_COLOR_TEXT,
             text.c_str());
-}
-
-void pkgi_do_refresh_comppack()
-{
-    const auto text = "Downloading compatibility packs database...";
-
-    int w = pkgi_text_width(text);
-    pkgi_draw_text(
-            (VITA_WIDTH - w) / 2, VITA_HEIGHT / 2, PKGI_COLOR_TEXT, text);
 }
 
 void pkgi_do_head(void)
@@ -1142,10 +1128,6 @@ int main()
                 pkgi_do_refresh();
                 break;
 
-            case StateCPRefreshing:
-                pkgi_do_refresh_comppack();
-                break;
-
             case StateMain:
                 pkgi_do_main(
                         downloader,
@@ -1218,9 +1200,6 @@ int main()
                         break;
                     case MenuResultRefresh:
                         pkgi_refresh_list();
-                        break;
-                    case MenuResultRefreshCompPack:
-                        pkgi_refresh_comppack();
                         break;
                     case MenuResultShowGames:
                         pkgi_set_mode(ModeGames);
