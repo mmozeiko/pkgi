@@ -56,7 +56,7 @@ static const MenuEntry menu_entries[] = {
         {MenuRefresh, "Refresh", 0},
 
         {MenuShow, "Show games", 1},
-        {MenuShow, "Show updates", 2},
+        {MenuShow, "Show legacy updates", 2},
         {MenuShow, "Show DLCs", 4},
         {MenuShow, "Show PSX games", 8},
         {MenuShow, "Show PSP games", 16},
