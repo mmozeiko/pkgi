@@ -4,9 +4,15 @@
 
 What's new:
 
-- If a new version is available, a message will appear on start (unless `no_version_check 1` is in the config file)
-- Dialog messages have been reworked, they include word wrapping for error messages that are too long
-- Refresh now refreshes all lists at once, including compatibility packs
+- A message will appear upon start when a new pkgj version is available (unless
+    `no_version_check 1` is in the config file)
+- Dialog messages have been reworked, they include word wrapping for error
+    messages that are too long
+- The menu's refresh item now refreshes all lists at once, including
+    compatibility packs
+- "Show updates" has been renamed to "Show legacy updates" to reflect the fact
+    that they are not the last available version. Use the livearea to install
+    the last version of a game.
 
 ## 0.33
 
