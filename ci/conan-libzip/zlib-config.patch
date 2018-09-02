@@ -1,0 +1,110 @@
+--- a/cmake-config.h.in	2018-04-11 09:28:08.000000000 +0200
++++ b/cmake-config.h.in	2018-07-25 21:23:08.398067321 +0200
+@@ -4,46 +4,46 @@
+ #include "zipconf.h"
+ #endif
+ /* BEGIN DEFINES */
+-#cmakedefine HAVE___PROGNAME
+-#cmakedefine HAVE__CHMOD
+-#cmakedefine HAVE__CLOSE
+-#cmakedefine HAVE__DUP
+-#cmakedefine HAVE__FDOPEN
+-#cmakedefine HAVE__FILENO
+-#cmakedefine HAVE__OPEN
+-#cmakedefine HAVE__SETMODE
+-#cmakedefine HAVE__SNPRINTF
+-#cmakedefine HAVE__STRDUP
+-#cmakedefine HAVE__STRICMP
+-#cmakedefine HAVE__STRTOI64
+-#cmakedefine HAVE__STRTOUI64
+-#cmakedefine HAVE__UMASK
+-#cmakedefine HAVE__UNLINK
+-#cmakedefine HAVE_CLONEFILE
+-#cmakedefine HAVE_COMMONCRYPTO
+-#cmakedefine HAVE_CRYPTO
+-#cmakedefine HAVE_FICLONERANGE
+-#cmakedefine HAVE_FILENO
+-#cmakedefine HAVE_FSEEKO
+-#cmakedefine HAVE_FTELLO
+-#cmakedefine HAVE_GETPROGNAME
+-#cmakedefine HAVE_GNUTLS
+-#cmakedefine HAVE_LIBBZ2
+-#cmakedefine HAVE_OPEN
+-#cmakedefine HAVE_OPENSSL
+-#cmakedefine HAVE_MKSTEMP
+-#cmakedefine HAVE_SETMODE
+-#cmakedefine HAVE_SNPRINTF
+-#cmakedefine HAVE_SSIZE_T_LIBZIP
+-#cmakedefine HAVE_STRCASECMP
+-#cmakedefine HAVE_STRDUP
+-#cmakedefine HAVE_STRICMP
+-#cmakedefine HAVE_STRTOLL
+-#cmakedefine HAVE_STRTOULL
+-#cmakedefine HAVE_STRUCT_TM_TM_ZONE
+-#cmakedefine HAVE_STDBOOL_H
+-#cmakedefine HAVE_STRINGS_H
+-#cmakedefine HAVE_UNISTD_H
++#cmakedefine HAVE___PROGNAME 1
++#cmakedefine HAVE__CHMOD 1
++#cmakedefine HAVE__CLOSE 1
++#cmakedefine HAVE__DUP 1
++#cmakedefine HAVE__FDOPEN 1
++#cmakedefine HAVE__FILENO 1
++#cmakedefine HAVE__OPEN 1
++#cmakedefine HAVE__SETMODE 1
++#cmakedefine HAVE__SNPRINTF 1
++#cmakedefine HAVE__STRDUP 1
++#cmakedefine HAVE__STRICMP 1
++#cmakedefine HAVE__STRTOI64 1
++#cmakedefine HAVE__STRTOUI64 1
++#cmakedefine HAVE__UMASK 1
++#cmakedefine HAVE__UNLINK 1
++#cmakedefine HAVE_CLONEFILE 1
++#cmakedefine HAVE_COMMONCRYPTO 1
++#cmakedefine HAVE_CRYPTO 1
++#cmakedefine HAVE_FICLONERANGE 1
++#cmakedefine HAVE_FILENO 1
++#cmakedefine HAVE_FSEEKO 1
++#cmakedefine HAVE_FTELLO 1
++#cmakedefine HAVE_GETPROGNAME 1
++#cmakedefine HAVE_GNUTLS 1
++#cmakedefine HAVE_LIBBZ2 1
++#cmakedefine HAVE_OPEN 1
++#cmakedefine HAVE_OPENSSL 1
++#cmakedefine HAVE_MKSTEMP 1
++#cmakedefine HAVE_SETMODE 1
++#cmakedefine HAVE_SNPRINTF 1
++#cmakedefine HAVE_SSIZE_T_LIBZIP 1
++#cmakedefine HAVE_STRCASECMP 1
++#cmakedefine HAVE_STRDUP 1
++#cmakedefine HAVE_STRICMP 1
++#cmakedefine HAVE_STRTOLL 1
++#cmakedefine HAVE_STRTOULL 1
++#cmakedefine HAVE_STRUCT_TM_TM_ZONE 1
++#cmakedefine HAVE_STDBOOL_H 1
++#cmakedefine HAVE_STRINGS_H 1
++#cmakedefine HAVE_UNISTD_H 1
+ #cmakedefine __INT8_LIBZIP ${__INT8_LIBZIP}
+ #cmakedefine INT8_T_LIBZIP ${INT8_T_LIBZIP}
+ #cmakedefine UINT8_T_LIBZIP ${UINT8_T_LIBZIP}
+@@ -63,13 +63,13 @@
+ #cmakedefine SIZEOF_OFF_T ${SIZEOF_OFF_T}
+ #cmakedefine SIZE_T_LIBZIP ${SIZE_T_LIBZIP}
+ #cmakedefine SSIZE_T_LIBZIP ${SSIZE_T_LIBZIP}
+-#cmakedefine HAVE_DIRENT_H
+-#cmakedefine HAVE_FTS_H
+-#cmakedefine HAVE_NDIR_H
+-#cmakedefine HAVE_SYS_DIR_H
+-#cmakedefine HAVE_SYS_NDIR_H
+-#cmakedefine WORDS_BIGENDIAN
+-#cmakedefine HAVE_SHARED
++#cmakedefine HAVE_DIRENT_H 1
++#cmakedefine HAVE_FTS_H 1
++#cmakedefine HAVE_NDIR_H 1
++#cmakedefine HAVE_SYS_DIR_H 1
++#cmakedefine HAVE_SYS_NDIR_H 1
++#cmakedefine WORDS_BIGENDIAN 1
++#cmakedefine HAVE_SHARED 1
+ /* END DEFINES */
+ #define PACKAGE "@PACKAGE@"
+ #define VERSION "@VERSION@"
