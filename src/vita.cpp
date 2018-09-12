@@ -1,6 +1,7 @@
 #include "pkgi.hpp"
 
-extern "C" {
+extern "C"
+{
 #include "style.h"
 }
 #include "config.hpp"
@@ -1208,43 +1209,30 @@ void* pkgi_append(const char* path)
 
 int64_t pkgi_seek(void* f, uint64_t offset)
 {
-    LOGF("seeking to {}", offset);
     auto const pos = sceIoLseek((intptr_t)f, offset, SCE_SEEK_SET);
     if (pos < 0)
-    {
-        LOGF("sceIoLseek failed: {:#016x}", pos);
-        return -1;
-    }
+        throw formatEx<std::runtime_error>(
+                "sceIoLseek error {:#08x}", static_cast<uint32_t>(pos));
     return pos;
 }
 
 int pkgi_read(void* f, void* buffer, uint32_t size)
 {
-    LOG("asking to read %u bytes", size);
-    int read = sceIoRead((SceUID)(intptr_t)f, buffer, size);
+    const auto read = sceIoRead((SceUID)(intptr_t)f, buffer, size);
     if (read < 0)
-    {
-        LOG("sceIoRead error 0x%08x", read);
-    }
-    else
-    {
-        LOG("read %d bytes", read);
-    }
+        throw formatEx<std::runtime_error>(
+                "sceIoRead error {:#08x}", static_cast<uint32_t>(read));
     return read;
 }
 
 int pkgi_write(void* f, const void* buffer, uint32_t size)
 {
-    // LOG("asking to write %u bytes", size);
     int write = sceIoWrite((SceUID)(intptr_t)f, buffer, size);
     if (write < 0)
-    {
-        LOG("sceIoWrite error 0x%08x", write);
-        return -1;
-    }
+        throw formatEx<std::runtime_error>(
+                "sceIoWrite error {:#08x}", static_cast<uint32_t>(write));
 
-    // LOG("wrote %d bytes", write);
-    return (uint32_t)write == size;
+    return write;
 }
 
 void pkgi_close(void* f)
