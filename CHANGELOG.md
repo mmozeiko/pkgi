@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.35
+
+Bug fixes:
+
+- Fixed bad_alloc error that happened when installing some PSP games
+
 ## 0.34
 
 What's new:
