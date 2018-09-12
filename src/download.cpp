@@ -16,6 +16,8 @@ extern "C"
 
 #include <cstddef>
 
+static constexpr auto SAVE_PERIOD = 10 * 1024 * 1024;
+
 static constexpr auto ISO_SECTOR_SIZE = 2048;
 
 enum ContentType
@@ -451,8 +453,19 @@ void Download::skip_to_file_offset(uint64_t to_offset)
     if (to_offset < encrypted_offset)
         throw DownloadError(
                 fmt::format("can't seek backward to {}", to_offset));
-    std::vector<uint8_t> tmp(to_offset - encrypted_offset);
-    download_data(tmp.data(), tmp.size(), 1, 0);
+
+    std::vector<uint8_t> down(64 * 1024);
+    while (encrypted_offset != to_offset)
+    {
+        const uint32_t read =
+                (uint32_t)min64(down.size(), to_offset - encrypted_offset);
+        download_data(down.data(), read, 1, 0);
+
+        if ((encrypted_base + encrypted_offset - last_state_save) /
+                    SAVE_PERIOD >=
+            1)
+            serialize_state();
+    }
 }
 
 // this includes creating of all the parent folders necessary to actually
@@ -636,8 +649,6 @@ int Download::download_head(const uint8_t* rif)
 
 void Download::download_file_content(uint64_t encrypted_size)
 {
-    static constexpr auto SAVE_PERIOD = 10 * 1024 * 1024;
-
     std::vector<uint8_t> down(64 * 1024);
     while (encrypted_offset != encrypted_size)
     {
