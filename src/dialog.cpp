@@ -25,6 +25,8 @@ std::string dialog_text;
 std::vector<Response> dialog_responses;
 int dialog_allow_close;
 int dialog_cancelled;
+
+int dialog_name = 0;
 }
 
 void pkgi_dialog_init()
@@ -54,6 +56,8 @@ void pkgi_dialog_message(const char* text, int allow_close)
 {
     pkgi_dialog_lock();
 
+    ++dialog_name;
+
     dialog_text = text;
     dialog_title = "";
 
@@ -70,6 +74,8 @@ void pkgi_dialog_error(const char* text)
 
     pkgi_dialog_lock();
 
+    ++dialog_name;
+
     dialog_title = "ERROR";
     dialog_text = text;
 
@@ -84,6 +90,8 @@ void pkgi_dialog_question(
         const std::string& text, const std::vector<Response>& responses)
 {
     pkgi_dialog_lock();
+
+    ++dialog_name;
 
     dialog_text = text;
     dialog_title = "";
@@ -108,14 +116,12 @@ void pkgi_do_dialog()
     pkgi_dialog_lock();
 
     DialogType local_type = dialog_type;
-    std::string local_title;
-    std::string local_text;
+    std::string local_title = dialog_title;
+    std::string local_text = dialog_text;
+    const auto local_name = dialog_name;
     int local_allow_close = dialog_allow_close;
     const auto responses = dialog_responses;
     std::function<void()> callback;
-
-    local_title = dialog_title;
-    local_text = dialog_text;
 
     pkgi_dialog_unlock();
 
@@ -123,10 +129,10 @@ void pkgi_do_dialog()
             ImVec2{VITA_WIDTH / 2, VITA_HEIGHT / 2}, 0, ImVec2{.5f, .5f});
     ImGui::SetNextWindowSize(ImVec2{PKGI_DIALOG_WIDTH, -1});
     ImGui::Begin(
-            local_title.c_str(),
+            std::to_string(local_name).c_str(),
             nullptr,
-            ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                    ImGuiWindowFlags_NoScrollbar |
+            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+                    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
                     ImGuiWindowFlags_NoScrollWithMouse |
                     ImGuiWindowFlags_NoCollapse |
                     ImGuiWindowFlags_NoSavedSettings |
