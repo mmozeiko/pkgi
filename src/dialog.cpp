@@ -16,11 +16,13 @@ typedef enum
     DialogNone,
     DialogMessage,
     DialogError,
+    DialogQuestion,
 } DialogType;
 
 DialogType dialog_type;
 std::string dialog_title;
 std::string dialog_text;
+std::vector<Response> dialog_responses;
 int dialog_allow_close;
 int dialog_cancelled;
 }
@@ -78,10 +80,26 @@ void pkgi_dialog_error(const char* text)
     pkgi_dialog_unlock();
 }
 
+void pkgi_dialog_question(
+        const std::string& text, const std::vector<Response>& responses)
+{
+    pkgi_dialog_lock();
+
+    dialog_text = text;
+    dialog_title = "";
+
+    dialog_cancelled = 0;
+    dialog_type = DialogQuestion;
+    dialog_responses = responses;
+
+    pkgi_dialog_unlock();
+}
+
 void pkgi_dialog_close()
 {
     pkgi_dialog_lock();
     dialog_type = DialogNone;
+    dialog_responses = {};
     pkgi_dialog_unlock();
 }
 
@@ -93,6 +111,8 @@ void pkgi_do_dialog()
     std::string local_title;
     std::string local_text;
     int local_allow_close = dialog_allow_close;
+    const auto responses = dialog_responses;
+    std::function<void()> callback;
 
     local_title = dialog_title;
     local_text = dialog_text;
@@ -112,15 +132,33 @@ void pkgi_do_dialog()
                     ImGuiWindowFlags_NoSavedSettings |
                     ImGuiWindowFlags_NoInputs);
     ImGui::PushTextWrapPos(0.f);
-    if (local_type == DialogMessage)
-        ImGui::TextUnformatted(local_text.c_str());
-    else
+    if (local_type == DialogError)
         ImGui::TextColored(
                 ImVec4{1.f, .2f, .2f, 1.f}, "%s", local_text.c_str());
+    else
+        ImGui::TextUnformatted(local_text.c_str());
     ImGui::PopTextWrapPos();
-    ImGui::Separator();
-    if (local_allow_close)
+    if (local_type == DialogQuestion)
     {
+        ImGui::Separator();
+        for (auto const response : responses)
+        {
+            if (ImGui::Button(
+                        response.text.c_str(),
+                        ImVec2{ImGui::GetWindowContentRegionWidth(),
+                               ImGui::GetTextLineHeightWithSpacing()}))
+            {
+                pkgi_dialog_lock();
+                dialog_type = DialogNone;
+                dialog_responses = {};
+                pkgi_dialog_unlock();
+                callback = response.callback;
+            }
+        }
+    }
+    else if (local_allow_close)
+    {
+        ImGui::Separator();
         if (ImGui::Button(
                     "OK",
                     ImVec2{ImGui::GetWindowContentRegionWidth(),
@@ -133,4 +171,7 @@ void pkgi_do_dialog()
         ImGui::SetItemDefaultFocus();
     }
     ImGui::End();
+
+    if (callback)
+        callback();
 }
