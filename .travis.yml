@@ -35,3 +35,7 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
+
+cache:
+  directories:
+    - /home/travis/.conan/data
