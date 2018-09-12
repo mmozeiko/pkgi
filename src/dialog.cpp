@@ -48,13 +48,14 @@ void pkgi_dialog_allow_close(int allow)
     pkgi_dialog_unlock();
 }
 
-void pkgi_dialog_message(const char* text)
+void pkgi_dialog_message(const char* text, int allow_close)
 {
     pkgi_dialog_lock();
 
     dialog_text = text;
     dialog_title = "";
 
+    dialog_allow_close = allow_close;
     dialog_cancelled = 0;
     dialog_type = DialogMessage;
 
@@ -70,6 +71,7 @@ void pkgi_dialog_error(const char* text)
     dialog_title = "ERROR";
     dialog_text = text;
 
+    dialog_allow_close = 1;
     dialog_cancelled = 0;
     dialog_type = DialogError;
 
