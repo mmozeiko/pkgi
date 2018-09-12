@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.36
+
+What's new:
+
+- It is now possible to download the new version of pkgj when one becomes
+    available
+
 ## 0.35
 
 Bug fixes:
