@@ -42,10 +42,9 @@ add_assets(assets
 
 add_executable(pkgj
   ${assets}
-  src/pkgi.cpp
   src/aes128.c
-  src/config.cpp
   src/comppackdb.cpp
+  src/config.cpp
   src/db.cpp
   src/dialog.cpp
   src/download.cpp
@@ -53,14 +52,16 @@ add_executable(pkgj
   src/extractzip.cpp
   src/filedownload.cpp
   src/imgui.cpp
-  src/vitahttp.cpp
   src/menu.cpp
+  src/pkgi.cpp
+  src/puff.c
   src/sfo.cpp
   src/sha256.c
   src/update.cpp
   src/vita.cpp
+  src/vitafile.cpp
+  src/vitahttp.cpp
   src/zrif.c
-  src/puff.c
 )
 
 target_link_libraries(pkgj

@@ -31,7 +31,7 @@ typedef struct pkgi_input
     uint64_t delta; // microseconds from previous frame
 
     uint32_t pressed; // button pressed in last frame
-    uint32_t down;    // button is currently down
+    uint32_t down; // button is currently down
     uint32_t active; // button is pressed in last frame, or held down for a long
                      // time (10 frames)
 } pkgi_input;
@@ -102,27 +102,6 @@ int pkgi_dialog_input_update(void);
 void pkgi_dialog_input_get_text(char* text, uint32_t size);
 
 int pkgi_check_free_space(uint64_t http_length);
-
-void pkgi_mkdirs(const char* path);
-void pkgi_rm(const char* file);
-void pkgi_delete_dir(const std::string& path);
-int64_t pkgi_get_size(const char* path);
-
-int pkgi_file_exists(const char* path);
-void pkgi_rename(const char* from, const char* to);
-
-// creates file (if it exists, truncates size to 0)
-void* pkgi_create(const char* path);
-// open existing file in read/write, fails if file does not exist
-void* pkgi_openrw(const char* path);
-// open file for writing, next write will append data to end of it
-void* pkgi_append(const char* path);
-
-void pkgi_close(void* f);
-
-int64_t pkgi_seek(void* f, uint64_t offset);
-int pkgi_read(void* f, void* buffer, uint32_t size);
-int pkgi_write(void* f, const void* buffer, uint32_t size);
 
 std::string pkgi_get_system_version();
 

@@ -1,4 +1,5 @@
 #include "dialog.hpp"
+#include "file.hpp"
 #include "pkgi.hpp"
 #include "vitahttp.hpp"
 

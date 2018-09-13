@@ -1,9 +1,11 @@
 #include "filedownload.hpp"
 #include "download.hpp"
 
-extern "C" {
+extern "C"
+{
 #include "utils.h"
 }
+#include "file.hpp"
 #include "pkgi.hpp"
 
 #include <fmt/format.h>

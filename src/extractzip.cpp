@@ -1,5 +1,6 @@
 #include "extractzip.hpp"
 
+#include "file.hpp"
 #include "pkgi.hpp"
 
 #include <zip.h>

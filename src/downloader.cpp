@@ -3,6 +3,7 @@
 #include <boost/scope_exit.hpp>
 
 #include "download.hpp"
+#include "file.hpp"
 #include "filedownload.hpp"
 #include "vitahttp.hpp"
 
