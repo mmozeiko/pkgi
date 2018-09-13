@@ -629,18 +629,24 @@ uint64_t pkgi_get_free_space(const char* requested_partition)
     return info.free_size;
 }
 
-const char* pkgi_get_config_folder(void)
+const char* pkgi_get_config_folder()
 {
-    if (pkgi_file_exists("ur0:pkgi/config.txt"))
-        return "ur0:pkgi";
-    else
-        return "ux0:pkgi";
+    if (0)
+    {
+    }
+#define CHECK_FOLDER(f) else if (pkgi_file_exists(f "/config.txt")) return f
+    CHECK_FOLDER("ur0:pkgj");
+    CHECK_FOLDER("ux0:pkgj");
+    CHECK_FOLDER("ur0:pkgi");
+    CHECK_FOLDER("ux0:pkgi");
+#undef CHECK_FOLDER
+    else throw std::runtime_error("no config.txt found");
 }
 
 int pkgi_is_incomplete(const char* partition, const char* contentid)
 {
     return pkgi_file_exists(
-            fmt::format("{}pkgi/{}.resume", partition, contentid).c_str());
+            fmt::format("{}pkgj/{}.resume", partition, contentid).c_str());
 }
 
 int pkgi_is_installed(const char* titleid)
@@ -706,7 +712,7 @@ int pkgi_psx_is_installed(const char* psppartition, const char* content)
 void pkgi_install(const char* contentid)
 {
     char path[128];
-    snprintf(path, sizeof(path), "ux0:pkgi/%s", contentid);
+    snprintf(path, sizeof(path), "ux0:pkgj/%s", contentid);
 
     LOG("calling scePromoterUtilityPromotePkgWithRif on %s", path);
     const auto res = scePromoterUtilityPromotePkgWithRif(path, 1);
@@ -779,7 +785,7 @@ void pkgi_install_update(const char* contentid)
     pkgi_mkdirs("ux0:patch");
 
     const auto titleid = fmt::format("{:.9}", contentid + 7);
-    const auto src = fmt::format("ux0:pkgi/{}", contentid);
+    const auto src = fmt::format("ux0:pkgj/{}", contentid);
     const auto dest = fmt::format("ux0:patch/{}", titleid);
 
     LOGF("deleting previous patch at {}", dest);
@@ -836,7 +842,7 @@ void pkgi_install_update(const char* contentid)
 
 void pkgi_install_comppack(const char* titleid)
 {
-    const auto src = fmt::format("ux0:pkgi/{}-comp.ppk", titleid);
+    const auto src = fmt::format("ux0:pkgj/{}-comp.ppk", titleid);
     const auto dest = fmt::format("ux0:rePatch/{}", titleid);
 
     pkgi_mkdirs(dest.c_str());
@@ -851,7 +857,7 @@ void pkgi_install_psmgame(const char* contentid)
 {
     pkgi_mkdirs("ux0:psm");
     const auto titleid = fmt::format("{:.9}", contentid + 7);
-    const auto src = fmt::format("ux0:pkgi/{}", contentid);
+    const auto src = fmt::format("ux0:pkgj/{}", contentid);
     const auto dest = fmt::format("ux0:psm/{}", titleid);
 
     LOGF("installing psm game from {} to {}", src, dest);
@@ -864,7 +870,7 @@ void pkgi_install_psmgame(const char* contentid)
 void pkgi_install_pspgame(const char* partition, const char* contentid)
 {
     LOG("Installing a PSP/PSX game");
-    const auto path = fmt::format("{}pkgi/{}", partition, contentid);
+    const auto path = fmt::format("{}pkgj/{}", partition, contentid);
     const auto dest =
             fmt::format("{}pspemu/PSP/GAME/{:.9}", partition, contentid + 7);
 
@@ -879,7 +885,7 @@ void pkgi_install_pspgame(const char* partition, const char* contentid)
 
 void pkgi_install_pspgame_as_iso(const char* partition, const char* contentid)
 {
-    const auto path = fmt::format("{}pkgi/{}", partition, contentid);
+    const auto path = fmt::format("{}pkgj/{}", partition, contentid);
     const auto dest =
             fmt::format("{}pspemu/PSP/GAME/{:.9}", partition, contentid + 7);
 

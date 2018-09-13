@@ -26,7 +26,7 @@ Get latest version as [vpk file here][pkgj_latest].
 
 # Setup instructions
 
-Setup games databases URLs in `ux0:pkgi/config.txt`. The file format is the following:
+Setup games databases URLs in `ux0:pkgj/config.txt`. The file format is the following:
 
     url_games http://thesite/games.tsv
     url_updates http://thesite/updates.tsv
@@ -66,7 +66,7 @@ Press left or right button to move page up or down.
 
 3. Where to remove interrupted/failed downloads to free up the space?
 
-  In `ux0:pkgi` folder - each download will be in separate folder by its title id. Simply delete the folder & resume file.
+  In `ux0:pkgj` folder - each download will be in separate folder by its title id. Simply delete the folder & resume file.
 
 4. Download speed is too slow!
 
@@ -148,7 +148,7 @@ pkgj will be built in ci/build, you can rebuild it anytime you want by running
 ninja in that same directory.
 
 You can set environment variable `PSVITAIP` (before running cmake) to IP address of
-Vita, that will allow to use `make send` for sending eboot.bin file directly to `ux0:app/PKGI00000` folder.
+Vita, that will allow to use `make send` for sending eboot.bin file directly to `ux0:app/PKGJ00000` folder.
 
 To enable debugging logging pass `-DPKGI_ENABLE_LOGGING=ON` argument to cmake. Then application will send debug messages to
 UDP multicast address 239.255.0.100:30000. To receive them you can use [socat][] on your PC:

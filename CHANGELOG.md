@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.37
+
+What's new:
+
+- PKGj will now use `ux0:pkgj` and `ur0:pkgj` as configuration and temporary
+    file folder. If the configuration file can't be found, it will fallback to
+    `pkgi` folders
+
 ## 0.36
 
 What's new:

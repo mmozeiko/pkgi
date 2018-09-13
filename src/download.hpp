@@ -7,7 +7,8 @@
 
 #include <stdint.h>
 
-extern "C" {
+extern "C"
+{
 #include "aes128.h"
 #include "sha256.h"
 }
@@ -65,7 +66,6 @@ public:
             const uint8_t* digest);
 
     // private:
-    // temporary unpack folder ux0:pkgi/TITLE
     bool save_as_iso{false};
 
     std::string root;
@@ -75,16 +75,16 @@ public:
     const char* download_url;
 
     uint64_t download_offset; // pkg absolute offset
-    uint64_t download_size;   // pkg total size (from http request)
+    uint64_t download_size; // pkg total size (from http request)
 
     uint8_t iv[AES_BLOCK_SIZE];
     aes128_ctx aes;
     sha256_ctx sha;
 
-    void* item_file;       // current file handle
+    void* item_file; // current file handle
     std::string item_name; // current file name
     std::string item_path; // current file path
-    uint32_t item_index;   // current item
+    uint32_t item_index; // current item
 
     // head.bin contents, kept in memory while downloading
     std::vector<uint8_t> head;
@@ -98,9 +98,9 @@ public:
     uint32_t content_type;
 
     // encrypted files
-    uint64_t encrypted_base;   // offset in pkg where it starts
+    uint64_t encrypted_base; // offset in pkg where it starts
     uint64_t encrypted_offset; // offset from beginning of file
-    uint64_t decrypted_size;   // size that's left to write into decrypted file
+    uint64_t decrypted_size; // size that's left to write into decrypted file
 
     uint64_t last_state_save;
 
