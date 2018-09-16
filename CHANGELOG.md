@@ -8,6 +8,10 @@ What's new:
     file folder. If the configuration file can't be found, it will fallback to
     `pkgi` folders
 
+Bug fixes:
+
+- Fixed crash on application start or on download cancel
+
 ## 0.36
 
 What's new:
