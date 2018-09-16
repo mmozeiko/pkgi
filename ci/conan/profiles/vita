@@ -1,5 +1,5 @@
 [build_requires]
-vitasdk-toolchain/06@blastrock/pkgj
+vitasdk-toolchain/07@blastrock/pkgj
 
 [settings]
 os_build=Linux
