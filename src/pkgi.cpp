@@ -191,29 +191,27 @@ const char* pkgi_get_mode_partition()
                    : "ux0:";
 }
 
-void pkgi_start_download(Downloader& downloader)
+void pkgi_start_download(Downloader& downloader, const DbItem& item)
 {
-    DbItem* item = db->get(selected_item);
-
     LOG("decoding zRIF");
 
     // Just use the maximum size to be safe
     uint8_t rif[PKGI_PSM_RIF_SIZE];
     char message[256];
-    if (item->zrif.empty() ||
-        pkgi_zrif_decode(item->zrif.c_str(), rif, message, sizeof(message)))
+    if (item.zrif.empty() ||
+        pkgi_zrif_decode(item.zrif.c_str(), rif, message, sizeof(message)))
     {
         downloader.add(DownloadItem{
                 static_cast<Type>(mode),
-                item->name,
-                item->content,
-                item->url,
-                item->zrif.empty()
+                item.name,
+                item.content,
+                item.url,
+                item.zrif.empty()
                         ? std::vector<uint8_t>{}
                         : std::vector<uint8_t>(rif, rif + PKGI_PSM_RIF_SIZE),
-                item->has_digest
+                item.has_digest
                         ? std::vector<uint8_t>(
-                                  item->digest.begin(), item->digest.end())
+                                  item.digest.begin(), item.digest.end())
                         : std::vector<uint8_t>{},
                 !config.install_psp_as_pbp,
                 pkgi_get_mode_partition()});
@@ -222,50 +220,45 @@ void pkgi_start_download(Downloader& downloader)
     {
         pkgi_dialog_error(message);
     }
-
-    item->presence = PresenceUnknown;
-    state = StateMain;
 }
 
-void pkgi_start_download_comppack(Downloader& downloader)
+void pkgi_start_download_comppack(Downloader& downloader, const DbItem& item)
 {
-    DbItem* item = db->get(selected_item);
-
     // HACK: comppack are identified by their titleid instead of content id
-    if (downloader.is_in_queue(item->titleid))
+    if (downloader.is_in_queue(item.titleid))
     {
-        downloader.remove_from_queue(item->titleid);
+        downloader.remove_from_queue(item.titleid);
         return;
     }
 
-    if ((mode == ModeGames && item->presence != PresenceInstalled) ||
-        (mode == ModeUpdates && item->presence != PresenceInstalled))
+    if ((mode == ModeGames && item.presence != PresenceInstalled) ||
+        (mode == ModeUpdates && item.presence != PresenceInstalled))
     {
-        LOGF("{} is not installed", item->content);
+        LOGF("{} is not installed", item.content);
         return;
     }
 
     const auto entry = [&] {
         if (mode == ModeGames)
-            return comppack_db_games->get(item->titleid);
+            return comppack_db_games->get(item.titleid);
         else
-            return comppack_db_updates->get(item->titleid);
+            return comppack_db_updates->get(item.titleid);
     }();
     if (!entry)
     {
         pkgi_dialog_error(
-                fmt::format("No compatibility pack found for {}", item->titleid)
+                fmt::format("No compatibility pack found for {}", item.titleid)
                         .c_str());
         return;
     }
 
-    const auto app_version = fmt::format("{:0>5}", item->app_version);
-    if (!item->app_version.empty() && entry->app_version != app_version)
+    const auto app_version = fmt::format("{:0>5}", item.app_version);
+    if (!item.app_version.empty() && entry->app_version != app_version)
     {
         pkgi_dialog_error(fmt::format(
                                   "No compatibility pack found for {}, version "
                                   "{}, got {}",
-                                  item->titleid,
+                                  item.titleid,
                                   app_version,
                                   entry->app_version)
                                   .c_str());
@@ -273,15 +266,13 @@ void pkgi_start_download_comppack(Downloader& downloader)
     }
 
     downloader.add(DownloadItem{CompPack,
-                                item->name,
-                                item->titleid,
+                                item.name,
+                                item.titleid,
                                 config.comppack_url + entry->path,
                                 std::vector<uint8_t>{},
                                 std::vector<uint8_t>{},
                                 false,
                                 "ux0:"});
-
-    state = StateMain;
 }
 
 void pkgi_friendly_size(char* text, uint32_t textlen, int64_t size)
@@ -659,7 +650,9 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
             break;
         }
         LOGF("[{}] {} - starting to install", item->content, item->name);
-        pkgi_start_download(downloader);
+
+        pkgi_start_download(downloader, *item);
+        item->presence = PresenceUnknown;
     }
     else if (input && (input->pressed & PKGI_BUTTON_LT))
     {
@@ -671,7 +664,7 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         if (selected_item >= db->count())
             return;
 
-        pkgi_start_download_comppack(downloader);
+        pkgi_start_download_comppack(downloader, *db->get(selected_item));
     }
     else if (input && (input->pressed & PKGI_BUTTON_T))
     {
