@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include <cstdint>
 
@@ -24,3 +25,6 @@ void pkgi_close(void* f);
 int64_t pkgi_seek(void* f, uint64_t offset);
 int pkgi_read(void* f, void* buffer, uint32_t size);
 int pkgi_write(void* f, const void* buffer, uint32_t size);
+
+std::vector<uint8_t> pkgi_load(const std::string& path);
+int pkgi_save(const char* name, const void* data, uint32_t size);

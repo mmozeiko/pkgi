@@ -1,5 +1,6 @@
 #include "config.hpp"
 
+#include "file.hpp"
 #include "pkgi.hpp"
 
 static char* skipnonws(char* text, char* end)
