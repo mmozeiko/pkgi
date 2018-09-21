@@ -843,6 +843,9 @@ int Download::download_files(void)
 
     for (; item_index < index_count; ++item_index)
     {
+        if (is_canceled())
+            throw std::runtime_error("download was canceled");
+
         uint8_t item[32];
         pkgi_memcpy(
                 item,
