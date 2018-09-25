@@ -11,7 +11,7 @@
 #include <psp2/io/fcntl.h>
 #include <psp2/promoterutil.h>
 
-int pkgi_is_installed(const char* titleid)
+bool pkgi_is_installed(const char* titleid)
 {
     int ret = -1;
     LOG("calling scePromoterUtilityCheckExist on %s", titleid);
@@ -40,19 +40,19 @@ bool pkgi_update_is_installed(
     return true;
 }
 
-int pkgi_dlc_is_installed(const char* content)
+bool pkgi_dlc_is_installed(const char* content)
 {
     return pkgi_file_exists(
             fmt::format("ux0:addcont/{:.9}/{:.16}", content + 7, content + 20)
                     .c_str());
 }
 
-int pkgi_psm_is_installed(const char* titleid)
+bool pkgi_psm_is_installed(const char* titleid)
 {
     return pkgi_file_exists(fmt::format("ux0:psm/{}", titleid).c_str());
 }
 
-int pkgi_psp_is_installed(const char* psppartition, const char* content)
+bool pkgi_psp_is_installed(const char* psppartition, const char* content)
 {
     return pkgi_file_exists(
                    fmt::format(
@@ -64,7 +64,7 @@ int pkgi_psp_is_installed(const char* psppartition, const char* content)
                            .c_str());
 }
 
-int pkgi_psx_is_installed(const char* psppartition, const char* content)
+bool pkgi_psx_is_installed(const char* psppartition, const char* content)
 {
     return pkgi_file_exists(
             fmt::format("{}pspemu/PSP/GAME/{:.9}", psppartition, content + 7)
