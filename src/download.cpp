@@ -1047,8 +1047,7 @@ int Download::create_stat()
     const auto path = fmt::format("{}/sce_sys/package/stat.bin", root);
 
     uint8_t stat[768] = {0};
-    if (!pkgi_save(path.c_str(), stat, sizeof(stat)))
-        throw formatEx<DownloadError>("cannot save zeros to {}", path);
+    pkgi_save(path.c_str(), stat, sizeof(stat));
 
     LOG("stat.bin created");
     return 1;
@@ -1061,8 +1060,7 @@ int Download::create_rif(const uint8_t* rif)
 
     const auto path = fmt::format("{}/sce_sys/package/work.bin", root);
 
-    if (!pkgi_save(path.c_str(), rif, PKGI_RIF_SIZE))
-        throw formatEx<DownloadError>("cannot save rif to {}", path);
+    pkgi_save(path.c_str(), rif, PKGI_RIF_SIZE);
 
     LOG("work.bin created");
     return 1;
@@ -1080,8 +1078,7 @@ int Download::create_psm_rif(const uint8_t* rif)
 
     const auto path = fmt::format("{}/RO/License/FAKE.rif", root);
 
-    if (!pkgi_save(path.c_str(), rif, PKGI_PSM_RIF_SIZE))
-        throw formatEx<DownloadError>("cannot save rif to {}", path);
+    pkgi_save(path.c_str(), rif, PKGI_PSM_RIF_SIZE);
 
     LOG("FAKE.rif created");
     return 1;
@@ -1109,19 +1106,12 @@ int Download::adjust_psm_files(void)
     char content_data[0x30];
     strncpy(content_data, download_content, sizeof(content_data));
     const auto content_id = fmt::format("{}/RW/System/content_id", root);
-    if (!pkgi_save(content_id.c_str(), content_data, 0x30))
-        throw formatEx<DownloadError>(
-                "cannot save content_id to {}", content_id);
+    pkgi_save(content_id.c_str(), content_data, 0x30);
 
     LOG("creating RW/System/pm.dat");
     const auto pm_dat = fmt::format("{}/RW/System/pm.dat", root);
-    uint8_t* pm_data = (uint8_t*)calloc(1 << 16, 1);
-    if (!pkgi_save(pm_dat.c_str(), pm_data, 1 << 16))
-    {
-        free(pm_data);
-        throw formatEx<DownloadError>("cannot save pm.dat to {}", pm_dat);
-    }
-    free(pm_data);
+    std::vector<uint8_t> pm_data(1 << 16);
+    pkgi_save(pm_dat.c_str(), pm_data.data(), pm_data.size());
 
     return 1;
 }

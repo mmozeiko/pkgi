@@ -164,7 +164,7 @@ std::vector<uint8_t> pkgi_load(const std::string& path)
     if (fd < 0)
         throw std::runtime_error(fmt::format(
                 "sceIoOpen({}) failed:\n{:#08x}",
-                path.c_str(),
+                path,
                 static_cast<uint32_t>(fd)));
 
     const auto size = sceIoLseek(fd, 0, SCE_SEEK_END);
@@ -176,7 +176,7 @@ std::vector<uint8_t> pkgi_load(const std::string& path)
     if (read < 0)
         throw std::runtime_error(fmt::format(
                 "sceIoRead({}) failed:\n{:#08x}",
-                path.c_str(),
+                path,
                 static_cast<uint32_t>(read)));
 
     data.resize(read);
@@ -186,28 +186,28 @@ std::vector<uint8_t> pkgi_load(const std::string& path)
     return data;
 }
 
-int pkgi_save(const char* name, const void* data, uint32_t size)
+void pkgi_save(const std::string& path, const void* data, uint32_t size)
 {
-    SceUID fd = sceIoOpen(name, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+    SceUID fd = sceIoOpen(
+            path.c_str(), SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
     if (fd < 0)
-    {
-        return 0;
-    }
+        throw std::runtime_error(fmt::format(
+                "sceIoOpen({}) failed:\n{:#08x}",
+                path,
+                static_cast<uint32_t>(fd)));
 
-    int ret = 1;
     const char* data8 = static_cast<const char*>(data);
     while (size != 0)
     {
         int written = sceIoWrite(fd, data8, size);
         if (written <= 0)
-        {
-            ret = 0;
-            break;
-        }
+            throw std::runtime_error(fmt::format(
+                    "sceIoWrite({}) failed:\n{:#08x}",
+                    path,
+                    static_cast<uint32_t>(written)));
         data8 += written;
         size -= written;
     }
 
     sceIoClose(fd);
-    return ret;
 }

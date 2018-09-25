@@ -1,5 +1,6 @@
 #include "pkgi.hpp"
-extern "C" {
+extern "C"
+{
 #include "style.h"
 }
 
@@ -184,9 +185,12 @@ std::vector<uint8_t> pkgi_load(const std::string& path)
     int fd = open(path.c_str(), O_RDONLY);
     if (fd < 0)
         throw std::runtime_error(fmt::format(
-                "open({}) failed: {:#08x}",
-                path.c_str(),
-                static_cast<uint32_t>(fd)));
+                "open({}) failed: {:#08x}", path, static_cast<uint32_t>(fd)));
+
+    BOOST_SCOPE_EXIT_ALL(&)
+    {
+        close(fd);
+    };
 
     const auto size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
@@ -201,8 +205,6 @@ std::vector<uint8_t> pkgi_load(const std::string& path)
                 static_cast<uint32_t>(readsize)));
 
     data.resize(readsize);
-
-    close(fd);
 
     return data;
 }
@@ -258,6 +260,32 @@ int pkgi_save(const char* name, const void* data, uint32_t size)
 
     close(fd);
     return ret;
+}
+
+void pkgi_save(const std::string& path, const void* data, uint32_t size)
+{
+    int fd = open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    if (fd < 0)
+        throw std::runtime_error(fmt::format(
+                "open({}) failed:\n{:#08x}", path, static_cast<uint32_t>(fd)));
+
+    BOOST_SCOPE_EXIT_ALL(&)
+    {
+        close(fd);
+    };
+
+    const char* data8 = static_cast<const char*>(data);
+    while (size != 0)
+    {
+        int written = write(fd, data8, size);
+        if (written <= 0)
+            throw std::runtime_error(fmt::format(
+                    "write({}) failed:\n{:#08x}",
+                    path,
+                    static_cast<uint32_t>(written)));
+        data8 += written;
+        size -= written;
+    }
 }
 
 void* pkgi_create(const char* path)

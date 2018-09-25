@@ -333,16 +333,6 @@ void pkgi_save_config(const Config& config)
                 data + len, sizeof(data) - len, "install_psp_as_pbp 1\n");
     }
 
-    char path[256];
-    pkgi_snprintf(
-            path, sizeof(path), "%s/config.txt", pkgi_get_config_folder());
-
-    if (pkgi_save(path, data, len))
-    {
-        LOG("saved config.txt");
-    }
-    else
-    {
-        LOG("cannot save config.txt");
-    }
+    pkgi_save(
+            fmt::format("{}/config.txt", pkgi_get_config_folder()), data, len);
 }
