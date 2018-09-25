@@ -1,13 +1,14 @@
 #include "downloader.hpp"
 
-#include <boost/scope_exit.hpp>
-
 #include "download.hpp"
 #include "file.hpp"
 #include "filedownload.hpp"
+#include "install.hpp"
 #include "vitahttp.hpp"
 
 #include <fmt/format.h>
+
+#include <boost/scope_exit.hpp>
 
 std::string type_to_string(Type type)
 {

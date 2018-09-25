@@ -52,6 +52,7 @@ add_executable(pkgj
   src/extractzip.cpp
   src/filedownload.cpp
   src/imgui.cpp
+  src/install.cpp
   src/menu.cpp
   src/pkgi.cpp
   src/puff.c
