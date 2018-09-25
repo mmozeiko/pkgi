@@ -147,17 +147,25 @@ void pkgi_install_update(const char* contentid)
                 sqlite3_errmsg(_sqliteDb.get()));
 }
 
-void pkgi_install_comppack(const char* titleid)
+void pkgi_install_comppack(
+        const std::string& titleid, bool patch, const std::string& version)
 {
     const auto src = fmt::format("ux0:pkgj/{}-comp.ppk", titleid);
     const auto dest = fmt::format("ux0:rePatch/{}", titleid);
 
-    pkgi_mkdirs(dest.c_str());
+    if (!patch)
+        pkgi_delete_dir(dest);
 
     pkgi_mkdirs(dest.c_str());
 
     LOGF("installing comp pack from {} to {}", src, dest);
     pkgi_extract_zip(src, dest);
+
+    pkgi_save(
+            fmt::format(
+                    "{}/{}_comppack_version", dest, patch ? "patch" : "base"),
+            version.data(),
+            version.size());
 }
 
 void pkgi_install_psmgame(const char* contentid)

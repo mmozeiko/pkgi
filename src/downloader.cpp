@@ -210,7 +210,7 @@ void Downloader::do_download_comppack(const DownloadItem& item)
     download->download(
             item.partition.c_str(), item.content.c_str(), item.url.c_str());
     LOGF("download of comppack {} completed!", item.url);
-    pkgi_install_comppack(item.content.c_str());
+    pkgi_install_comppack(item.content, item.is_patch, item.version);
     pkgi_rm(fmt::format("{}pkgj/{}-comp.ppk", item.partition, item.content)
                     .c_str());
     LOG("install of %s completed!", item.name.c_str());

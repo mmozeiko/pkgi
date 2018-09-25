@@ -30,6 +30,9 @@ struct DownloadItem
     std::vector<uint8_t> digest;
     bool save_as_iso;
     std::string partition;
+    // only used by compatibility packs
+    bool is_patch;
+    std::string version;
 };
 
 std::string type_to_string(Type type);

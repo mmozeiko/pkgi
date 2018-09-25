@@ -215,7 +215,9 @@ void pkgi_start_download(Downloader& downloader, const DbItem& item)
                                   item.digest.begin(), item.digest.end())
                         : std::vector<uint8_t>{},
                 !config.install_psp_as_pbp,
-                pkgi_get_mode_partition()});
+                pkgi_get_mode_partition(),
+                false,
+                ""});
     }
     else
     {
@@ -273,7 +275,9 @@ void pkgi_start_download_comppack(Downloader& downloader, const DbItem& item)
                                 std::vector<uint8_t>{},
                                 std::vector<uint8_t>{},
                                 false,
-                                "ux0:"});
+                                "ux0:",
+                                mode != ModeGames,
+                                item.app_version});
 }
 
 void pkgi_friendly_size(char* text, uint32_t textlen, int64_t size)
