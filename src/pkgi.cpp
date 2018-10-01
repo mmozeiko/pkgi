@@ -225,6 +225,43 @@ void pkgi_start_download(Downloader& downloader, const DbItem& item)
     }
 }
 
+void pkgi_install_package(Downloader& downloader, DbItem* item)
+{
+    switch (mode)
+    {
+    case ModeGames:
+    case ModePsmGames:
+    case ModePsxGames:
+    case ModePspGames:
+        if (item->presence == PresenceInstalled)
+        {
+            LOGF("[{}] {} - already installed", item->titleid, item->name);
+            pkgi_dialog_error("Already installed");
+            return;
+        }
+        break;
+    case ModeDlcs:
+    case ModeUpdates:
+        if (item->presence == PresenceInstalled)
+        {
+            LOGF("[{}] {} - already installed", item->content, item->name);
+            pkgi_dialog_error("Already installed");
+            return;
+        }
+        if (item->presence != PresenceGamePresent)
+        {
+            LOGF("[{}] {} - game not installed", item->titleid, item->name);
+            pkgi_dialog_error("Corresponding game not installed");
+            return;
+        }
+        break;
+    }
+    LOGF("[{}] {} - starting to install", item->content, item->name);
+
+    pkgi_start_download(downloader, *item);
+    item->presence = PresenceUnknown;
+}
+
 void pkgi_start_download_comppack(Downloader& downloader, const DbItem& item)
 {
     // HACK: comppack are identified by their titleid instead of content id
@@ -625,39 +662,7 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
             return;
         }
 
-        switch (mode)
-        {
-        case ModeGames:
-        case ModePsmGames:
-        case ModePsxGames:
-        case ModePspGames:
-            if (item->presence == PresenceInstalled)
-            {
-                LOGF("[{}] {} - already installed", item->titleid, item->name);
-                pkgi_dialog_error("Already installed");
-                return;
-            }
-            break;
-        case ModeDlcs:
-        case ModeUpdates:
-            if (item->presence == PresenceInstalled)
-            {
-                LOGF("[{}] {} - already installed", item->content, item->name);
-                pkgi_dialog_error("Already installed");
-                return;
-            }
-            if (item->presence != PresenceGamePresent)
-            {
-                LOGF("[{}] {} - game not installed", item->titleid, item->name);
-                pkgi_dialog_error("Corresponding game not installed");
-                return;
-            }
-            break;
-        }
-        LOGF("[{}] {} - starting to install", item->content, item->name);
-
-        pkgi_start_download(downloader, *item);
-        item->presence = PresenceUnknown;
+        pkgi_install_package(downloader, item);
     }
     else if (input && (input->pressed & PKGI_BUTTON_LT))
     {
