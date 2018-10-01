@@ -664,18 +664,6 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 
         pkgi_install_package(downloader, item);
     }
-    else if (input && (input->pressed & PKGI_BUTTON_LT))
-    {
-        if (mode != ModeGames && mode != ModeUpdates)
-            return;
-
-        input->pressed &= ~PKGI_BUTTON_LT;
-
-        if (selected_item >= db->count())
-            return;
-
-        pkgi_start_download_comppack(downloader, *db->get(selected_item));
-    }
     else if (input && (input->pressed & PKGI_BUTTON_T))
     {
         input->pressed &= ~PKGI_BUTTON_T;
@@ -913,13 +901,6 @@ void pkgi_do_tail(Downloader& downloader)
     else
     {
         DbItem* item = db->get(selected_item);
-        if ((mode == ModeGames || mode == ModeUpdates) && item &&
-            item->presence == PresenceInstalled)
-            bottom_text = fmt::format(
-                    "L {} ",
-                    downloader.is_in_queue(item->titleid)
-                            ? "cancel comp pack"
-                            : "install comp pack");
         if (item && item->presence == PresenceInstalling)
             bottom_text += fmt::format("{} cancel ", pkgi_get_ok_str());
         else if (item && item->presence != PresenceInstalled)
