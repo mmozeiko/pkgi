@@ -188,6 +188,42 @@ void pkgi_install_comppack(
             version.size());
 }
 
+std::tuple<std::string, std::string> pkgi_get_comppack_versions(
+        const std::string& titleid)
+{
+
+    const auto dir = fmt::format("ux0:rePatch/{}", titleid);
+
+    const auto base = [&] {
+        try
+        {
+            const auto data = pkgi_load(dir + "/base_comppack_version");
+            return std::string(data.begin(), data.end());
+        }
+        catch (const std::exception& e)
+        {
+            LOGF("no base comppack version: {}", e.what());
+            // return empty string if not found
+            return std::string{};
+        }
+    }();
+    const auto patch = [&] {
+        try
+        {
+            const auto data = pkgi_load(dir + "/patch_comppack_version");
+            return std::string(data.begin(), data.end());
+        }
+        catch (const std::exception& e)
+        {
+            LOGF("no patch comppack version: {}", e.what());
+            // return empty string if not found
+            return std::string{};
+        }
+    }();
+
+    return {base, patch};
+}
+
 void pkgi_install_psmgame(const char* contentid)
 {
     pkgi_mkdirs("ux0:psm");
