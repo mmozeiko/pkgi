@@ -10,7 +10,7 @@
 
 #include <cstdint>
 
-typedef enum
+enum DbPresence
 {
     PresenceUnknown,
     PresenceIncomplete,
@@ -18,24 +18,24 @@ typedef enum
     PresenceInstalled,
     PresenceMissing,
     PresenceGamePresent,
-} DbPresence;
+};
 
-typedef enum
+enum DbSort
 {
     SortByTitle,
     SortByRegion,
     SortByName,
     SortBySize,
     SortByDate,
-} DbSort;
+};
 
-typedef enum
+enum DbSortOrder
 {
     SortAscending,
     SortDescending,
-} DbSortOrder;
+};
 
-typedef enum
+enum DbFilter
 {
     DbFilterRegionASA = 0x01,
     DbFilterRegionEUR = 0x02,
@@ -49,9 +49,9 @@ typedef enum
     DbFilterAllRegions = DbFilterRegionUSA | DbFilterRegionEUR |
                          DbFilterRegionJPN | DbFilterRegionASA,
     DbFilterAll = DbFilterAllRegions | DbFilterInstalled | DbFilterMissing,
-} DbFilter;
+};
 
-typedef struct
+struct DbItem
 {
     DbPresence presence;
     std::string titleid;
@@ -66,18 +66,18 @@ typedef struct
     int64_t size;
     std::string date;
     std::string app_version;
-} DbItem;
+};
 
-typedef enum
+enum GameRegion
 {
     RegionASA,
     RegionEUR,
     RegionJPN,
     RegionUSA,
     RegionUnknown,
-} GameRegion;
+};
 
-typedef enum
+enum Mode
 {
     ModeGames,
     ModeUpdates,
@@ -85,7 +85,7 @@ typedef enum
     ModePsmGames,
     ModePsxGames,
     ModePspGames,
-} Mode;
+};
 
 static constexpr auto ModeCount = 6;
 
