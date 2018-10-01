@@ -20,6 +20,28 @@ bool pkgi_is_installed(const char* titleid)
     return res == 0;
 }
 
+namespace
+{
+std::string pkgi_extract_package_version(const std::string& package)
+{
+    const auto sfo = pkgi_load(fmt::format("{}/sce_sys/param.sfo", package));
+    return pkgi_sfo_get_string(sfo.data(), sfo.size(), "APP_VER");
+}
+}
+
+std::string pkgi_get_game_version(const std::string& titleid)
+{
+    const auto patch_dir = fmt::format("ux0:patch/{}", titleid);
+    if (pkgi_file_exists(patch_dir.c_str()))
+        return pkgi_extract_package_version(patch_dir);
+
+    const auto game_dir = fmt::format("ux0:app/{}", titleid);
+    if (pkgi_file_exists(game_dir.c_str()))
+        return pkgi_extract_package_version(game_dir);
+
+    return "";
+}
+
 bool pkgi_update_is_installed(
         const std::string& titleid, const std::string& request_version)
 {
@@ -28,9 +50,7 @@ bool pkgi_update_is_installed(
     if (!pkgi_file_exists(patch_dir.c_str()))
         return false;
 
-    const auto sfo = pkgi_load(fmt::format("{}/sce_sys/param.sfo", patch_dir));
-    const auto installed_version =
-            pkgi_sfo_get_string(sfo.data(), sfo.size(), "APP_VER");
+    const auto installed_version = pkgi_extract_package_version(patch_dir);
 
     const auto full_request_version = fmt::format("{:0>5}", request_version);
 
