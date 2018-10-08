@@ -811,12 +811,15 @@ int pkgi_text_height(const char* text)
 
 std::string pkgi_get_system_version()
 {
-    SceKernelFwInfo info{};
-    info.size = sizeof(info);
-    const auto res = _vshSblGetSystemSwVersion(&info);
-    if (res < 0)
-        throw std::runtime_error(fmt::format(
-                "sceKernelGetSystemSwVersion failed: {:#08x}",
-                static_cast<uint32_t>(res)));
-    return info.versionString;
+    static auto const version = [] {
+        SceKernelFwInfo info{};
+        info.size = sizeof(info);
+        const auto res = _vshSblGetSystemSwVersion(&info);
+        if (res < 0)
+            throw std::runtime_error(fmt::format(
+                    "sceKernelGetSystemSwVersion failed: {:#08x}",
+                    static_cast<uint32_t>(res)));
+        return std::string(info.versionString);
+    }();
+    return version;
 }
