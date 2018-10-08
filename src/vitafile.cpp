@@ -9,6 +9,8 @@
 #include <psp2/io/stat.h>
 #include <psp2/net/net.h>
 
+#include <boost/scope_exit.hpp>
+
 #include <algorithm>
 
 #define PKGI_ERRNO_EEXIST (int)(0x80010000 + SCE_NET_EEXIST)
@@ -167,6 +169,11 @@ std::vector<uint8_t> pkgi_load(const std::string& path)
                 path,
                 static_cast<uint32_t>(fd)));
 
+    BOOST_SCOPE_EXIT_ALL(&)
+    {
+        sceIoClose(fd);
+    };
+
     const auto size = sceIoLseek(fd, 0, SCE_SEEK_END);
     sceIoLseek(fd, 0, SCE_SEEK_SET);
 
@@ -181,8 +188,6 @@ std::vector<uint8_t> pkgi_load(const std::string& path)
 
     data.resize(read);
 
-    sceIoClose(fd);
-
     return data;
 }
 
@@ -196,6 +201,11 @@ void pkgi_save(const std::string& path, const void* data, uint32_t size)
                 path,
                 static_cast<uint32_t>(fd)));
 
+    BOOST_SCOPE_EXIT_ALL(&)
+    {
+        sceIoClose(fd);
+    };
+
     const char* data8 = static_cast<const char*>(data);
     while (size != 0)
     {
@@ -208,6 +218,4 @@ void pkgi_save(const std::string& path, const void* data, uint32_t size)
         data8 += written;
         size -= written;
     }
-
-    sceIoClose(fd);
 }
