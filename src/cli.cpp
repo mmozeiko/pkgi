@@ -17,7 +17,7 @@ extern "C"
 
 static constexpr auto USAGE =
         "Usage: %s [extract <filename> <zrif> <sha256>] [refreshlist PSV "
-        "path] [refreshcomppack path] [filedownload path]\n";
+        "path] [refreshcomppack path] [filedownload path] [extractzip path]\n";
 
 int extract(int argc, char* argv[])
 {
