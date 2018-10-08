@@ -12,6 +12,7 @@ extern "C"
 #include "dialog.hpp"
 #include "download.hpp"
 #include "downloader.hpp"
+#include "gameview.hpp"
 #include "imgui.hpp"
 #include "install.hpp"
 #include "menu.hpp"
@@ -63,6 +64,9 @@ std::string current_action;
 std::unique_ptr<TitleDatabase> db;
 std::unique_ptr<CompPackDatabase> comppack_db_games;
 std::unique_ptr<CompPackDatabase> comppack_db_updates;
+
+std::unique_ptr<GameView> gameview;
+bool gameview_refresh = false;
 
 void pkgi_reload();
 
@@ -192,39 +196,6 @@ const char* pkgi_get_mode_partition()
                    : "ux0:";
 }
 
-void pkgi_start_download(Downloader& downloader, const DbItem& item)
-{
-    LOG("decoding zRIF");
-
-    // Just use the maximum size to be safe
-    uint8_t rif[PKGI_PSM_RIF_SIZE];
-    char message[256];
-    if (item.zrif.empty() ||
-        pkgi_zrif_decode(item.zrif.c_str(), rif, message, sizeof(message)))
-    {
-        downloader.add(DownloadItem{
-                static_cast<Type>(mode),
-                item.name,
-                item.content,
-                item.url,
-                item.zrif.empty()
-                        ? std::vector<uint8_t>{}
-                        : std::vector<uint8_t>(rif, rif + PKGI_PSM_RIF_SIZE),
-                item.has_digest
-                        ? std::vector<uint8_t>(
-                                  item.digest.begin(), item.digest.end())
-                        : std::vector<uint8_t>{},
-                !config.install_psp_as_pbp,
-                pkgi_get_mode_partition(),
-                false,
-                ""});
-    }
-    else
-    {
-        pkgi_dialog_error(message);
-    }
-}
-
 void pkgi_install_package(Downloader& downloader, DbItem* item)
 {
     switch (mode)
@@ -256,65 +227,9 @@ void pkgi_install_package(Downloader& downloader, DbItem* item)
         }
         break;
     }
-    LOGF("[{}] {} - starting to install", item->content, item->name);
 
     pkgi_start_download(downloader, *item);
     item->presence = PresenceUnknown;
-}
-
-void pkgi_start_download_comppack(Downloader& downloader, const DbItem& item)
-{
-    // HACK: comppack are identified by their titleid instead of content id
-    if (downloader.is_in_queue(item.titleid))
-    {
-        downloader.remove_from_queue(item.titleid);
-        return;
-    }
-
-    if ((mode == ModeGames && item.presence != PresenceInstalled) ||
-        (mode == ModeUpdates && item.presence != PresenceInstalled))
-    {
-        LOGF("{} is not installed", item.content);
-        return;
-    }
-
-    const auto entry = [&] {
-        if (mode == ModeGames)
-            return comppack_db_games->get(item.titleid);
-        else
-            return comppack_db_updates->get(item.titleid);
-    }();
-    if (!entry)
-    {
-        pkgi_dialog_error(
-                fmt::format("No compatibility pack found for {}", item.titleid)
-                        .c_str());
-        return;
-    }
-
-    const auto app_version = fmt::format("{:0>5}", item.app_version);
-    if (!item.app_version.empty() && entry->app_version != app_version)
-    {
-        pkgi_dialog_error(fmt::format(
-                                  "No compatibility pack found for {}, version "
-                                  "{}, got {}",
-                                  item.titleid,
-                                  app_version,
-                                  entry->app_version)
-                                  .c_str());
-        return;
-    }
-
-    downloader.add(DownloadItem{CompPack,
-                                item.name,
-                                item.titleid,
-                                config.comppack_url + entry->path,
-                                std::vector<uint8_t>{},
-                                std::vector<uint8_t>{},
-                                false,
-                                "ux0:",
-                                mode != ModeGames,
-                                item.app_version});
 }
 
 void pkgi_friendly_size(char* text, uint32_t textlen, int64_t size)
@@ -655,14 +570,15 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
             return;
         DbItem* item = db->get(selected_item);
 
-        if (downloader.is_in_queue(item->content))
-        {
-            downloader.remove_from_queue(item->content);
-            item->presence = PresenceUnknown;
-            return;
-        }
-
-        pkgi_install_package(downloader, item);
+        if (mode == ModeGames)
+            gameview = std::make_unique<GameView>(
+                    &config,
+                    &downloader,
+                    item,
+                    comppack_db_games->get(item->titleid),
+                    comppack_db_updates->get(item->titleid));
+        else
+            pkgi_install_package(downloader, item);
     }
     else if (input && (input->pressed & PKGI_BUTTON_T))
     {
@@ -900,11 +816,16 @@ void pkgi_do_tail(Downloader& downloader)
     }
     else
     {
-        DbItem* item = db->get(selected_item);
-        if (item && item->presence == PresenceInstalling)
-            bottom_text += fmt::format("{} cancel ", pkgi_get_ok_str());
-        else if (item && item->presence != PresenceInstalled)
-            bottom_text += fmt::format("{} install ", pkgi_get_ok_str());
+        if (mode == ModeGames)
+            bottom_text += fmt::format("{} details ", pkgi_get_ok_str());
+        else
+        {
+            DbItem* item = db->get(selected_item);
+            if (item && item->presence == PresenceInstalling)
+                bottom_text += fmt::format("{} cancel ", pkgi_get_ok_str());
+            else if (item && item->presence != PresenceInstalled)
+                bottom_text += fmt::format("{} install ", pkgi_get_ok_str());
+        }
         bottom_text += PKGI_UTF8_T " menu";
     }
 
@@ -995,6 +916,39 @@ void pkgi_open_db()
 }
 }
 
+void pkgi_start_download(Downloader& downloader, const DbItem& item)
+{
+    LOGF("[{}] {} - starting to install", item.content, item.name);
+
+    // Just use the maximum size to be safe
+    uint8_t rif[PKGI_PSM_RIF_SIZE];
+    char message[256];
+    if (item.zrif.empty() ||
+        pkgi_zrif_decode(item.zrif.c_str(), rif, message, sizeof(message)))
+    {
+        downloader.add(DownloadItem{
+                static_cast<Type>(mode),
+                item.name,
+                item.content,
+                item.url,
+                item.zrif.empty()
+                        ? std::vector<uint8_t>{}
+                        : std::vector<uint8_t>(rif, rif + PKGI_PSM_RIF_SIZE),
+                item.has_digest
+                        ? std::vector<uint8_t>(
+                                  item.digest.begin(), item.digest.end())
+                        : std::vector<uint8_t>{},
+                !config.install_psp_as_pbp,
+                pkgi_get_mode_partition(),
+                false,
+                ""});
+    }
+    else
+    {
+        pkgi_dialog_error(message);
+    }
+}
+
 int main()
 {
     pkgi_start();
@@ -1018,6 +972,7 @@ int main()
                 else
                     LOGF("couldn't find {} for refresh", content);
             }
+            gameview_refresh = true;
         };
         downloader.error = [](const std::string& error) {
             // FIXME this runs on the wrong thread
@@ -1082,7 +1037,7 @@ int main()
             io.DisplaySize.x = VITA_WIDTH;
             io.DisplaySize.y = VITA_HEIGHT;
 
-            if (pkgi_dialog_is_open())
+            if (gameview || pkgi_dialog_is_open())
             {
                 if (input.active & PKGI_BUTTON_UP)
                     io.NavInputs[ImGuiNavInput_DpadUp] = 1.0f;
@@ -1096,6 +1051,13 @@ int main()
                     io.NavInputs[ImGuiNavInput_Activate] = 1.0f;
                 input.active = 0;
                 input.pressed = 0;
+            }
+
+            if (gameview_refresh)
+            {
+                if (gameview)
+                    gameview->refresh();
+                gameview_refresh = false;
             }
 
             ImGui::NewFrame();
@@ -1122,6 +1084,13 @@ int main()
             }
 
             pkgi_do_tail(downloader);
+
+            if (gameview)
+            {
+                gameview->render();
+                if (gameview->is_closed())
+                    gameview = nullptr;
+            }
 
             if (pkgi_dialog_is_open())
             {

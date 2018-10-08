@@ -51,6 +51,7 @@ add_executable(pkgj
   src/downloader.cpp
   src/extractzip.cpp
   src/filedownload.cpp
+  src/gameview.cpp
   src/imgui.cpp
   src/install.cpp
   src/menu.cpp

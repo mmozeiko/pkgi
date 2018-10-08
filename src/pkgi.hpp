@@ -114,3 +114,7 @@ void pkgi_draw_rect(int x, int y, int w, int h, uint32_t color);
 void pkgi_draw_text(int x, int y, uint32_t color, const char* text);
 int pkgi_text_width(const char* text);
 int pkgi_text_height(const char* text);
+
+class Downloader;
+struct DbItem;
+void pkgi_start_download(Downloader& downloader, const DbItem& item);
