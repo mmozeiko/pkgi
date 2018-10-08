@@ -52,8 +52,6 @@ Mode arg_to_mode(std::string const& arg)
 {
     if (arg == "PSVGAMES")
         return ModeGames;
-    else if (arg == "PSVUPDATES")
-        return ModeUpdates;
     else
         throw std::runtime_error("unsupported arg: " + arg);
 }

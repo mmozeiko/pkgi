@@ -12,7 +12,6 @@ typedef enum
     MenuResultCancel,
     MenuResultRefresh,
     MenuResultShowGames,
-    MenuResultShowUpdates,
     MenuResultShowDlcs,
     MenuResultShowPsxGames,
     MenuResultShowPspGames,

@@ -15,7 +15,6 @@ typedef struct Config
     bool psm_readme_disclaimer;
 
     std::string games_url;
-    std::string updates_url;
     std::string dlcs_url;
     std::string psm_games_url;
     std::string psx_games_url;

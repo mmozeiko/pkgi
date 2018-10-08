@@ -108,8 +108,6 @@ std::string const& pkgi_get_url_from_mode(Mode mode)
     {
     case ModeGames:
         return config.games_url;
-    case ModeUpdates:
-        return config.updates_url;
     case ModeDlcs:
         return config.dlcs_url;
     case ModePsmGames:
@@ -212,7 +210,6 @@ void pkgi_install_package(Downloader& downloader, DbItem* item)
         }
         break;
     case ModeDlcs:
-    case ModeUpdates:
         if (item->presence == PresenceInstalled)
         {
             LOGF("[{}] {} - already installed", item->content, item->name);
@@ -414,15 +411,6 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                 else if (pkgi_is_installed(titleid))
                     item->presence = PresenceGamePresent;
                 break;
-            case ModeUpdates:
-                if (downloader.is_in_queue(item->content))
-                    item->presence = PresenceInstalling;
-                else if (pkgi_update_is_installed(
-                                 item->titleid, item->app_version))
-                    item->presence = PresenceInstalled;
-                else if (pkgi_is_installed(titleid))
-                    item->presence = PresenceGamePresent;
-                break;
             }
 
             if (item->presence == PresenceUnknown)
@@ -586,13 +574,11 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 
         config_temp = config;
         int allow_refresh =
-                !config.games_url.empty() << 0 |
-                !config.updates_url.empty() << 1 |
-                !config.dlcs_url.empty() << 2 |
-                !config.psx_games_url.empty() << 3 |
-                !config.psp_games_url.empty() << 4 |
+                !config.games_url.empty() << 0 | !config.dlcs_url.empty() << 1 |
+                !config.psx_games_url.empty() << 2 |
+                !config.psp_games_url.empty() << 3 |
                 (!config.psm_games_url.empty() && config.psm_readme_disclaimer)
-                        << 5;
+                        << 4;
         pkgi_menu_start(search_active, &config, allow_refresh);
     }
 }
@@ -1157,9 +1143,6 @@ int main()
                         break;
                     case MenuResultShowGames:
                         pkgi_set_mode(ModeGames);
-                        break;
-                    case MenuResultShowUpdates:
-                        pkgi_set_mode(ModeUpdates);
                         break;
                     case MenuResultShowDlcs:
                         pkgi_set_mode(ModeDlcs);

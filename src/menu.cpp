@@ -56,11 +56,10 @@ static const MenuEntry menu_entries[] = {
         {MenuRefresh, "Refresh", 0},
 
         {MenuShow, "Show games", 1},
-        {MenuShow, "Show legacy updates", 2},
-        {MenuShow, "Show DLCs", 4},
-        {MenuShow, "Show PSX games", 8},
-        {MenuShow, "Show PSP games", 16},
-        {MenuShow, "Show PSM games", 32},
+        {MenuShow, "Show DLCs", 2},
+        {MenuShow, "Show PSX games", 4},
+        {MenuShow, "Show PSP games", 8},
+        {MenuShow, "Show PSM games", 16},
 };
 
 int pkgi_menu_is_open(void)
@@ -198,18 +197,15 @@ int pkgi_do_menu(pkgi_input* input)
                 menu_result = MenuResultShowGames;
                 break;
             case 2:
-                menu_result = MenuResultShowUpdates;
-                break;
-            case 4:
                 menu_result = MenuResultShowDlcs;
                 break;
-            case 8:
+            case 4:
                 menu_result = MenuResultShowPsxGames;
                 break;
-            case 16:
+            case 8:
                 menu_result = MenuResultShowPspGames;
                 break;
-            case 32:
+            case 16:
                 menu_result = MenuResultShowPsmGames;
                 break;
             }

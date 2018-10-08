@@ -27,7 +27,6 @@ std::string pkgi_mode_to_string(Mode mode)
     case Mode##mode:   \
         return str
         RET(Games, "Vita games");
-        RET(Updates, "Vita updates");
         RET(Dlcs, "Vita DLCs");
         RET(PsmGames, "PSM games");
         RET(PsxGames, "PSX games");
@@ -79,8 +78,6 @@ static const char* pkgi_mode_to_table_name(Mode mode)
     {
     case ModeGames:
         return "titles_psvgames";
-    case ModeUpdates:
-        return "titles_psvupdates";
     case ModeDlcs:
         return "titles_psvdlcs";
     case ModePsmGames:
@@ -198,23 +195,6 @@ int pkgi_get_column_number(Mode mode, Column column)
             MAP_COL(Digest, 9);
             MAP_COL(FwVersion, 10);
             MAP_COL(AppVersion, -1);
-        default:
-            throw std::runtime_error("invalid column");
-        }
-    case ModeUpdates:
-        switch (column)
-        {
-            MAP_COL(Region, 1);
-            MAP_COL(Name, 2);
-            MAP_COL(AppVersion, 3);
-            MAP_COL(FwVersion, 4);
-            MAP_COL(Url, 5);
-            MAP_COL(LastModification, 7);
-            MAP_COL(Size, 8);
-            MAP_COL(Digest, 9);
-            MAP_COL(Content, -1);
-            MAP_COL(NameOrg, -1);
-            MAP_COL(Zrif, -1);
         default:
             throw std::runtime_error("invalid column");
         }
@@ -380,17 +360,6 @@ void TitleDatabase::parse_tsv_file(Mode mode, std::string& db_data)
                 std::string(url) == "CART ONLY" ||
                 std::string(zrif) == "MISSING")
                 continue;
-
-            if (mode == ModeUpdates)
-            {
-                std::reverse_iterator<const char*> rbegin(
-                        url + strlen(url) - 1);
-                std::reverse_iterator<const char*> rend(url - 1);
-                auto const it = std::find_if(
-                        rbegin, rend, [](char c) { return c == '/'; });
-                if (it != rend)
-                    content = it.base();
-            }
 
             sqlite3_reset(stmt);
             sqlite3_bind_text(stmt, 1, content, strlen(content), nullptr);

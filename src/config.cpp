@@ -164,8 +164,6 @@ Config pkgi_load_config()
             if (pkgi_stricmp(key, "url") == 0 ||
                 pkgi_stricmp(key, "url_games") == 0)
                 config.games_url = value;
-            else if (pkgi_stricmp(key, "url_updates") == 0)
-                config.updates_url = value;
             else if (pkgi_stricmp(key, "url_dlcs") == 0)
                 config.dlcs_url = value;
             else if (pkgi_stricmp(key, "url_psm_games") == 0)
@@ -243,12 +241,6 @@ void pkgi_save_config(const Config& config)
                 sizeof(data) - len,
                 "url_games %s\n",
                 config.games_url.c_str());
-    if (!config.updates_url.empty())
-        len += pkgi_snprintf(
-                data + len,
-                sizeof(data) - len,
-                "url_updates %s\n",
-                config.updates_url.c_str());
     if (!config.dlcs_url.empty())
         len += pkgi_snprintf(
                 data + len,
