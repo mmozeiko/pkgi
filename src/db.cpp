@@ -661,6 +661,7 @@ void TitleDatabase::reload(
                 size,
                 date,
                 app_version,
+                fw_version,
         });
     }
 

@@ -66,6 +66,7 @@ struct DbItem
     int64_t size;
     std::string date;
     std::string app_version;
+    std::string fw_version;
 };
 
 enum GameRegion
