@@ -195,6 +195,11 @@ void Downloader::do_download_package(const DownloadItem& item)
 
 void Downloader::do_download_comppack(const DownloadItem& item)
 {
+    BOOST_SCOPE_EXIT_ALL(&)
+    {
+        refresh("");
+    };
+
     ScopeProcessLock _;
     LOGF("downloading comppack {}", item.url);
     auto download =

@@ -1010,13 +1010,14 @@ int main()
 
         downloader.refresh = [](const std::string& content) {
             // FIXME this runs on the wrong thread
-            const auto item = db->get_by_content(content.c_str());
-            if (!item)
+            if (!content.empty())
             {
-                LOGF("couldn't find {}", content);
-                return;
+                const auto item = db->get_by_content(content.c_str());
+                if (item)
+                    item->presence = PresenceUnknown;
+                else
+                    LOGF("couldn't find {} for refresh", content);
             }
-            item->presence = PresenceUnknown;
         };
         downloader.error = [](const std::string& error) {
             // FIXME this runs on the wrong thread
