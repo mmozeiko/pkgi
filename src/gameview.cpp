@@ -137,7 +137,7 @@ void GameView::printDiagnostic()
     else if (!std::get<0>(_comppack_versions).empty())
         comppack_version = std::get<0>(_comppack_versions);
 
-    if (_item->presence == PresenceInstalled &&
+    if (_item->presence == PresenceInstalled && !comppack_version.empty() &&
         comppack_version < _game_version)
         printError(
                 "- The version of the game does not match the installed "
