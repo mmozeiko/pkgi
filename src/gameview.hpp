@@ -4,6 +4,7 @@
 #include "config.hpp"
 #include "db.hpp"
 #include "downloader.hpp"
+#include "install.hpp"
 
 #include <optional>
 
@@ -47,7 +48,7 @@ private:
     std::optional<CompPackDatabase::Item> _patch_comppack;
 
     std::string _game_version;
-    std::tuple<std::string, std::string> _comppack_versions;
+    CompPackVersion _comppack_versions;
 
     bool _closed{false};
 

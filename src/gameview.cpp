@@ -4,7 +4,6 @@
 
 #include "dialog.hpp"
 #include "imgui.hpp"
-#include "install.hpp"
 extern "C"
 {
 #include "style.h"
@@ -42,16 +41,24 @@ void GameView::render()
                         "Installed game version: {}",
                         _game_version.empty() ? "not installed" : _game_version)
                         .c_str());
-    ImGui::Text(fmt::format(
-                        "Installed base compatibility pack: {}",
-                        std::get<0>(_comppack_versions).empty() ? "no" : "yes")
-                        .c_str());
-    ImGui::Text(fmt::format(
-                        "Installed patch compatibility pack version: {}",
-                        std::get<1>(_comppack_versions).empty()
-                                ? "none"
-                                : std::get<1>(_comppack_versions))
-                        .c_str());
+    if (_comppack_versions.present && _comppack_versions.base.empty() &&
+        _comppack_versions.patch.empty())
+    {
+        ImGui::Text("Installed compatibility pack: unknown version");
+    }
+    else
+    {
+        ImGui::Text(fmt::format(
+                            "Installed base compatibility pack: {}",
+                            _comppack_versions.base.empty() ? "no" : "yes")
+                            .c_str());
+        ImGui::Text(fmt::format(
+                            "Installed patch compatibility pack version: {}",
+                            _comppack_versions.patch.empty()
+                                    ? "none"
+                                    : _comppack_versions.patch)
+                            .c_str());
+    }
 
     ImGui::Text(" ");
 
@@ -94,6 +101,7 @@ void GameView::render()
 }
 
 static const auto Red = ImVec4(1.0f, 0.2f, 0.2f, 1.0f);
+static const auto Yellow = ImVec4(1.0f, 1.0f, 0.0f, 1.0f);
 static const auto Green = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
 
 void GameView::printDiagnostic()
@@ -111,8 +119,7 @@ void GameView::printDiagnostic()
 
     if (systemVersion < minSystemVersion)
     {
-        if (std::get<0>(_comppack_versions).empty() &&
-            std::get<1>(_comppack_versions).empty())
+        if (!_comppack_versions.present)
             printError(
                     "- Your firmware is too old to play this game, you must "
                     "install the compatibility pack");
@@ -124,18 +131,28 @@ void GameView::printDiagnostic()
                 "packs");
     }
 
-    if (std::get<0>(_comppack_versions).empty() &&
-        !std::get<1>(_comppack_versions).empty())
+    if (_comppack_versions.present && _comppack_versions.base.empty() &&
+        _comppack_versions.patch.empty())
+    {
+        ImGui::TextColored(
+                Yellow,
+                "- A compatibility pack is installed but not by PKGj, please "
+                "make sure it matches the installed version or reinstall it "
+                "with PKGj");
+        ok = false;
+    }
+
+    if (_comppack_versions.base.empty() && !_comppack_versions.patch.empty())
         printError(
                 "- You have installed an update compitibility pack without "
                 "installing the base pack, install the base pack first and "
                 "reinstall the update compitibility pack.");
 
     std::string comppack_version;
-    if (!std::get<1>(_comppack_versions).empty())
-        comppack_version = std::get<1>(_comppack_versions);
-    else if (!std::get<0>(_comppack_versions).empty())
-        comppack_version = std::get<0>(_comppack_versions);
+    if (!_comppack_versions.patch.empty())
+        comppack_version = _comppack_versions.patch;
+    else if (!_comppack_versions.base.empty())
+        comppack_version = _comppack_versions.base;
 
     if (_item->presence == PresenceInstalled && !comppack_version.empty() &&
         comppack_version < _game_version)
@@ -151,13 +168,14 @@ void GameView::printDiagnostic()
                 "compatibility pack. Downgrade to the base compatibility "
                 "pack or update the game through the Live Area.");
 
-    if (ok)
+    if (_item->presence != PresenceInstalled)
     {
-        if (_item->presence == PresenceInstalled)
-            ImGui::TextColored(Green, "All green");
-        else
-            ImGui::Text("- Game not installed");
+        ImGui::Text("- Game not installed");
+        ok = false;
     }
+
+    if (ok)
+        ImGui::TextColored(Green, "All green");
 }
 
 void GameView::refresh()

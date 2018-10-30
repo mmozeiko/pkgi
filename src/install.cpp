@@ -188,11 +188,11 @@ void pkgi_install_comppack(
             version.size());
 }
 
-std::tuple<std::string, std::string> pkgi_get_comppack_versions(
-        const std::string& titleid)
+CompPackVersion pkgi_get_comppack_versions(const std::string& titleid)
 {
-
     const auto dir = fmt::format("ux0:rePatch/{}", titleid);
+
+    const auto present = pkgi_file_exists(dir.c_str());
 
     const auto base = [&] {
         try
@@ -221,7 +221,7 @@ std::tuple<std::string, std::string> pkgi_get_comppack_versions(
         }
     }();
 
-    return {base, patch};
+    return {present, base, patch};
 }
 
 void pkgi_install_psmgame(const char* contentid)
