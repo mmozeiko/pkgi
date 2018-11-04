@@ -83,7 +83,7 @@ void FileDownload::download_file()
 
     start_download();
 
-    static constexpr auto SAVE_PERIOD = 512 * 1024;
+    static constexpr auto SAVE_PERIOD = 64 * 1024;
 
     while (download_offset < download_size)
     {
