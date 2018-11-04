@@ -70,12 +70,12 @@ void GameView::render()
 
     if (!_downloader->is_in_queue(_item->content))
     {
-        if (ImGui::Button("Install game"))
+        if (ImGui::Button("Install game###installgame"))
             start_download_package();
     }
     else
     {
-        if (ImGui::Button("Cancel game installation"))
+        if (ImGui::Button("Cancel game installation###installgame"))
             cancel_download_package();
     }
 
