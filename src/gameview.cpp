@@ -25,8 +25,8 @@ void GameView::render()
                     ImGuiWindowFlags_NoInputs);
 
     ImGui::PushTextWrapPos(0.f);
-    ImGui::Text(_item->titleid.c_str());
     ImGui::Text(_item->name.c_str());
+    ImGui::Text(_item->titleid.c_str());
 
     ImGui::Text(" ");
 
