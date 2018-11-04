@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.38
+
+What's new:
+
+- There is a new window when clicking on a game which makes it easier to install
+    games and compatibility packs
+- Added a diagnosis about game installation that helps detecting
+    game/compatibility pack version mismatch
+- Download cancelation is now more reactive
+
+Removed features:
+
+- PKGj can't download game updates anymore as they were outdated. Use the
+    livearea to update your games.
+
 ## 0.37
 
 What's new:
