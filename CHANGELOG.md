@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.39
+
+Bug fixes:
+
+- Fixed installation of DLCs and PSX games
+
 ## 0.38
 
 What's new:

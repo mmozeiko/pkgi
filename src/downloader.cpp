@@ -16,8 +16,6 @@ std::string type_to_string(Type type)
     {
     case Type::Game:
         return "game";
-    case Type::Update:
-        return "update";
     case Type::Dlc:
         return "DLC";
     case Type::PsmGame:
@@ -166,9 +164,6 @@ void Downloader::do_download_package(const DownloadItem& item)
     case Game:
     case Dlc:
         pkgi_install(item.content.c_str());
-        break;
-    case Update:
-        pkgi_install_update(item.content.c_str());
         break;
     case PspGame:
         if (item.save_as_iso)
