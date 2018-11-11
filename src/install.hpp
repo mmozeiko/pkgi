@@ -11,8 +11,6 @@ struct CompPackVersion
 };
 
 std::vector<std::string> pkgi_get_installed_games();
-bool pkgi_update_is_installed(
-        const std::string& titleid, const std::string& request_version);
 std::string pkgi_get_game_version(const std::string& titleid);
 CompPackVersion pkgi_get_comppack_versions(const std::string& titleid);
 bool pkgi_dlc_is_installed(const char* content);

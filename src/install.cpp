@@ -46,24 +46,6 @@ std::string pkgi_get_game_version(const std::string& titleid)
     return "";
 }
 
-bool pkgi_update_is_installed(
-        const std::string& titleid, const std::string& request_version)
-{
-    const auto patch_dir = fmt::format("ux0:patch/{}", titleid);
-
-    if (!pkgi_file_exists(patch_dir.c_str()))
-        return false;
-
-    const auto installed_version = pkgi_extract_package_version(patch_dir);
-
-    const auto full_request_version = fmt::format("{:0>5}", request_version);
-
-    if (installed_version != full_request_version)
-        return false;
-
-    return true;
-}
-
 bool pkgi_dlc_is_installed(const char* content)
 {
     return pkgi_file_exists(
