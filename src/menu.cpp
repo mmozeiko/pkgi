@@ -47,11 +47,12 @@ static const MenuEntry menu_entries[] = {
         {MenuSort, "Size", SortBySize},
         {MenuSort, "Date", SortByDate},
 
-        {MenuText, "Regions:", 0},
+        {MenuText, "Filters:", 0},
         {MenuFilter, "Asia", DbFilterRegionASA},
         {MenuFilter, "Europe", DbFilterRegionEUR},
         {MenuFilter, "Japan", DbFilterRegionJPN},
         {MenuFilter, "USA", DbFilterRegionUSA},
+        {MenuFilter, "Installed games only", DbFilterInstalled},
 
         {MenuRefresh, "Refresh", 0},
 

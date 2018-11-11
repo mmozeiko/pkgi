@@ -94,7 +94,8 @@ void configure_db(TitleDatabase* db, const char* search, const Config* config)
                 config->filter,
                 config->sort,
                 config->order,
-                search ? search : "");
+                search ? search : "",
+                installed_games);
     }
     catch (const std::exception& e)
     {

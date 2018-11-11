@@ -534,7 +534,8 @@ void TitleDatabase::reload(
         uint32_t region_filter,
         DbSort sort_by,
         DbSortOrder sort_order,
-        const std::string& search)
+        const std::string& search,
+        const std::set<std::string>& installed_games)
 {
     // we need to reopen the db before every query because for some reason,
     // after the app is suspended, all further query will return disk I/O error
@@ -585,6 +586,8 @@ void TitleDatabase::reload(
 
         std::string content =
                 reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        const std::string titleid =
+                content.size() >= 7 + 9 ? content.substr(7, 9) : "";
         const std::string name =
                 reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
         const char* name_org =
@@ -616,22 +619,24 @@ void TitleDatabase::reload(
         if (!name.empty() && name.back() != ']' && fw_version > "3.60")
             full_name = fmt::format("{} [{}]", full_name, fw_version);
 
-        db.push_back(DbItem{
-                PresenceUnknown,
-                content.size() >= 7 + 9 ? content.substr(7, 9) : "",
-                content,
-                0,
-                full_name,
-                name_org ? name_org : "",
-                zrif ? zrif : "",
-                url,
-                static_cast<bool>(bdigest),
-                bdigest ? digest : std::array<uint8_t, 32>{},
-                size,
-                date,
-                app_version,
-                fw_version,
-        });
+        if (!(region_filter & DbFilterInstalled) ||
+            installed_games.find(titleid) != installed_games.end())
+            db.push_back(DbItem{
+                    PresenceUnknown,
+                    titleid,
+                    content,
+                    0,
+                    full_name,
+                    name_org ? name_org : "",
+                    zrif ? zrif : "",
+                    url,
+                    static_cast<bool>(bdigest),
+                    bdigest ? digest : std::array<uint8_t, 32>{},
+                    size,
+                    date,
+                    app_version,
+                    fw_version,
+            });
     }
 
     LOG("sorting results");

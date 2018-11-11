@@ -5,6 +5,7 @@
 
 #include <array>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -42,13 +43,11 @@ enum DbFilter
     DbFilterRegionJPN = 0x04,
     DbFilterRegionUSA = 0x08,
 
-    // TODO: implement these two
     DbFilterInstalled = 0x10,
-    DbFilterMissing = 0x20,
 
     DbFilterAllRegions = DbFilterRegionUSA | DbFilterRegionEUR |
                          DbFilterRegionJPN | DbFilterRegionASA,
-    DbFilterAll = DbFilterAllRegions | DbFilterInstalled | DbFilterMissing,
+    DbFilterAll = DbFilterAllRegions,
 };
 
 struct DbItem
@@ -101,7 +100,8 @@ public:
             uint32_t region_filter,
             DbSort sort_by,
             DbSortOrder sort_order,
-            const std::string& search);
+            const std::string& search,
+            const std::set<std::string>& installed_games);
 
     void update(Mode mode, Http* http, const std::string& update_url);
     void get_update_status(uint32_t* updated, uint32_t* total);
