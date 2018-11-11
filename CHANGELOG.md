@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.40
+
+What's new:
+
+- It is now possible to filter by installed games
+- When changing mode, the list scrolls back to the top
+
 ## 0.39
 
 Bug fixes:
