@@ -219,3 +219,35 @@ void pkgi_save(const std::string& path, const void* data, uint32_t size)
         size -= written;
     }
 }
+
+std::vector<std::string> pkgi_list_dir_contents(const std::string& path)
+{
+    const auto fd = sceIoDopen(path.c_str());
+    if (fd < 0)
+        throw formatEx<std::runtime_error>(
+                "failed sceIoDopen({}): {:#08x}",
+                path,
+                static_cast<uint32_t>(fd));
+    BOOST_SCOPE_EXIT_ALL(&)
+    {
+        sceIoDclose(fd);
+    };
+
+    std::vector<std::string> out;
+    while (true)
+    {
+        SceIoDirent dirent;
+        const auto ret = sceIoDread(fd, &dirent);
+        if (ret < 0)
+            throw formatEx<std::runtime_error>(
+                    "failed sceIoDread({}): {:#08x}",
+                    path,
+                    static_cast<uint32_t>(ret));
+        else if (ret == 0)
+            break;
+        else
+            out.push_back(dirent.d_name);
+    }
+
+    return out;
+}

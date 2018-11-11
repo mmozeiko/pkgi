@@ -28,3 +28,5 @@ int pkgi_write(void* f, const void* buffer, uint32_t size);
 
 std::vector<uint8_t> pkgi_load(const std::string& path);
 void pkgi_save(const std::string& path, const void* data, uint32_t size);
+
+std::vector<std::string> pkgi_list_dir_contents(const std::string& path);
