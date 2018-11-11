@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.41
+
+Bug fixes:
+
+- Do not crash if ur0:app does not exist
+
 ## 0.40
 
 What's new:
