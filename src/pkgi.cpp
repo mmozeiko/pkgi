@@ -283,6 +283,8 @@ void pkgi_set_mode(Mode set_mode)
 {
     mode = set_mode;
     pkgi_reload();
+    first_item = 0;
+    selected_item = 0;
 }
 
 void pkgi_refresh_list()
