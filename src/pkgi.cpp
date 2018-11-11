@@ -60,6 +60,7 @@ int bottom_y;
 char search_text[256];
 char error_state[256];
 
+// used for multiple things actually
 Mutex refresh_mutex("refresh_mutex");
 std::string current_action;
 std::unique_ptr<TitleDatabase> db;
@@ -70,6 +71,7 @@ std::set<std::string> installed_games;
 
 std::unique_ptr<GameView> gameview;
 bool need_refresh = true;
+std::string content_to_refresh;
 
 void pkgi_reload();
 
@@ -967,15 +969,8 @@ int main()
         Downloader downloader;
 
         downloader.refresh = [](const std::string& content) {
-            // FIXME this runs on the wrong thread
-            if (!content.empty())
-            {
-                const auto item = db->get_by_content(content.c_str());
-                if (item)
-                    item->presence = PresenceUnknown;
-                else
-                    LOGF("couldn't find {} for refresh", content);
-            }
+            std::lock_guard<Mutex> lock(refresh_mutex);
+            content_to_refresh = content;
             need_refresh = true;
         };
         downloader.error = [](const std::string& error) {
@@ -1059,7 +1054,19 @@ int main()
 
             if (need_refresh)
             {
+                std::lock_guard<Mutex> lock(refresh_mutex);
                 pkgi_refresh_installed_games();
+                if (!content_to_refresh.empty())
+                {
+                    const auto item =
+                            db->get_by_content(content_to_refresh.c_str());
+                    if (item)
+                        item->presence = PresenceUnknown;
+                    else
+                        LOGF("couldn't find {} for refresh",
+                             content_to_refresh);
+                    content_to_refresh.clear();
+                }
                 if (gameview)
                     gameview->refresh();
                 need_refresh = false;
