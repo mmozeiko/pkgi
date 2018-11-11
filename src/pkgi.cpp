@@ -91,7 +91,9 @@ void configure_db(TitleDatabase* db, const char* search, const Config* config)
     {
         db->reload(
                 mode,
-                config->filter,
+                mode == ModeGames || mode == ModeDlcs
+                        ? config->filter
+                        : config->filter & ~DbFilterInstalled,
                 config->sort,
                 config->order,
                 search ? search : "",
