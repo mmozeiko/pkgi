@@ -13,15 +13,7 @@
 
 std::vector<std::string> pkgi_get_installed_games()
 {
-    auto out = pkgi_list_dir_contents("ur0:app");
-    auto ux0 = pkgi_list_dir_contents("ux0:app");
-
-    out.insert(
-            out.end(),
-            std::make_move_iterator(ux0.begin()),
-            std::make_move_iterator(ux0.end()));
-
-    return out;
+    return pkgi_list_dir_contents("ux0:app");
 }
 
 namespace
