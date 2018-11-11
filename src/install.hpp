@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 struct CompPackVersion
 {
@@ -9,7 +10,7 @@ struct CompPackVersion
     std::string patch;
 };
 
-bool pkgi_is_installed(const char* titleid);
+std::vector<std::string> pkgi_get_installed_games();
 bool pkgi_update_is_installed(
         const std::string& titleid, const std::string& request_version);
 std::string pkgi_get_game_version(const std::string& titleid);

@@ -11,13 +11,17 @@
 #include <psp2/io/fcntl.h>
 #include <psp2/promoterutil.h>
 
-bool pkgi_is_installed(const char* titleid)
+std::vector<std::string> pkgi_get_installed_games()
 {
-    int ret = -1;
-    LOG("calling scePromoterUtilityCheckExist on %s", titleid);
-    int res = scePromoterUtilityCheckExist(titleid, &ret);
-    LOG("res=%d ret=%d", res, ret);
-    return res == 0;
+    auto out = pkgi_list_dir_contents("ur0:app");
+    auto ux0 = pkgi_list_dir_contents("ux0:app");
+
+    out.insert(
+            out.end(),
+            std::make_move_iterator(ux0.begin()),
+            std::make_move_iterator(ux0.end()));
+
+    return out;
 }
 
 namespace

@@ -25,6 +25,7 @@ extern "C"
 #include <fmt/format.h>
 
 #include <memory>
+#include <set>
 
 #include <cstddef>
 #include <cstring>
@@ -65,8 +66,10 @@ std::unique_ptr<TitleDatabase> db;
 std::unique_ptr<CompPackDatabase> comppack_db_games;
 std::unique_ptr<CompPackDatabase> comppack_db_updates;
 
+std::set<std::string> installed_games;
+
 std::unique_ptr<GameView> gameview;
-bool gameview_refresh = false;
+bool need_refresh = true;
 
 void pkgi_reload();
 
@@ -192,6 +195,21 @@ const char* pkgi_get_mode_partition()
     return mode == ModePspGames || mode == ModePsxGames
                    ? config.install_psp_psx_location.c_str()
                    : "ux0:";
+}
+
+void pkgi_refresh_installed_games()
+{
+    auto games = pkgi_get_installed_games();
+
+    installed_games.clear();
+    installed_games.insert(
+            std::make_move_iterator(games.begin()),
+            std::make_move_iterator(games.end()));
+}
+
+bool pkgi_is_installed(const char* titleid)
+{
+    return installed_games.find(titleid) != installed_games.end();
 }
 
 void pkgi_install_package(Downloader& downloader, DbItem* item)
@@ -958,7 +976,7 @@ int main()
                 else
                     LOGF("couldn't find {} for refresh", content);
             }
-            gameview_refresh = true;
+            need_refresh = true;
         };
         downloader.error = [](const std::string& error) {
             // FIXME this runs on the wrong thread
@@ -1039,11 +1057,12 @@ int main()
                 input.pressed = 0;
             }
 
-            if (gameview_refresh)
+            if (need_refresh)
             {
+                pkgi_refresh_installed_games();
                 if (gameview)
                     gameview->refresh();
-                gameview_refresh = false;
+                need_refresh = false;
             }
 
             ImGui::NewFrame();
