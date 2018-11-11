@@ -14,8 +14,14 @@
         pkgi_log(fmt::format(msg, ##__VA_ARGS__).c_str()); \
     } while (0)
 #else
-#define LOG(...)
-#define LOGF(...)
+#define LOG(...) \
+    do           \
+    {            \
+    } while (0)
+#define LOGF(...) \
+    do            \
+    {             \
+    } while (0)
 #endif
 
 template <typename E, typename... Args>
