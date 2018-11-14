@@ -591,7 +591,15 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                     comppack_db_games->get(item->titleid),
                     comppack_db_updates->get(item->titleid));
         else
-            pkgi_install_package(downloader, item);
+        {
+            if (downloader.is_in_queue(item->content))
+            {
+                downloader.remove_from_queue(item->content);
+                item->presence = PresenceUnknown;
+            }
+            else
+                pkgi_install_package(downloader, item);
+        }
     }
     else if (input && (input->pressed & PKGI_BUTTON_T))
     {

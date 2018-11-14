@@ -7,6 +7,10 @@ What's new:
 - When in Japanese mode, O now works for confirm in game view
 - Reduced size of the game view window to show the progress bar below
 
+Bug fixes:
+
+- Fixed cancelation of DLC and PSP and PSX games
+
 ## 0.41
 
 Bug fixes:
