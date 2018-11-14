@@ -5,6 +5,7 @@
 What's new:
 
 - When in Japanese mode, O now works for confirm in game view
+- Reduced size of the game view window to show the progress bar below
 
 ## 0.41
 

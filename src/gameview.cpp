@@ -9,10 +9,18 @@ extern "C"
 #include "style.h"
 }
 
+namespace
+{
+constexpr unsigned GameViewWidth = VITA_WIDTH * 0.8;
+constexpr unsigned GameViewHeight = VITA_HEIGHT * 0.8;
+}
+
 void GameView::render()
 {
-    ImGui::SetNextWindowPos(ImVec2(0, 0), 0);
-    ImGui::SetNextWindowSize(ImVec2(VITA_WIDTH, VITA_HEIGHT), 0);
+    ImGui::SetNextWindowPos(
+            ImVec2((VITA_WIDTH - GameViewWidth) / 2,
+                   (VITA_HEIGHT - GameViewHeight) / 2));
+    ImGui::SetNextWindowSize(ImVec2(GameViewWidth, GameViewHeight), 0);
 
     ImGui::Begin(
             "#gameview",
