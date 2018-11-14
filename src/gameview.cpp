@@ -23,21 +23,17 @@ void GameView::render()
     ImGui::SetNextWindowSize(ImVec2(GameViewWidth, GameViewHeight), 0);
 
     ImGui::Begin(
-            "#gameview",
+            fmt::format("{} ({})###gameview", _item->name, _item->titleid)
+                    .c_str(),
             nullptr,
-            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-                    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
+            ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                    ImGuiWindowFlags_NoScrollbar |
                     ImGuiWindowFlags_NoScrollWithMouse |
                     ImGuiWindowFlags_NoCollapse |
                     ImGuiWindowFlags_NoSavedSettings |
                     ImGuiWindowFlags_NoInputs);
 
     ImGui::PushTextWrapPos(0.f);
-    ImGui::Text(_item->name.c_str());
-    ImGui::Text(_item->titleid.c_str());
-
-    ImGui::Text(" ");
-
     ImGui::Text(fmt::format("Firmware version: {}", pkgi_get_system_version())
                         .c_str());
     ImGui::Text(fmt::format("Required firmware version: {}", _item->fw_version)
