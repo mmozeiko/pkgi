@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.42
+
+What's new:
+
+- When in Japanese mode, O now works for confirm in game view
+
 ## 0.41
 
 Bug fixes:

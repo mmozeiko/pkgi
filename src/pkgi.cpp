@@ -1051,7 +1051,7 @@ int main()
                     io.NavInputs[ImGuiNavInput_DpadLeft] = 1.0f;
                 if (input.active & PKGI_BUTTON_RIGHT)
                     io.NavInputs[ImGuiNavInput_DpadRight] = 1.0f;
-                if (input.active & PKGI_BUTTON_X)
+                if (input.active & pkgi_ok_button())
                     io.NavInputs[ImGuiNavInput_Activate] = 1.0f;
                 input.active = 0;
                 input.pressed = 0;
