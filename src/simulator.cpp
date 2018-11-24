@@ -288,14 +288,12 @@ void pkgi_save(const std::string& path, const void* data, uint32_t size)
     }
 }
 
-void* pkgi_create(const char* path)
+void* pkgi_create(const std::string& path)
 {
     LOGF("pkgi_create {}", path);
-    int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    int fd = open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
     if (fd < 0)
-    {
-        return NULL;
-    }
+        throw std::runtime_error("pkgi_create failed");
 
     return (void*)(intptr_t)fd;
 }

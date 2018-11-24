@@ -14,7 +14,7 @@ int pkgi_file_exists(const char* path);
 void pkgi_rename(const char* from, const char* to);
 
 // creates file (if it exists, truncates size to 0)
-void* pkgi_create(const char* path);
+void* pkgi_create(const std::string& path);
 // open existing file in read/write, fails if file does not exist
 void* pkgi_openrw(const char* path);
 // open file for writing, next write will append data to end of it

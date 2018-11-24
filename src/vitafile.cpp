@@ -78,18 +78,18 @@ void pkgi_rename(const char* from, const char* to)
                 static_cast<uint32_t>(res)));
 }
 
-void* pkgi_create(const char* path)
+void* pkgi_create(const std::string& path)
 {
-    LOG("sceIoOpen create on %s", path);
-    SceUID fd = sceIoOpen(path, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+    LOGF("sceIoOpen create on {}", path);
+    SceUID fd = sceIoOpen(
+            path.c_str(), SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
     if (fd < 0)
-    {
-        LOG("cannot create %s, err=0x%08x", path, fd);
-        return NULL;
-    }
-    LOG("sceIoOpen returned fd=%d", fd);
+        throw formatEx<std::runtime_error>(
+                "cannot create file {}: {:#08x}",
+                path,
+                static_cast<uint32_t>(fd));
 
-    return (void*)(intptr_t)fd;
+    return reinterpret_cast<void*>(fd);
 }
 
 void* pkgi_openrw(const char* path)
