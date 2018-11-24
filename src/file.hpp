@@ -11,7 +11,7 @@ void pkgi_delete_dir(const std::string& path);
 int64_t pkgi_get_size(const char* path);
 
 int pkgi_file_exists(const char* path);
-void pkgi_rename(const char* from, const char* to);
+void pkgi_rename(const std::string& from, const std::string& to);
 
 // creates file (if it exists, truncates size to 0)
 void* pkgi_create(const std::string& path);

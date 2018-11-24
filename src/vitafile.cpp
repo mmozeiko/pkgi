@@ -67,9 +67,9 @@ int pkgi_file_exists(const char* path)
     return sceIoGetstat(path, &stat) >= 0;
 }
 
-void pkgi_rename(const char* from, const char* to)
+void pkgi_rename(const std::string& from, const std::string& to)
 {
-    int res = sceIoRename(from, to);
+    int res = sceIoRename(from.c_str(), to.c_str());
     if (res < 0)
         throw std::runtime_error(fmt::format(
                 "failed to rename from {} to {}:\n{:#08x}",
