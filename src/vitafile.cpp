@@ -61,10 +61,10 @@ int64_t pkgi_get_size(const char* path)
     return stat.st_size;
 }
 
-int pkgi_file_exists(const char* path)
+int pkgi_file_exists(const std::string& path)
 {
     SceIoStat stat;
-    return sceIoGetstat(path, &stat) >= 0;
+    return sceIoGetstat(path.c_str(), &stat) >= 0;
 }
 
 void pkgi_rename(const std::string& from, const std::string& to)

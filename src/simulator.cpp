@@ -95,10 +95,10 @@ int pkgi_is_unsafe_mode(void)
     return 1;
 }
 
-int pkgi_file_exists(const char* path)
+int pkgi_file_exists(const std::string& path)
 {
     struct stat s;
-    return stat(path, &s) == 0;
+    return stat(path.c_str(), &s) == 0;
 }
 
 void pkgi_rename(const std::string& from, const std::string& to)
