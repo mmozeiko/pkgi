@@ -101,6 +101,17 @@ int pkgi_file_exists(const char* path)
     return stat(path, &s) == 0;
 }
 
+void pkgi_rename(const std::string& from, const std::string& to)
+{
+    int res = rename(from.c_str(), to.c_str());
+    if (res < 0)
+        throw std::runtime_error(fmt::format(
+                "failed to rename from {} to {}:\n{:#08x}",
+                from,
+                to,
+                strerror(errno)));
+}
+
 void pkgi_mkdirs(const char* ppath)
 {
     std::string path = ppath;
