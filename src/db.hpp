@@ -1,7 +1,6 @@
 #pragma once
 
 #include "http.hpp"
-#include "sqlite.hpp"
 
 #include <array>
 #include <memory>
@@ -112,7 +111,6 @@ public:
     DbItem* get_by_content(const char* content);
 
 private:
-    static constexpr auto MAX_DB_SIZE = 4 * 1024 * 1024;
     static constexpr auto MAX_DB_ITEMS = 8192;
 
     std::string _dbPath;
@@ -121,12 +119,6 @@ private:
     uint32_t _title_count;
 
     std::vector<DbItem> db;
-
-    SqlitePtr _sqliteDb = nullptr;
-
-    void parse_tsv_file(Mode mode, std::string& db_data);
-
-    void reopen();
 };
 
 GameRegion pkgi_get_region(const std::string& titleid);

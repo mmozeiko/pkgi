@@ -916,8 +916,7 @@ void pkgi_open_db()
     {
         first_item = 0;
         selected_item = 0;
-        db = std::make_unique<TitleDatabase>(
-                std::string(pkgi_get_config_folder()) + "/pkgj.db");
+        db = std::make_unique<TitleDatabase>(pkgi_get_config_folder());
 
         comppack_db_games = std::make_unique<CompPackDatabase>(
                 std::string(pkgi_get_config_folder()) + "/comppack.db");

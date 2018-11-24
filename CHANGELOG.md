@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.43
+
+What's new:
+
+- Database is now stored as plain files, refresh has become much faster
+
 ## 0.42
 
 What's new:

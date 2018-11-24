@@ -69,6 +69,8 @@ int pkgi_file_exists(const std::string& path)
 
 void pkgi_rename(const std::string& from, const std::string& to)
 {
+    // try to remove first because sceIoRename does not overwrite
+    sceIoRemove(to.c_str());
     int res = sceIoRename(from.c_str(), to.c_str());
     if (res < 0)
         throw std::runtime_error(fmt::format(
