@@ -5,6 +5,8 @@
 What's new:
 
 - Database is now stored as plain files, refresh has become much faster
+- When installing a base compatibility pack, the rePatch directory is not erased
+    anymore, to keep potential user-installed custom patches
 
 ## 0.42
 
