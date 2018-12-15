@@ -35,7 +35,7 @@ Setup games databases URLs in `ux0:pkgj/config.txt`. The file format is the foll
     url_psm_games http://thesite/psmgames.tsv
     url_comppack http://thesite/comppack/
 
-**Attention:** The PS Vita has an imcomplete HTTPS support and most sites will not
+**Attention:** The PS Vita has incomplete HTTPS support and most sites will not
 work, prefer HTTP in these cases.
 
 The `url_comppack` URL must point to the folder containing the `entries.txt`
