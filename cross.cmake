@@ -53,6 +53,7 @@ add_executable(pkgj
   src/filedownload.cpp
   src/gameview.cpp
   src/patchinfo.cpp
+  src/patchinfofetcher.cpp
   src/imgui.cpp
   src/install.cpp
   src/menu.cpp
