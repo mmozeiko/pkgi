@@ -1,12 +1,16 @@
 #pragma once
 
+extern "C"
+{
 #include "utils.h"
+}
 
 #define SHA256_BLOCK_SIZE 64
 #define SHA256_DIGEST_SIZE 32
 
-typedef struct {
-    uint8_t  buffer[SHA256_BLOCK_SIZE] GCC_ALIGN(16);
+typedef struct
+{
+    uint8_t buffer[SHA256_BLOCK_SIZE] GCC_ALIGN(16);
     uint32_t state[8];
     uint64_t count;
 } sha256_ctx;

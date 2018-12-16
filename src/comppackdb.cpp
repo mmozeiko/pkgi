@@ -1,7 +1,7 @@
 #include "comppackdb.hpp"
 
-extern "C" {
-#include "sha256.h"
+extern "C"
+{
 #include "utils.h"
 }
 #include "pkgi.hpp"
@@ -56,13 +56,16 @@ void CompPackDatabase::reopen()
                 "drop table failed");
     }
 
-    SQLITE_EXEC(_sqliteDb, R"(
+    SQLITE_EXEC(
+            _sqliteDb,
+            R"(
         CREATE TABLE IF NOT EXISTS entries (
             titleid TEXT NOT NULL,
             app_version TEXT NOT NULL,
             path TEXT NOT NULL,
             PRIMARY KEY (titleid, app_version)
-        ))", "can't create comp pack table");
+        ))",
+            "can't create comp pack table");
 }
 
 namespace

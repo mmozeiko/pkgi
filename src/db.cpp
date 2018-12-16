@@ -2,11 +2,11 @@
 
 extern "C"
 {
-#include "sha256.h"
 #include "utils.h"
 }
 #include "file.hpp"
 #include "pkgi.hpp"
+#include "sha256.hpp"
 
 #include <fmt/format.h>
 
