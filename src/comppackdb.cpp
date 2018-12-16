@@ -1,11 +1,8 @@
 #include "comppackdb.hpp"
 
-extern "C"
-{
-#include "utils.h"
-}
 #include "pkgi.hpp"
 #include "sqlite.hpp"
+#include "utils.hpp"
 
 #include <fmt/format.h>
 

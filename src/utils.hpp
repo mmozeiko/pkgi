@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
 #ifdef _MSC_VER
 #define GCC_ALIGN(n)
@@ -50,14 +50,10 @@ static inline uint32_t get32le(const uint8_t* bytes)
 
 static inline uint64_t get64le(const uint8_t* bytes)
 {
-    return (uint64_t)bytes[0]
-        | ((uint64_t)bytes[1] << 8)
-        | ((uint64_t)bytes[2] << 16)
-        | ((uint64_t)bytes[3] << 24)
-        | ((uint64_t)bytes[4] << 32)
-        | ((uint64_t)bytes[5] << 40)
-        | ((uint64_t)bytes[6] << 48)
-        | ((uint64_t)bytes[7] << 56);
+    return (uint64_t)bytes[0] | ((uint64_t)bytes[1] << 8) |
+           ((uint64_t)bytes[2] << 16) | ((uint64_t)bytes[3] << 24) |
+           ((uint64_t)bytes[4] << 32) | ((uint64_t)bytes[5] << 40) |
+           ((uint64_t)bytes[6] << 48) | ((uint64_t)bytes[7] << 56);
 }
 
 static inline uint16_t get16be(const uint8_t* bytes)
@@ -72,14 +68,10 @@ static inline uint32_t get32be(const uint8_t* bytes)
 
 static inline uint64_t get64be(const uint8_t* bytes)
 {
-    return (uint64_t)bytes[7]
-        | ((uint64_t)bytes[6] << 8)
-        | ((uint64_t)bytes[5] << 16)
-        | ((uint64_t)bytes[4] << 24)
-        | ((uint64_t)bytes[3] << 32)
-        | ((uint64_t)bytes[2] << 40)
-        | ((uint64_t)bytes[1] << 48)
-        | ((uint64_t)bytes[0] << 56);
+    return (uint64_t)bytes[7] | ((uint64_t)bytes[6] << 8) |
+           ((uint64_t)bytes[5] << 16) | ((uint64_t)bytes[4] << 24) |
+           ((uint64_t)bytes[3] << 32) | ((uint64_t)bytes[2] << 40) |
+           ((uint64_t)bytes[1] << 48) | ((uint64_t)bytes[0] << 56);
 }
 
 static inline void set16le(uint8_t* bytes, uint16_t x)

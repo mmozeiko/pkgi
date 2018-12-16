@@ -1,9 +1,6 @@
 #pragma once
 
-extern "C"
-{
-#include "utils.h"
-}
+#include "utils.hpp"
 #include <cstddef>
 
 #define SHA256_BLOCK_SIZE 64

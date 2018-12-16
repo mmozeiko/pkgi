@@ -1,12 +1,9 @@
 #include "db.hpp"
 
-extern "C"
-{
-#include "utils.h"
-}
 #include "file.hpp"
 #include "pkgi.hpp"
 #include "sha256.hpp"
+#include "utils.hpp"
 
 #include <fmt/format.h>
 

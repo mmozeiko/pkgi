@@ -3,8 +3,8 @@
 extern "C"
 {
 #include "puff.h"
-#include "utils.h"
 }
+#include "utils.hpp"
 
 #include <cstring>
 

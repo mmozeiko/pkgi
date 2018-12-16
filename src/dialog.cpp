@@ -3,7 +3,6 @@
 extern "C"
 {
 #include "style.h"
-#include "utils.h"
 }
 #include "pkgi.hpp"
 
