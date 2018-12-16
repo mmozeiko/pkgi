@@ -17,7 +17,8 @@ enum Type
     PsmGame,
     PsxGame,
     PspGame,
-    CompPack,
+    CompPackBase,
+    CompPackPatch,
 };
 
 struct DownloadItem
@@ -31,7 +32,6 @@ struct DownloadItem
     bool save_as_iso;
     std::string partition;
     // only used by compatibility packs
-    bool is_patch;
     std::string version;
 };
 

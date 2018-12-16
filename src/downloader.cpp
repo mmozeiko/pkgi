@@ -26,8 +26,10 @@ std::string type_to_string(Type type)
         return "PSX game";
     case Type::PspGame:
         return "PSP game";
-    case Type::CompPack:
-        return "Comp Pack";
+    case Type::CompPackBase:
+        return "Base Comp Pack";
+    case Type::CompPackPatch:
+        return "Patch Comp Pack";
     }
     return "unknown";
 }
@@ -183,7 +185,8 @@ void Downloader::do_download_package(const DownloadItem& item)
     case PsxGame:
         pkgi_install_pspgame(item.partition.c_str(), item.content.c_str());
         break;
-    case CompPack:
+    case CompPackBase:
+    case CompPackPatch:
         throw std::runtime_error(
                 "assertion failure: can't handle comppack in download_package");
     }
@@ -215,7 +218,8 @@ void Downloader::do_download_comppack(const DownloadItem& item)
     download->download(
             item.partition.c_str(), item.content.c_str(), item.url.c_str());
     LOGF("download of comppack {} completed!", item.url);
-    pkgi_install_comppack(item.content, item.is_patch, item.version);
+    pkgi_install_comppack(
+            item.content, item.type == CompPackPatch, item.version);
     pkgi_rm(fmt::format("{}pkgj/{}-comp.ppk", item.partition, item.content)
                     .c_str());
     LOG("install of %s completed!", item.name.c_str());
@@ -223,7 +227,7 @@ void Downloader::do_download_comppack(const DownloadItem& item)
 
 void Downloader::do_download(const DownloadItem& item)
 {
-    if (item.type == CompPack)
+    if (item.type == CompPackBase || item.type == CompPackPatch)
         do_download_comppack(item);
     else
         do_download_package(item);

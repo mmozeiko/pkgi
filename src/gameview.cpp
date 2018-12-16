@@ -259,7 +259,6 @@ void GameView::start_download_patch(const PatchInfo& patch_info)
                                   std::vector<uint8_t>{},
                                   false,
                                   "ux0:",
-                                  false,
                                   ""});
 }
 
@@ -267,7 +266,7 @@ void GameView::start_download_comppack(bool patch)
 {
     const auto& entry = patch ? _patch_comppack : _base_comppack;
 
-    _downloader->add(DownloadItem{CompPack,
+    _downloader->add(DownloadItem{patch ? CompPackPatch : CompPackBase,
                                   _item->name,
                                   _item->titleid,
                                   _config->comppack_url + entry->path,
@@ -275,7 +274,6 @@ void GameView::start_download_comppack(bool patch)
                                   std::vector<uint8_t>{},
                                   false,
                                   "ux0:",
-                                  patch,
                                   entry->app_version});
 }
 

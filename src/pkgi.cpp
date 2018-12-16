@@ -977,7 +977,6 @@ void pkgi_start_download(Downloader& downloader, const DbItem& item)
                         : std::vector<uint8_t>{},
                 !config.install_psp_as_pbp,
                 pkgi_get_mode_partition(),
-                false,
                 ""});
     }
     else
