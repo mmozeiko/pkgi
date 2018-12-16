@@ -8,10 +8,7 @@
 
 #include <stdint.h>
 
-extern "C"
-{
-#include "aes128.h"
-}
+#include "aes128.hpp"
 #include "http.hpp"
 #include "sha256.hpp"
 

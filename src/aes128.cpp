@@ -1,8 +1,8 @@
-#include "aes128.h"
+#include "aes128.hpp"
 
-#include <assert.h>
-#include <stddef.h>
-#include <string.h>
+#include <cassert>
+#include <cstddef>
+#include <cstring>
 
 #define ASSERT_ALIGNED(o, a)                        \
     do                                              \
@@ -316,8 +316,10 @@ void aes128_ctr_init(aes128_ctx* ctx, const uint8_t* key)
 
     ASSERT_ALIGNED(ctx->key, 16);
     ASSERT_ALIGNED(ctx->bskey, 16);
-    const uint8_t* rk8 = __builtin_assume_aligned(ctx->key, 16);
-    uint8_t* bskey = __builtin_assume_aligned(ctx->bskey, 16);
+    const uint8_t* rk8 =
+            static_cast<uint8_t*>(__builtin_assume_aligned(ctx->key, 16));
+    uint8_t* bskey =
+            static_cast<uint8_t*>(__builtin_assume_aligned(ctx->bskey, 16));
 
     for (int i = 0; i < 9; i++)
     {
@@ -988,7 +990,8 @@ static void aes128_ctr_neon(
         // round 0 - addkey & shiftrows
         {
             ASSERT_ALIGNED(ctx->key, 16);
-            const uint8_t* key0 = __builtin_assume_aligned(ctx->key, 16);
+            const uint8_t* key0 = static_cast<uint8_t*>(
+                    __builtin_assume_aligned(ctx->key, 16));
             uint8x16_t first = vrev32q_u8(vld1q_u8(key0));
             x0 = veorq_u8(x0, first);
             x1 = veorq_u8(x1, first);
@@ -1049,7 +1052,8 @@ static void aes128_ctr_neon(
 
         int round = 9;
         ASSERT_ALIGNED(ctx->bskey, 16);
-        const uint8_t* bskey = __builtin_assume_aligned(ctx->bskey, 16);
+        const uint8_t* bskey =
+                static_cast<uint8_t*>(__builtin_assume_aligned(ctx->bskey, 16));
 
         // rounds [1..9]
         {
@@ -1130,8 +1134,8 @@ static void aes128_ctr_neon(
         // round 10 - addkey
         {
             ASSERT_ALIGNED(ctx->key, 16);
-            const uint8_t* key10 =
-                    __builtin_assume_aligned(ctx->key + 4 * 10, 16);
+            const uint8_t* key10 = static_cast<uint8_t*>(
+                    __builtin_assume_aligned(ctx->key + 4 * 10, 16));
             uint8x16_t last = vrev32q_u8(vld1q_u8(key10));
             last = veorq_u8((last), vdupq_n_u8(0x63));
             x0 = veorq_u8(x0, last);

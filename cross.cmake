@@ -42,7 +42,7 @@ add_assets(assets
 
 add_executable(pkgj
   ${assets}
-  src/aes128.c
+  src/aes128.cpp
   src/comppackdb.cpp
   src/config.cpp
   src/db.cpp
