@@ -52,5 +52,5 @@ private:
     void cancel_download_package();
     void start_download_patch(const PatchInfo& patch_info);
     void start_download_comppack(bool patch);
-    void cancel_download_comppacks();
+    void cancel_download_comppacks(bool patch);
 };

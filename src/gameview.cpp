@@ -88,7 +88,7 @@ void GameView::render()
 
     ImGui::PopTextWrapPos();
 
-    if (!_downloader->is_in_queue(_item->content))
+    if (!_downloader->is_in_queue(Game, _item->content))
     {
         if (ImGui::Button("Install game###installgame"))
             start_download_package();
@@ -123,19 +123,38 @@ void GameView::render()
     }
 
     if (_base_comppack)
-        if (ImGui::Button("Install base compatibility pack"))
-            start_download_comppack(false);
+    {
+        if (!_downloader->is_in_queue(CompPackBase, _item->titleid))
+        {
+            if (ImGui::Button("Install base compatibility "
+                              "pack###installbasecomppack"))
+                start_download_comppack(false);
+        }
+        else
+        {
+            if (ImGui::Button("Cancel base compatibility pack "
+                              "installation###installbasecomppack"))
+                cancel_download_comppacks(false);
+        }
+    }
     if (_patch_comppack)
-        if (ImGui::Button(fmt::format(
-                                  "Install compatibility pack {}",
-                                  _patch_comppack->app_version)
-                                  .c_str()))
-            start_download_comppack(true);
-
-    // HACK: comppack are identified by their titleid instead of content id
-    if (_downloader->is_in_queue(_item->titleid))
-        if (ImGui::Button("Cancel compatibility pack installations"))
-            cancel_download_comppacks();
+    {
+        if (!_downloader->is_in_queue(CompPackBase, _item->titleid))
+        {
+            if (ImGui::Button(fmt::format(
+                                      "Install compatibility pack "
+                                      "{}###installpatchcommppack",
+                                      _patch_comppack->app_version)
+                                      .c_str()))
+                start_download_comppack(true);
+        }
+        else
+        {
+            if (ImGui::Button("Cancel patch compatibility pack "
+                              "installation###installpatchcommppack"))
+                cancel_download_comppacks(true);
+        }
+    }
 
     if (ImGui::Button("Close"))
         _closed = true;
@@ -244,7 +263,7 @@ void GameView::start_download_package()
 
 void GameView::cancel_download_package()
 {
-    _downloader->remove_from_queue(_item->content);
+    _downloader->remove_from_queue(Game, _item->content);
     _item->presence = PresenceUnknown;
 }
 
@@ -277,8 +296,8 @@ void GameView::start_download_comppack(bool patch)
                                   entry->app_version});
 }
 
-void GameView::cancel_download_comppacks()
+void GameView::cancel_download_comppacks(bool patch)
 {
-    // HACK: comppack are identified by their titleid instead of content id
-    _downloader->remove_from_queue(_item->titleid);
+    _downloader->remove_from_queue(
+            patch ? CompPackPatch : CompPackBase, _item->titleid);
 }

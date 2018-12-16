@@ -59,14 +59,15 @@ void Downloader::add(const DownloadItem& d)
     _cond.notify_one();
 }
 
-bool Downloader::is_in_queue(const std::string& contentid)
+bool Downloader::is_in_queue(Type type, const std::string& contentid)
 {
     ScopeLock _(_cond.get_mutex());
-    if (contentid == _current_download.content)
+    if (type == _current_download.type &&
+        contentid == _current_download.content)
         return true;
 
     for (const auto& item : _queue)
-        if (item.content == contentid)
+        if (item.type == type && item.content == contentid)
             return true;
     return false;
 }
@@ -84,10 +85,11 @@ std::tuple<uint64_t, uint64_t> Downloader::get_current_download_progress()
     return {_download_offset.load(), _download_size.load()};
 }
 
-void Downloader::remove_from_queue(const std::string& contentid)
+void Downloader::remove_from_queue(Type type, const std::string& contentid)
 {
     ScopeLock _(_cond.get_mutex());
-    if (contentid == _current_download.content)
+    if (type == _current_download.type &&
+        contentid == _current_download.content)
         _cancel_current = true;
     else
         _queue.erase(
@@ -95,7 +97,8 @@ void Downloader::remove_from_queue(const std::string& contentid)
                         _queue.begin(),
                         _queue.end(),
                         [&](auto const& item) {
-                            return item.content == contentid;
+                            return item.type == type &&
+                                   item.content == contentid;
                         }),
                 _queue.end());
 }

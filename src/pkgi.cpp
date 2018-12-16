@@ -85,6 +85,25 @@ const char* pkgi_get_cancel_str(void)
     return pkgi_cancel_button() == PKGI_BUTTON_O ? PKGI_UTF8_O : PKGI_UTF8_X;
 }
 
+Type mode_to_type(Mode mode)
+{
+    switch (mode)
+    {
+    case ModeGames:
+        return Game;
+    case ModeDlcs:
+        return Dlc;
+    case ModePsmGames:
+        return PsmGame;
+    case ModePsxGames:
+        return PsxGame;
+    case ModePspGames:
+        return PspGame;
+    }
+    throw formatEx<std::runtime_error>(
+            "unknown mode {}", static_cast<int>(mode));
+}
+
 void configure_db(TitleDatabase* db, const char* search, const Config* config)
 {
     try
@@ -405,31 +424,31 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
             case ModeGames:
                 if (pkgi_is_installed(titleid))
                     item->presence = PresenceInstalled;
-                else if (downloader.is_in_queue(item->content))
+                else if (downloader.is_in_queue(Game, item->content))
                     item->presence = PresenceInstalling;
                 break;
             case ModePsmGames:
                 if (pkgi_psm_is_installed(titleid))
                     item->presence = PresenceInstalled;
-                else if (downloader.is_in_queue(item->content))
+                else if (downloader.is_in_queue(PsmGame, item->content))
                     item->presence = PresenceInstalling;
                 break;
             case ModePspGames:
                 if (pkgi_psp_is_installed(
                             pkgi_get_mode_partition(), item->content.c_str()))
                     item->presence = PresenceInstalled;
-                else if (downloader.is_in_queue(item->content))
+                else if (downloader.is_in_queue(PspGame, item->content))
                     item->presence = PresenceInstalling;
                 break;
             case ModePsxGames:
                 if (pkgi_psx_is_installed(
                             pkgi_get_mode_partition(), item->content.c_str()))
                     item->presence = PresenceInstalled;
-                else if (downloader.is_in_queue(item->content))
+                else if (downloader.is_in_queue(PsxGame, item->content))
                     item->presence = PresenceInstalling;
                 break;
             case ModeDlcs:
-                if (downloader.is_in_queue(item->content))
+                if (downloader.is_in_queue(Dlc, item->content))
                     item->presence = PresenceInstalling;
                 else if (pkgi_dlc_is_installed(item->content.c_str()))
                     item->presence = PresenceInstalled;
@@ -592,9 +611,9 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                     comppack_db_updates->get(item->titleid));
         else
         {
-            if (downloader.is_in_queue(item->content))
+            if (downloader.is_in_queue(mode_to_type(mode), item->content))
             {
-                downloader.remove_from_queue(item->content);
+                downloader.remove_from_queue(mode_to_type(mode), item->content);
                 item->presence = PresenceUnknown;
             }
             else
@@ -931,25 +950,6 @@ void pkgi_open_db()
     }
 
     pkgi_reload();
-}
-
-Type mode_to_type(Mode mode)
-{
-    switch (mode)
-    {
-    case ModeGames:
-        return Game;
-    case ModeDlcs:
-        return Dlc;
-    case ModePsmGames:
-        return PsmGame;
-    case ModePsxGames:
-        return PsxGame;
-    case ModePspGames:
-        return PspGame;
-    }
-    throw formatEx<std::runtime_error>(
-            "unknown mode {}", static_cast<int>(mode));
 }
 }
 
