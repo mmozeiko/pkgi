@@ -1068,15 +1068,15 @@ int main()
 
             if (gameview || pkgi_dialog_is_open())
             {
-                if (input.active & PKGI_BUTTON_UP)
+                if (input.pressed & PKGI_BUTTON_UP)
                     io.NavInputs[ImGuiNavInput_DpadUp] = 1.0f;
-                if (input.active & PKGI_BUTTON_DOWN)
+                if (input.pressed & PKGI_BUTTON_DOWN)
                     io.NavInputs[ImGuiNavInput_DpadDown] = 1.0f;
-                if (input.active & PKGI_BUTTON_LEFT)
+                if (input.pressed & PKGI_BUTTON_LEFT)
                     io.NavInputs[ImGuiNavInput_DpadLeft] = 1.0f;
-                if (input.active & PKGI_BUTTON_RIGHT)
+                if (input.pressed & PKGI_BUTTON_RIGHT)
                     io.NavInputs[ImGuiNavInput_DpadRight] = 1.0f;
-                if (input.active & pkgi_ok_button())
+                if (input.pressed & pkgi_ok_button())
                     io.NavInputs[ImGuiNavInput_Activate] = 1.0f;
                 input.active = 0;
                 input.pressed = 0;
