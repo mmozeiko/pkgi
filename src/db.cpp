@@ -38,41 +38,6 @@ TitleDatabase::TitleDatabase(const std::string& dbPath) : _dbPath(dbPath)
 {
 }
 
-static uint8_t hexvalue(char ch)
-{
-    if (ch >= '0' && ch <= '9')
-    {
-        return ch - '0';
-    }
-    else if (ch >= 'a' && ch <= 'f')
-    {
-        return ch - 'a' + 10;
-    }
-    else if (ch >= 'A' && ch <= 'F')
-    {
-        return ch - 'A' + 10;
-    }
-    return 0;
-}
-
-static std::array<uint8_t, 32> pkgi_hexbytes(
-        const char* digest, uint32_t length)
-{
-    std::array<uint8_t, 32> result;
-
-    for (uint32_t i = 0; i < length; i++)
-    {
-        char ch1 = digest[2 * i];
-        char ch2 = digest[2 * i + 1];
-        if (ch1 == 0 || ch2 == 0)
-            return result;
-
-        result[i] = hexvalue(ch1) * 16 + hexvalue(ch2);
-    }
-
-    return result;
-}
-
 static const char* pkgi_mode_to_file_name(Mode mode)
 {
     switch (mode)

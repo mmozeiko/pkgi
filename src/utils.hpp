@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 
 #ifdef _MSC_VER
@@ -124,4 +125,39 @@ static inline void set64be(uint8_t* bytes, uint64_t x)
     bytes[5] = (uint8_t)(x >> 16);
     bytes[6] = (uint8_t)(x >> 8);
     bytes[7] = (uint8_t)x;
+}
+
+static inline uint8_t hexvalue(char ch)
+{
+    if (ch >= '0' && ch <= '9')
+    {
+        return ch - '0';
+    }
+    else if (ch >= 'a' && ch <= 'f')
+    {
+        return ch - 'a' + 10;
+    }
+    else if (ch >= 'A' && ch <= 'F')
+    {
+        return ch - 'A' + 10;
+    }
+    return 0;
+}
+
+static inline std::array<uint8_t, 32> pkgi_hexbytes(
+        const char* digest, uint32_t length)
+{
+    std::array<uint8_t, 32> result;
+
+    for (uint32_t i = 0; i < length; i++)
+    {
+        char ch1 = digest[2 * i];
+        char ch2 = digest[2 * i + 1];
+        if (ch1 == 0 || ch2 == 0)
+            return result;
+
+        result[i] = hexvalue(ch1) * 16 + hexvalue(ch2);
+    }
+
+    return result;
 }
