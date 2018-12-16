@@ -63,7 +63,7 @@ add_executable(pkgj
   src/vita.cpp
   src/vitafile.cpp
   src/vitahttp.cpp
-  src/zrif.c
+  src/zrif.cpp
 )
 
 target_link_libraries(pkgj

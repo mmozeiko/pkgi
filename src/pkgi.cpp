@@ -4,7 +4,6 @@ extern "C"
 {
 #include "style.h"
 #include "utils.h"
-#include "zrif.h"
 }
 #include "comppackdb.hpp"
 #include "config.hpp"
@@ -18,6 +17,7 @@ extern "C"
 #include "menu.hpp"
 #include "update.hpp"
 #include "vitahttp.hpp"
+#include "zrif.hpp"
 #include <imgui_internal.h>
 
 #include <vita2d.h>

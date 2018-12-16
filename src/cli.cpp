@@ -4,10 +4,7 @@
 #include "extractzip.hpp"
 #include "filedownload.hpp"
 #include "filehttp.hpp"
-extern "C"
-{
-#include "zrif.h"
-}
+#include "zrif.hpp"
 
 #include <boost/algorithm/hex.hpp>
 

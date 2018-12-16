@@ -9,7 +9,7 @@ add_executable(pkgj_cli
   src/sfo.cpp
   src/sha256.cpp
   src/filehttp.cpp
-  src/zrif.c
+  src/zrif.cpp
   src/puff.c
   src/cli.cpp
 )

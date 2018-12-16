@@ -1,8 +1,12 @@
-#include "zrif.h"
+#include "zrif.hpp"
+
+extern "C"
+{
 #include "puff.h"
 #include "utils.h"
+}
 
-#include <string.h>
+#include <cstring>
 
 #define ADLER32_MOD 65521
 
