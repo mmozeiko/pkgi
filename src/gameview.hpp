@@ -5,6 +5,7 @@
 #include "db.hpp"
 #include "downloader.hpp"
 #include "install.hpp"
+#include "patchinfofetcher.hpp"
 
 #include <optional>
 
@@ -16,15 +17,7 @@ public:
             Downloader* downloader,
             DbItem* item,
             std::optional<CompPackDatabase::Item> base_comppack,
-            std::optional<CompPackDatabase::Item> patch_comppack)
-        : _config(config)
-        , _downloader(downloader)
-        , _item(item)
-        , _base_comppack(base_comppack)
-        , _patch_comppack(patch_comppack)
-    {
-        refresh();
-    }
+            std::optional<CompPackDatabase::Item> patch_comppack);
 
     const DbItem* get_item() const
     {
@@ -51,6 +44,8 @@ private:
     CompPackVersion _comppack_versions;
 
     bool _closed{false};
+
+    PatchInfoFetcher _patch_info_fetcher;
 
     void printDiagnostic();
     void start_download_package();

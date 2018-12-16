@@ -15,6 +15,22 @@ constexpr unsigned GameViewWidth = VITA_WIDTH * 0.8;
 constexpr unsigned GameViewHeight = VITA_HEIGHT * 0.8;
 }
 
+GameView::GameView(
+        const Config* config,
+        Downloader* downloader,
+        DbItem* item,
+        std::optional<CompPackDatabase::Item> base_comppack,
+        std::optional<CompPackDatabase::Item> patch_comppack)
+    : _config(config)
+    , _downloader(downloader)
+    , _item(item)
+    , _base_comppack(base_comppack)
+    , _patch_comppack(patch_comppack)
+    , _patch_info_fetcher(item->titleid)
+{
+    refresh();
+}
+
 void GameView::render()
 {
     ImGui::SetNextWindowPos(
@@ -81,6 +97,28 @@ void GameView::render()
     {
         if (ImGui::Button("Cancel game installation###installgame"))
             cancel_download_package();
+    }
+
+    switch (_patch_info_fetcher.get_status())
+    {
+    case PatchInfoFetcher::Status::Fetching:
+        ImGui::Button("Checking for patch...###installpatch");
+        break;
+    case PatchInfoFetcher::Status::NoUpdate:
+        ImGui::Button("No update found###installpatch");
+        break;
+    case PatchInfoFetcher::Status::Found:
+    {
+        const auto patch_info = _patch_info_fetcher.get_patch_info();
+        ImGui::Button(
+                fmt::format(
+                        "Install patch {}###installpatch", patch_info->version)
+                        .c_str());
+        break;
+    }
+    case PatchInfoFetcher::Status::Error:
+        ImGui::Button("Failed to fetch patch information###installpatch");
+        break;
     }
 
     if (_base_comppack)
