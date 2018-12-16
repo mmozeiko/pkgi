@@ -1,8 +1,15 @@
 #include "filehttp.hpp"
 
+#include "log.hpp"
+
+FileHttp::FileHttp(const std::string& path) : override_path(path)
+{
+}
+
 void FileHttp::start(const std::string& url, uint64_t offset)
 {
-    f.open(url);
+    LOGF("Fake downloading {}", url);
+    f.open(override_path.empty() ? url : override_path);
     f.seekg(offset, std::ios::beg);
 }
 

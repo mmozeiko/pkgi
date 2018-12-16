@@ -4,6 +4,7 @@
 #include "extractzip.hpp"
 #include "filedownload.hpp"
 #include "filehttp.hpp"
+#include "patchinfo.hpp"
 #include "zrif.hpp"
 
 #include <boost/algorithm/hex.hpp>
@@ -14,7 +15,8 @@
 
 static constexpr auto USAGE =
         "Usage: %s [extract <filename> <zrif> <sha256>] [refreshlist PSV "
-        "path] [refreshcomppack path] [filedownload path] [extractzip path]\n";
+        "path] [refreshcomppack path] [filedownload path] [extractzip path] "
+        "[patchinfo xmlfile titleid]\n";
 
 int extract(int argc, char* argv[])
 {
@@ -121,6 +123,26 @@ int extractzip(int argc, char* argv[])
     return 0;
 }
 
+int patchinfo(int argc, char* argv[])
+{
+    if (argc != 4)
+    {
+        printf(USAGE, argv[0]);
+        return 1;
+    }
+
+    const auto patch_info = pkgi_download_patch_info(
+            std::make_unique<FileHttp>(argv[2]).get(), argv[3]);
+
+    if (!patch_info)
+        puts("No patch found");
+
+    fmt::print("Version: {}\n", patch_info->version);
+    fmt::print("Url: {}\n", patch_info->url);
+
+    return 0;
+}
+
 int main(int argc, char* argv[])
 {
     if (argc < 2)
@@ -139,6 +161,8 @@ int main(int argc, char* argv[])
         return filedownload(argc, argv);
     if (std::string(argv[1]) == "extractzip")
         return extractzip(argc, argv);
+    if (std::string(argv[1]) == "patchinfo")
+        return patchinfo(argc, argv);
 
     printf(USAGE, argv[0]);
     return 1;
