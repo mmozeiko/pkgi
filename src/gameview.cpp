@@ -110,10 +110,11 @@ void GameView::render()
     case PatchInfoFetcher::Status::Found:
     {
         const auto patch_info = _patch_info_fetcher.get_patch_info();
-        ImGui::Button(
-                fmt::format(
-                        "Install patch {}###installpatch", patch_info->version)
-                        .c_str());
+        if (ImGui::Button(fmt::format(
+                                  "Install patch {}###installpatch",
+                                  patch_info->version)
+                                  .c_str()))
+            start_download_patch(*patch_info);
         break;
     }
     case PatchInfoFetcher::Status::Error:
@@ -245,6 +246,21 @@ void GameView::cancel_download_package()
 {
     _downloader->remove_from_queue(_item->content);
     _item->presence = PresenceUnknown;
+}
+
+void GameView::start_download_patch(const PatchInfo& patch_info)
+{
+    _downloader->add(DownloadItem{Patch,
+                                  _item->name,
+                                  _item->titleid,
+                                  patch_info.url,
+                                  std::vector<uint8_t>{},
+                                  // TODO sha1 check
+                                  std::vector<uint8_t>{},
+                                  false,
+                                  "ux0:",
+                                  false,
+                                  ""});
 }
 
 void GameView::start_download_comppack(bool patch)

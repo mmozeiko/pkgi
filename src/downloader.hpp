@@ -12,6 +12,7 @@
 enum Type
 {
     Game,
+    Patch,
     Dlc,
     PsmGame,
     PsxGame,

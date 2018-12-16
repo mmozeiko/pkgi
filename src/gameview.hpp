@@ -50,6 +50,7 @@ private:
     void printDiagnostic();
     void start_download_package();
     void cancel_download_package();
+    void start_download_patch(const PatchInfo& patch_info);
     void start_download_comppack(bool patch);
     void cancel_download_comppacks();
 };

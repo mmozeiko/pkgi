@@ -85,12 +85,11 @@ void pkgi_install(const char* contentid)
                         : "");
 }
 
-void pkgi_install_update(const char* contentid)
+void pkgi_install_update(const std::string& titleid)
 {
     pkgi_mkdirs("ux0:patch");
 
-    const auto titleid = fmt::format("{:.9}", contentid + 7);
-    const auto src = fmt::format("ux0:pkgj/{}", contentid);
+    const auto src = fmt::format("ux0:pkgj/{}", titleid);
     const auto dest = fmt::format("ux0:patch/{}", titleid);
 
     LOGF("deleting previous patch at {}", dest);
