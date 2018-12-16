@@ -11,6 +11,7 @@ public:
     int64_t read(uint8_t* buffer, uint64_t size) override;
     void abort() override;
 
+    int get_status() override;
     int64_t get_length() override;
 
     explicit operator bool() const override;

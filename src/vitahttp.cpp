@@ -130,6 +130,8 @@ void VitaHttp::start(const std::string& url, uint64_t offset)
 
 int64_t VitaHttp::read(uint8_t* buffer, uint64_t size)
 {
+    check_status();
+
     int read = sceHttpReadData(_http->req, buffer, size);
     if (read < 0)
         throw HttpError(fmt::format(
@@ -147,18 +149,9 @@ void VitaHttp::abort()
 
 int64_t VitaHttp::get_length()
 {
+    check_status();
+
     int res;
-    int status;
-    if ((res = sceHttpGetStatusCode(_http->req, &status)) < 0)
-        throw HttpError(fmt::format(
-                "sceHttpGetStatusCode failed: {:#08x}",
-                static_cast<uint32_t>(res)));
-
-    LOGF("http status code = {}", status);
-
-    if (status != 200 && status != 206)
-        throw HttpError(fmt::format("bad http status: {}", status));
-
     uint64_t content_length;
     res = sceHttpGetResponseContentLength(_http->req, &content_length);
     if (res < 0)
@@ -175,6 +168,32 @@ int64_t VitaHttp::get_length()
 
     LOGF("http response length = {}", content_length);
     return content_length;
+}
+
+int VitaHttp::get_status()
+{
+    int res;
+    int status;
+    if ((res = sceHttpGetStatusCode(_http->req, &status)) < 0)
+        throw HttpError(fmt::format(
+                "sceHttpGetStatusCode failed: {:#08x}",
+                static_cast<uint32_t>(res)));
+
+    return status;
+}
+
+void VitaHttp::check_status()
+{
+    if (_status_checked)
+        return;
+    _status_checked = true;
+
+    const auto status = get_status();
+
+    LOGF("http status code = {}", status);
+
+    if (status != 200 && status != 206)
+        throw HttpError(fmt::format("bad http status: {}", status));
 }
 
 VitaHttp::operator bool() const

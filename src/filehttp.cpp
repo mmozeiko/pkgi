@@ -16,6 +16,11 @@ void FileHttp::abort()
 {
 }
 
+int FileHttp::get_status()
+{
+    return 200;
+}
+
 int64_t FileHttp::get_length()
 {
     const uint64_t pos = f.tellg();
