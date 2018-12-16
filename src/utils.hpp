@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fmt/format.h>
+
 #include <array>
 #include <cstdint>
 
@@ -160,4 +162,13 @@ static inline std::array<uint8_t, 32> pkgi_hexbytes(
     }
 
     return result;
+}
+
+static inline std::string pkgi_tohex(const std::vector<uint8_t>& data)
+{
+    std::string out;
+    out.reserve(data.size() * 2);
+    for (auto const& d : data)
+        out += fmt::format("{:02x}", d);
+    return out;
 }
