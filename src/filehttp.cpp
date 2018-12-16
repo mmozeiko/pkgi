@@ -12,6 +12,10 @@ int64_t FileHttp::read(uint8_t* buffer, uint64_t size)
     return f.gcount();
 }
 
+void FileHttp::abort()
+{
+}
+
 int64_t FileHttp::get_length()
 {
     const uint64_t pos = f.tellg();
