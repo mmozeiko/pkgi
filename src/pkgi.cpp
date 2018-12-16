@@ -932,6 +932,25 @@ void pkgi_open_db()
 
     pkgi_reload();
 }
+
+Type mode_to_type(Mode mode)
+{
+    switch (mode)
+    {
+    case ModeGames:
+        return Game;
+    case ModeDlcs:
+        return Dlc;
+    case ModePsmGames:
+        return PsmGame;
+    case ModePsxGames:
+        return PsxGame;
+    case ModePspGames:
+        return PspGame;
+    }
+    throw formatEx<std::runtime_error>(
+            "unknown mode {}", static_cast<int>(mode));
+}
 }
 
 void pkgi_start_download(Downloader& downloader, const DbItem& item)
@@ -945,7 +964,7 @@ void pkgi_start_download(Downloader& downloader, const DbItem& item)
         pkgi_zrif_decode(item.zrif.c_str(), rif, message, sizeof(message)))
     {
         downloader.add(DownloadItem{
-                static_cast<Type>(mode),
+                mode_to_type(mode),
                 item.name,
                 item.content,
                 item.url,
