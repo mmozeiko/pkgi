@@ -8,6 +8,7 @@
 struct PatchInfo
 {
     std::string version;
+    std::string fw_version;
     std::string url;
 };
 

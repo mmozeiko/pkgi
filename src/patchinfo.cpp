@@ -59,21 +59,32 @@ PatchInfo get_last_patch(const std::string& xml)
     static constexpr char HybridPackageStr[] = "<hybrid_package";
     static constexpr char VersionStr[] = "version=\"";
     static constexpr char UrlStr[] = "url=\"";
+    static constexpr char Psp2SystemVerStr[] = "psp2_system_ver=\"";
 
     const auto last_package = xml.rfind(PackageStr);
     const auto last_hybrid_package = xml.find(HybridPackageStr, last_package);
     const auto version =
             xml.find(VersionStr, last_package) + sizeof(VersionStr) - 1;
-    const auto versionEnd = xml.find('"', version);
+    const auto version_end = xml.find('"', version);
+    const auto fw_version = xml.find(Psp2SystemVerStr, last_package) +
+                            sizeof(Psp2SystemVerStr) - 1;
+    const auto fw_version_end = xml.find('"', fw_version);
     const auto package_of_interest = last_hybrid_package == std::string::npos
                                              ? last_package
                                              : last_hybrid_package;
     const auto url = xml.find(UrlStr, package_of_interest) + sizeof(UrlStr) - 1;
-    const auto urlEnd = xml.find('"', url);
+    const auto url_end = xml.find('"', url);
+
+    const auto fw_version_int =
+            std::stoi(xml.substr(fw_version, fw_version_end - fw_version));
 
     return PatchInfo{
-            xml.substr(version, versionEnd - version),
-            xml.substr(url, urlEnd - url),
+            xml.substr(version, version_end - version),
+            fmt::format(
+                    "{:x}.{:02x}",
+                    fw_version_int >> 24,
+                    (fw_version_int >> 16) & 0xff),
+            xml.substr(url, url_end - url),
     };
 }
 }
