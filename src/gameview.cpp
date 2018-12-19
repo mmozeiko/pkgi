@@ -52,8 +52,10 @@ void GameView::render()
     ImGui::PushTextWrapPos(0.f);
     ImGui::Text(fmt::format("Firmware version: {}", pkgi_get_system_version())
                         .c_str());
-    ImGui::Text(fmt::format("Required firmware version: {}", _item->fw_version)
-                        .c_str());
+    ImGui::Text(
+            fmt::format(
+                    "Required firmware version: {}", get_min_system_version())
+                    .c_str());
 
     ImGui::Text(" ");
 
@@ -147,7 +149,7 @@ void GameView::render()
     }
     if (_patch_comppack)
     {
-        if (!_downloader->is_in_queue(CompPackBase, _item->titleid))
+        if (!_downloader->is_in_queue(CompPackPatch, _item->titleid))
         {
             if (ImGui::Button(fmt::format(
                                       "Install compatibility pack "
@@ -183,7 +185,7 @@ void GameView::printDiagnostic()
     };
 
     auto const systemVersion = pkgi_get_system_version();
-    auto const& minSystemVersion = _item->fw_version;
+    auto const minSystemVersion = get_min_system_version();
 
     ImGui::Text("Diagnostic:");
 
@@ -246,6 +248,15 @@ void GameView::printDiagnostic()
 
     if (ok)
         ImGui::TextColored(Green, "All green");
+}
+
+std::string GameView::get_min_system_version()
+{
+    auto const patchInfo = _patch_info_fetcher.get_patch_info();
+    if (patchInfo)
+        return patchInfo->fw_version;
+    else
+        return _item->fw_version;
 }
 
 void GameView::refresh()

@@ -47,6 +47,7 @@ private:
 
     PatchInfoFetcher _patch_info_fetcher;
 
+    std::string get_min_system_version();
     void printDiagnostic();
     void start_download_package();
     void cancel_download_package();
