@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.44
+
+What's new:
+
+- It is now possible to download the latest patch of the selected game. The
+    minimum required firmware version will take into account that latest patch.
+- It is now possible to cancel base or patch compatibility pack installation
+    independently
+- There is no more need for keeping URLs in the configuration file. Default URLs
+    have been set up, it is still possible to override them in the configuration
+    file.
+- pkgj now works when there is no config file at all
+
+Bug fixes:
+
+- Button repeat when keeping a button pressed on game view is now fixed
+- Fixed error when downgrading to base compatibility pack
+
 ## 0.43
 
 What's new:
