@@ -90,58 +90,13 @@ void pkgi_install_update(const std::string& titleid)
     pkgi_mkdirs("ux0:patch");
 
     const auto src = fmt::format("ux0:pkgj/{}", titleid);
-    const auto dest = fmt::format("ux0:patch/{}", titleid);
 
-    LOGF("deleting previous patch at {}", dest);
-    pkgi_delete_dir(dest);
-
-    LOGF("installing update from {} to {}", src, dest);
-    const auto res = sceIoRename(src.c_str(), dest.c_str());
+    LOGF("installing update from {}", src);
+    const auto res = scePromoterUtilityPromotePkgWithRif(src.c_str(), 1);
     if (res < 0)
         throw formatEx<std::runtime_error>(
-                "failed to rename: {:#08x}", static_cast<uint32_t>(res));
-
-    const auto sfo = pkgi_load(fmt::format("{}/sce_sys/param.sfo", dest));
-    const auto version = pkgi_sfo_get_string(sfo.data(), sfo.size(), "APP_VER");
-
-    LOGF("found version is {}", version);
-    if (version.empty())
-        throw std::runtime_error("no version field found in param.sfo");
-    if (version.size() != 5)
-        throw formatEx<std::runtime_error>(
-                "version field of incorrect size: {}", version.size());
-
-    SqlitePtr _sqliteDb;
-    sqlite3* raw_appdb;
-    SQLITE_CHECK(
-            sqlite3_open("ur0:shell/db/app.db", &raw_appdb),
-            "can't open app.db database");
-    _sqliteDb.reset(raw_appdb);
-
-    sqlite3_stmt* stmt;
-    SQLITE_CHECK(
-            sqlite3_prepare_v2(
-                    _sqliteDb.get(),
-                    R"(UPDATE tbl_appinfo
-                    SET val = ?
-                    WHERE titleId = ? AND key = 3168212510)",
-                    -1,
-                    &stmt,
-                    nullptr),
-            "can't prepare version update SQL statement");
-    BOOST_SCOPE_EXIT_ALL(&)
-    {
-        sqlite3_finalize(stmt);
-    };
-
-    sqlite3_bind_text(stmt, 1, version.data(), version.size(), nullptr);
-    sqlite3_bind_text(stmt, 2, titleid.data(), titleid.size(), nullptr);
-
-    const auto err = sqlite3_step(stmt);
-    if (err != SQLITE_DONE)
-        throw formatEx<std::runtime_error>(
-                "can't execute version update SQL statement:\n{}",
-                sqlite3_errmsg(_sqliteDb.get()));
+                "scePromoterUtilityPromotePkgWithRif failed: {:#08x}",
+                static_cast<uint32_t>(res));
 }
 
 void pkgi_install_comppack(
