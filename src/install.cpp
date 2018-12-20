@@ -106,7 +106,7 @@ void pkgi_install_comppack(
     const auto dest = fmt::format("ux0:rePatch/{}", titleid);
 
     if (!patch)
-        pkgi_delete_dir(dest + "/patch_comppack_version");
+        pkgi_rm((dest + "/patch_comppack_version").c_str());
 
     pkgi_mkdirs(dest.c_str());
 
