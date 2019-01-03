@@ -154,7 +154,7 @@ Config pkgi_load_config()
 {
     try
     {
-        Config config;
+        Config config{};
 
         config.games_url = default_psv_games_url;
         config.dlcs_url = default_psv_dlcs_url;
@@ -165,8 +165,6 @@ Config pkgi_load_config()
         config.sort = SortByName;
         config.order = SortAscending;
         config.filter = DbFilterAll;
-        config.no_version_check = 0;
-        config.install_psp_as_pbp = 0;
         config.install_psp_psx_location = "ux0:";
 
         auto const path =
