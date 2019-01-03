@@ -279,37 +279,41 @@ void pkgi_save_config(const Config& config)
 {
     char data[4096];
     int len = 0;
-    if (!config.games_url.empty())
+    if (!config.games_url.empty() && config.games_url != default_psv_games_url)
         len += pkgi_snprintf(
                 data + len,
                 sizeof(data) - len,
                 "url_games %s\n",
                 config.games_url.c_str());
-    if (!config.dlcs_url.empty())
+    if (!config.dlcs_url.empty() && config.dlcs_url != default_psv_dlcs_url)
         len += pkgi_snprintf(
                 data + len,
                 sizeof(data) - len,
                 "url_dlcs %s\n",
                 config.dlcs_url.c_str());
-    if (!config.psm_games_url.empty())
+    if (!config.psm_games_url.empty() &&
+        config.psm_games_url != default_psm_games_url)
         len += pkgi_snprintf(
                 data + len,
                 sizeof(data) - len,
                 "url_psm_games %s\n",
                 config.psm_games_url.c_str());
-    if (!config.psx_games_url.empty())
+    if (!config.psx_games_url.empty() &&
+        config.psx_games_url != default_psx_games_url)
         len += pkgi_snprintf(
                 data + len,
                 sizeof(data) - len,
                 "url_psx_games %s\n",
                 config.psx_games_url.c_str());
-    if (!config.psp_games_url.empty())
+    if (!config.psp_games_url.empty() &&
+        config.psp_games_url != default_psp_games_url)
         len += pkgi_snprintf(
                 data + len,
                 sizeof(data) - len,
                 "url_psp_games %s\n",
                 config.psp_games_url.c_str());
-    if (!config.comppack_url.empty())
+    if (!config.comppack_url.empty() &&
+        config.comppack_url != default_comppack_url)
         len += pkgi_snprintf(
                 data + len,
                 sizeof(data) - len,
