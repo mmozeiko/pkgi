@@ -2,8 +2,6 @@
 
 [![Travis CI Build Status][img_travis]][pkgj_travis] [![Downloads][img_downloads]][pkgj_downloads] [![Release][img_latest]][pkgj_latest] [![License][img_license]][pkgj_license]
 
-pkgj allows to install original pkg files on your Vita.
-
 This homebrew allows to download & unpack pkg file directly on Vita together with your [NoNpDrm][] fake license.
 
 # Features
@@ -11,11 +9,9 @@ This homebrew allows to download & unpack pkg file directly on Vita together wit
 * **easy** way to see list of available downloads, including searching, filter & sorting.
 * **standalone**, no PC required, everything happens directly on Vita.
 * **automatic** download and unpack, just choose an item, and it will be installed, including bubble in live area.
-
-Differences with PKGi:
 * **queues** multiple downloads.
 * **supports** the TSV file format.
-* **installs** DLCs, PSM, PSP and PSX games.
+* **installs** updates, DLCs, PSM, PSP and PSX games.
 
 Current limitations:
 * **no background downloads** - if application is closed or Vita is put in sleep then download will stop.
@@ -24,56 +20,44 @@ Current limitations:
 
 Get latest version as [vpk file here][pkgj_latest].
 
-# Setup instructions
-
-Setup games databases URLs in `ux0:pkgj/config.txt`. The file format is the following:
-
-    url_games http://thesite/games.tsv
-    url_dlcs http://thesite/dlcs.tsv
-    url_psx_games http://thesite/psxgames.tsv
-    url_psp_games http://thesite/pspgames.tsv
-    url_psm_games http://thesite/psmgames.tsv
-    url_comppack http://thesite/comppack/
-
-**Attention:** The PS Vita has incomplete HTTPS support and most sites will not
-work, prefer HTTP in these cases.
-
-The `url_comppack` URL must point to the folder containing the `entries.txt`
-file.
+# Usage
 
 Make sure unsafe mode is enabled in Henkaku settings.
 
-Then start the application and you are ready to go.
-
-# Usage
-
-Using application is pretty straight forward. Select item you want to install and press X. To sort/filter/search press triangle.
+Using application is pretty straight forward. Select item you want to install and press X and follow the instructions. To sort/filter/search press triangle.
 It will open context menu. Press triangle again to confirm choice(s) you make in menu. Or press O to cancel any changes you did.
 
 Press left or right button to move page up or down.
 
+# Configuration
+
+pkgj can be configured through `ux0:pkgj/config.txt` or `ur0:pkgj/config.txt`.
+
+| Option | Description |
+| --- | --- |
+| `url_games <URL>` | The URL of the PS Vita game list |
+| `url_dlcs <URL>` | The URL of the PS Vita DLC list |
+| `url_psm_games <URL>` | The URL of the PS Mobile list (see Q&A) |
+| `url_psp_games <URL>` | The URL of the PSP game list |
+| `url_psx_games <URL>` | The URL of the PSX game list |
+| `url_comppack <URL>` | The URL of the PS Vita compatibility pack list |
+| `install_psp_as_pbp 1` | Install PSP games as EBOOT.EBP files instead of ISO files (see Q&A) |
+| `install_psp_psx_location uma0:` | Install PSP and PSX games on `uma0:` |
+| `no_version_check 1` | Do not check for update when starting PKGj |
+
 # Q&A
 
-1. Where to get zRIF string?
-
-  You must use [NoNpDrm][] plugin to dump existing games you have. Plugin will generate rif file with fake license.
-  Then you can use either [web page][zrif_online_converter] or [make_key][pkg_dec] to convert rif file to zRIF string.
-
-2. Where to get pkg URL?
-
-  You can use [PSDLE][] to find pkg URL for games you own. Then either use original URL, or host the file on your own server.
-
-3. Where to remove interrupted/failed downloads to free up the space?
+1. Where to remove interrupted/failed downloads to free up the space?
 
   In `ux0:pkgj` folder - each download will be in separate folder by its title id. Simply delete the folder & resume file.
 
-4. Download speed is too slow!
+2. Download speed is too slow!
 
   Typically you should see speeds ~1-2 MB/s. This is normal for Vita hardware. Of course it also depends on WiFi router you
   have and WiFi signal strength. But sometimes speed will drop down to only few hundred KB/s. This happens for pkg files that
   contains many small files or many folders. Creating a new file or a new folder takes extra time which slows down the download.
 
-4. I want to install PSP games as EBOOT file.
+3. I want to install PSP games as EBOOT file.
 
   Installing PSP games as EBOOT files is possible. It allows to install games
   faster and make them take less space. However, you will need to install
@@ -87,20 +71,11 @@ Press left or right button to move page up or down.
   If you want to switch back to the other mode, simply remove the line. Writing
   0 is not sufficient.
 
-5. I can't play PSP games, it says "The game could not be started (80010087)".
+4. I can't play PSP games, it says "The game could not be started (80010087)".
 
   You need to install the [npdrm_free][] plugin in VSH, or install games as ISO.
 
-6. I want to install PSP and PSX games on another partition.
-
-  You can change the partitions these games are installed to with the following
-  configuration line:
-
-    install_psp_psx_location uma0:
-
-  The default value is `ux0:`
-
-7. I want to play PSM Games!
+5. I want to play PSM Games!
 
   You need to install the [NoPsmDrm][] plugin and follow the setup instructions.
   After installing a PSM game, you'll need to refresh your livearea. You can do
@@ -109,13 +84,13 @@ Press left or right button to move page up or down.
   prove that you read this readme, add "psm_disclaimer_yes_i_read_the_readme"
   and the name of the needed plugin to the config file.
 
-8. The PSM Games don't work.
+6. The PSM Games don't work.
 
   If you followed the instructions for [NoPsmDrm][], you can try to activate
   your account for psm games using
   [NoPsmDrm Fixer](https://github.com/Yoti/psv_npdrmfix).
 
-9. I don't want to loose my livearea layout/This is too much effort, there
+7. I don't want to loose my livearea layout/This is too much effort, there
    should be a better way.
 
   Warning: This method may **format** your memory card, if you're not careful.
@@ -128,13 +103,9 @@ Press left or right button to move page up or down.
   If you press "Yes" here, your memory card will be **formatted**. Just press
   "No". In case you're using a Fat, SD2VITA or USB storage, there's no risk.
 
-10. I'VE ADDED THE PSM URL TO THE CONFIG AND THERES NO MENU OPTION!!
+8. I'VE ADDED THE PSM URL TO THE CONFIG AND THERES NO MENU OPTION!!
 
   Please read this Q&A carefully
-
-11. I want to disable version checking on start
-
-  Add `no_version_check 1` to your config file
 
 # Building
 
