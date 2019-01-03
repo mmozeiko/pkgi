@@ -638,7 +638,11 @@ const char* pkgi_get_config_folder()
     CHECK_FOLDER("ur0:pkgi");
     CHECK_FOLDER("ux0:pkgi");
 #undef CHECK_FOLDER
-    else throw std::runtime_error("no config.txt found");
+    else
+    {
+        pkgi_mkdirs("ux0:pkgj");
+        return "ux0:pkgj";
+    }
 }
 
 int pkgi_is_incomplete(const char* partition, const char* contentid)

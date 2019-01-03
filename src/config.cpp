@@ -1,5 +1,7 @@
 #include "config.hpp"
 
+#include <fmt/format.h>
+
 #include "file.hpp"
 #include "pkgi.hpp"
 
@@ -167,10 +169,12 @@ Config pkgi_load_config()
         config.install_psp_as_pbp = 0;
         config.install_psp_psx_location = "ux0:";
 
-        char path[256];
-        pkgi_snprintf(
-                path, sizeof(path), "%s/config.txt", pkgi_get_config_folder());
-        LOG("config location: %s", path);
+        auto const path =
+                fmt::format("{}/config.txt", pkgi_get_config_folder());
+        LOGF("config location: {}", path);
+
+        if (!pkgi_file_exists(path))
+            return config;
 
         auto data = pkgi_load(path);
         data.push_back('\n');
