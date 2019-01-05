@@ -45,6 +45,11 @@ extern "C"
 #include <stdio.h>
 #include <string.h>
 
+extern "C"
+{
+    int _newlib_heap_size_user = 128 * 1024 * 1024;
+}
+
 static vita2d_pgf* g_font;
 
 static SceKernelLwMutexWork g_dialog_lock;

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.45
+
+Bug fixes:
+
+- Fix occasional bad_alloc errors
+
 ## 0.44
 
 What's new:
