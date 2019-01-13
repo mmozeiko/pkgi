@@ -40,6 +40,7 @@ private:
     std::optional<CompPackDatabase::Item> _base_comppack;
     std::optional<CompPackDatabase::Item> _patch_comppack;
 
+    bool _refood_present;
     std::string _game_version;
     CompPackVersion _comppack_versions;
 

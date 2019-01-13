@@ -3,6 +3,7 @@
 #include <fmt/format.h>
 
 #include "dialog.hpp"
+#include "file.hpp"
 #include "imgui.hpp"
 extern "C"
 {
@@ -192,9 +193,16 @@ void GameView::printDiagnostic()
     if (systemVersion < minSystemVersion)
     {
         if (!_comppack_versions.present)
-            printError(
-                    "- Your firmware is too old to play this game, you must "
-                    "install the compatibility pack");
+        {
+            if (!_refood_present)
+                printError(
+                        "- Your firmware is too old to play this game, you "
+                        "must install the compatibility pack or reF00D");
+            else
+                ImGui::Text(
+                        "- This game will work thanks to reF00D, install the "
+                        "compatibility packs for faster game boot times");
+        }
     }
     else
     {
@@ -262,6 +270,7 @@ std::string GameView::get_min_system_version()
 void GameView::refresh()
 {
     LOGF("refreshing gameview");
+    _refood_present = pkgi_file_exists("ur0:tai/keys.bin");
     _game_version = pkgi_get_game_version(_item->titleid);
     _comppack_versions = pkgi_get_comppack_versions(_item->titleid);
 }
