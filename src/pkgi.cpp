@@ -238,33 +238,11 @@ bool pkgi_is_installed(const char* titleid)
 
 void pkgi_install_package(Downloader& downloader, DbItem* item)
 {
-    switch (mode)
+    if (item->presence == PresenceInstalled)
     {
-    case ModeGames:
-    case ModePsmGames:
-    case ModePsxGames:
-    case ModePspGames:
-        if (item->presence == PresenceInstalled)
-        {
-            LOGF("[{}] {} - already installed", item->titleid, item->name);
-            pkgi_dialog_error("Already installed");
-            return;
-        }
-        break;
-    case ModeDlcs:
-        if (item->presence == PresenceInstalled)
-        {
-            LOGF("[{}] {} - already installed", item->content, item->name);
-            pkgi_dialog_error("Already installed");
-            return;
-        }
-        if (item->presence != PresenceGamePresent)
-        {
-            LOGF("[{}] {} - game not installed", item->titleid, item->name);
-            pkgi_dialog_error("Corresponding game not installed");
-            return;
-        }
-        break;
+        LOGF("[{}] {} - already installed", item->content, item->name);
+        pkgi_dialog_error("Already installed");
+        return;
     }
 
     pkgi_start_download(downloader, *item);

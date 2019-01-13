@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.46
+
+What's new:
+
+- pkgj will not check for game presence anymore when installing DLCs. This is
+    useful for people who want to install DLCs for physical games.
+
 ## 0.45
 
 Bug fixes:
