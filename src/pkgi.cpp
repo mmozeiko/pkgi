@@ -4,6 +4,7 @@ extern "C"
 {
 #include "style.h"
 }
+#include "bgdl.hpp"
 #include "comppackdb.hpp"
 #include "config.hpp"
 #include "db.hpp"
@@ -102,6 +103,20 @@ Type mode_to_type(Mode mode)
     }
     throw formatEx<std::runtime_error>(
             "unknown mode {}", static_cast<int>(mode));
+}
+
+BgdlType mode_to_bgdl_type(Mode mode)
+{
+    switch (mode)
+    {
+    case ModeGames:
+        return BgdlTypeGame;
+    case ModeDlcs:
+        return BgdlTypeDlc;
+    default:
+        throw formatEx<std::runtime_error>(
+                "unsupported bgdl mode {}", static_cast<int>(mode));
+    }
 }
 
 void configure_db(TitleDatabase* db, const char* search, const Config* config)
@@ -941,21 +956,30 @@ void pkgi_start_download(Downloader& downloader, const DbItem& item)
     if (item.zrif.empty() ||
         pkgi_zrif_decode(item.zrif.c_str(), rif, message, sizeof(message)))
     {
-        downloader.add(DownloadItem{
-                mode_to_type(mode),
-                item.name,
-                item.content,
-                item.url,
-                item.zrif.empty()
-                        ? std::vector<uint8_t>{}
-                        : std::vector<uint8_t>(rif, rif + PKGI_PSM_RIF_SIZE),
-                item.has_digest
-                        ? std::vector<uint8_t>(
-                                  item.digest.begin(), item.digest.end())
-                        : std::vector<uint8_t>{},
-                !config.install_psp_as_pbp,
-                pkgi_get_mode_partition(),
-                ""});
+        if (mode == ModeGames || mode == ModeDlcs)
+            pkgi_start_bgdl(
+                    mode_to_bgdl_type(mode),
+                    item.name,
+                    item.url,
+                    item.zrif.empty() ? std::vector<uint8_t>{}
+                                      : std::vector<uint8_t>(
+                                                rif, rif + PKGI_PSM_RIF_SIZE));
+        else
+            downloader.add(DownloadItem{
+                    mode_to_type(mode),
+                    item.name,
+                    item.content,
+                    item.url,
+                    item.zrif.empty() ? std::vector<uint8_t>{}
+                                      : std::vector<uint8_t>(
+                                                rif, rif + PKGI_PSM_RIF_SIZE),
+                    item.has_digest
+                            ? std::vector<uint8_t>(
+                                      item.digest.begin(), item.digest.end())
+                            : std::vector<uint8_t>{},
+                    !config.install_psp_as_pbp,
+                    pkgi_get_mode_partition(),
+                    ""});
     }
     else
     {
