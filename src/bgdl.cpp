@@ -214,11 +214,12 @@ void scedownload_start_with_rif(
     params.init.unk_3 = 0;
 
     params.init.sizeDC0 = 0xDC0;
-    params.init.addr_DC0 =
-            (ipmi_download_param*)new char[params.init.sizeDC0]();
+    std::vector<uint8_t> buf_dc0(params.init.sizeDC0);
+    params.init.addr_DC0 = (ipmi_download_param*)buf_dc0.data();
 
     params.size2E0 = 0x2E0;
-    params.addr_2E0 = new char[params.size2E0];
+    std::vector<uint8_t> buf_2e0(params.size2E0);
+    params.addr_2E0 = buf_2e0.data();
 
     params.pBgdlId = (uint32_t*)&bgdlid; // points to -1
     params.unk_5 = 4;
@@ -251,6 +252,10 @@ void scedownload_start_with_rif(
         throw formatEx<std::runtime_error>(
                 "SceDownload change_state bgdlid failed: {:#08x}",
                 static_cast<uint32_t>(res));
+    if (reinterpret_cast<intptr_t>(params.init.addr_DC0) < 0)
+        throw formatEx<std::runtime_error>(
+                "SceDownload change_state DC0 failed: {:#08x}",
+                reinterpret_cast<uintptr_t>(params.init.addr_DC0));
 
     result = 0;
 
@@ -270,9 +275,8 @@ void scedownload_start_with_rif(
         throw formatEx<std::runtime_error>(
                 "SceDownload second change_state result failed: {:#08x}",
                 static_cast<uint32_t>(result));
-
-    delete[] reinterpret_cast<char*>(params.init.addr_DC0);
-    delete[] static_cast<char*>(params.addr_2E0);
+    buf_dc0.clear();
+    buf_2e0.clear();
 }
 
 std::unique_ptr<scedownload_class> new_scedownload()
