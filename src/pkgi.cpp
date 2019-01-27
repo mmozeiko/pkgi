@@ -69,6 +69,7 @@ std::unique_ptr<CompPackDatabase> comppack_db_games;
 std::unique_ptr<CompPackDatabase> comppack_db_updates;
 
 std::set<std::string> installed_games;
+std::set<std::string> installed_themes;
 
 std::unique_ptr<GameView> gameview;
 bool need_refresh = true;
@@ -243,19 +244,34 @@ const char* pkgi_get_mode_partition()
                    : "ux0:";
 }
 
-void pkgi_refresh_installed_games()
+void pkgi_refresh_installed_packages()
 {
     auto games = pkgi_get_installed_games();
-
     installed_games.clear();
     installed_games.insert(
             std::make_move_iterator(games.begin()),
             std::make_move_iterator(games.end()));
+
+    auto themes = pkgi_get_installed_themes();
+    installed_themes.clear();
+    installed_themes.insert(
+            std::make_move_iterator(themes.begin()),
+            std::make_move_iterator(themes.end()));
 }
 
 bool pkgi_is_installed(const char* titleid)
 {
     return installed_games.find(titleid) != installed_games.end();
+}
+
+bool pkgi_theme_is_installed(std::string contentid)
+{
+    if (contentid.size() < 19)
+        return false;
+
+    contentid.erase(16, 3);
+    contentid.erase(0, 7);
+    return installed_themes.find(contentid) != installed_themes.end();
 }
 
 void pkgi_install_package(Downloader& downloader, DbItem* item)
@@ -451,6 +467,12 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                 if (downloader.is_in_queue(Dlc, item->content))
                     item->presence = PresenceInstalling;
                 else if (pkgi_dlc_is_installed(item->content.c_str()))
+                    item->presence = PresenceInstalled;
+                else if (pkgi_is_installed(titleid))
+                    item->presence = PresenceGamePresent;
+                break;
+            case ModeThemes:
+                if (pkgi_theme_is_installed(item->content))
                     item->presence = PresenceInstalled;
                 else if (pkgi_is_installed(titleid))
                     item->presence = PresenceGamePresent;
@@ -1117,7 +1139,7 @@ int main()
             if (need_refresh)
             {
                 std::lock_guard<Mutex> lock(refresh_mutex);
-                pkgi_refresh_installed_games();
+                pkgi_refresh_installed_packages();
                 if (!content_to_refresh.empty())
                 {
                     const auto item =

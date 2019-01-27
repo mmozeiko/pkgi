@@ -16,6 +16,11 @@ std::vector<std::string> pkgi_get_installed_games()
     return pkgi_list_dir_contents("ux0:app");
 }
 
+std::vector<std::string> pkgi_get_installed_themes()
+{
+    return pkgi_list_dir_contents("ux0:theme");
+}
+
 namespace
 {
 std::string pkgi_extract_package_version(const std::string& package)
