@@ -962,46 +962,58 @@ void pkgi_start_download(Downloader& downloader, const DbItem& item)
 {
     LOGF("[{}] {} - starting to install", item.content, item.name);
 
-    // Just use the maximum size to be safe
-    uint8_t rif[PKGI_PSM_RIF_SIZE];
-    char message[256];
-    if (item.zrif.empty() ||
-        pkgi_zrif_decode(item.zrif.c_str(), rif, message, sizeof(message)))
+    try
     {
-        if (mode == ModeGames || mode == ModeDlcs || mode == ModeThemes)
+        // Just use the maximum size to be safe
+        uint8_t rif[PKGI_PSM_RIF_SIZE];
+        char message[256];
+        if (item.zrif.empty() ||
+            pkgi_zrif_decode(item.zrif.c_str(), rif, message, sizeof(message)))
         {
-            pkgi_start_bgdl(
-                    mode_to_bgdl_type(mode),
-                    item.name,
-                    item.url,
-                    item.zrif.empty() ? std::vector<uint8_t>{}
-                                      : std::vector<uint8_t>(
-                                                rif, rif + PKGI_PSM_RIF_SIZE));
-            pkgi_dialog_message(
-                    fmt::format(
-                            "Installation of {} queued in LiveArea", item.name)
-                            .c_str());
+            if (mode == ModeGames || mode == ModeDlcs || mode == ModeThemes)
+            {
+                pkgi_start_bgdl(
+                        mode_to_bgdl_type(mode),
+                        item.name,
+                        item.url,
+                        item.zrif.empty()
+                                ? std::vector<uint8_t>{}
+                                : std::vector<uint8_t>(
+                                          rif, rif + PKGI_PSM_RIF_SIZE));
+                pkgi_dialog_message(
+                        fmt::format(
+                                "Installation of {} queued in LiveArea",
+                                item.name)
+                                .c_str());
+            }
+            else
+                downloader.add(DownloadItem{
+                        mode_to_type(mode),
+                        item.name,
+                        item.content,
+                        item.url,
+                        item.zrif.empty()
+                                ? std::vector<uint8_t>{}
+                                : std::vector<uint8_t>(
+                                          rif, rif + PKGI_PSM_RIF_SIZE),
+                        item.has_digest ? std::vector<uint8_t>(
+                                                  item.digest.begin(),
+                                                  item.digest.end())
+                                        : std::vector<uint8_t>{},
+                        !config.install_psp_as_pbp,
+                        pkgi_get_mode_partition(),
+                        ""});
         }
         else
-            downloader.add(DownloadItem{
-                    mode_to_type(mode),
-                    item.name,
-                    item.content,
-                    item.url,
-                    item.zrif.empty() ? std::vector<uint8_t>{}
-                                      : std::vector<uint8_t>(
-                                                rif, rif + PKGI_PSM_RIF_SIZE),
-                    item.has_digest
-                            ? std::vector<uint8_t>(
-                                      item.digest.begin(), item.digest.end())
-                            : std::vector<uint8_t>{},
-                    !config.install_psp_as_pbp,
-                    pkgi_get_mode_partition(),
-                    ""});
+        {
+            pkgi_dialog_error(message);
+        }
     }
-    else
+    catch (const std::exception& e)
     {
-        pkgi_dialog_error(message);
+        pkgi_dialog_error(
+                fmt::format("Failed to install {}: {}", item.name, e.what())
+                        .c_str());
     }
 }
 
