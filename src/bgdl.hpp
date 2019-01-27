@@ -8,7 +8,7 @@ enum BgdlType
 {
     BgdlTypeGame = 0x16,
     BgdlTypeDlc = 0x17,
-    BgdlTypeTheme = 0xC2,
+    BgdlTypeTheme = 0xC,
 };
 
 void pkgi_start_bgdl(
