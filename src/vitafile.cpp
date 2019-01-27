@@ -225,6 +225,8 @@ void pkgi_save(const std::string& path, const void* data, uint32_t size)
 std::vector<std::string> pkgi_list_dir_contents(const std::string& path)
 {
     const auto fd = sceIoDopen(path.c_str());
+    if (static_cast<uint32_t>(fd) == 0x80010002)
+        return {};
     if (fd < 0)
         throw formatEx<std::runtime_error>(
                 "failed sceIoDopen({}): {:#08x}",
