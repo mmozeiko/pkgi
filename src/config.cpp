@@ -15,6 +15,11 @@ static constexpr char default_psv_dlcs_url[] = {
         0x79, 0x73, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x63, 0x6f,
         0x6d, 0x2f, 0x74, 0x73, 0x76, 0x2f, 0x50, 0x53, 0x56, 0x5f, 0x44,
         0x4c, 0x43, 0x53, 0x2e, 0x74, 0x73, 0x76, 0x00};
+static constexpr char default_psv_themes_url[] = {
+        0x68, 0x74, 0x74, 0x70, 0x3a, 0x2f, 0x2f, 0x6e, 0x6f, 0x70, 0x61,
+        0x79, 0x73, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x63, 0x6f,
+        0x6d, 0x2f, 0x74, 0x73, 0x76, 0x2f, 0x50, 0x53, 0x56, 0x5f, 0x54,
+        0x48, 0x45, 0x4d, 0x45, 0x53, 0x2e, 0x74, 0x73, 0x76, 0x00};
 static constexpr char default_psx_games_url[] = {
         0x68, 0x74, 0x74, 0x70, 0x3a, 0x2f, 0x2f, 0x6e, 0x6f, 0x70, 0x61,
         0x79, 0x73, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x63, 0x6f,
@@ -158,6 +163,7 @@ Config pkgi_load_config()
 
         config.games_url = default_psv_games_url;
         config.dlcs_url = default_psv_dlcs_url;
+        config.themes_url = default_psv_themes_url;
         config.psm_games_url = default_psm_games_url;
         config.psx_games_url = default_psx_games_url;
         config.psp_games_url = default_psp_games_url;
@@ -210,6 +216,8 @@ Config pkgi_load_config()
                 config.games_url = value;
             else if (pkgi_stricmp(key, "url_dlcs") == 0)
                 config.dlcs_url = value;
+            else if (pkgi_stricmp(key, "url_psv_themes") == 0)
+                config.themes_url = value;
             else if (pkgi_stricmp(key, "url_psm_games") == 0)
                 config.psm_games_url = value;
             else if (pkgi_stricmp(key, "url_psx_games") == 0)
@@ -291,6 +299,13 @@ void pkgi_save_config(const Config& config)
                 sizeof(data) - len,
                 "url_dlcs %s\n",
                 config.dlcs_url.c_str());
+    if (!config.themes_url.empty() &&
+        config.themes_url != default_psv_themes_url)
+        len += pkgi_snprintf(
+                data + len,
+                sizeof(data) - len,
+                "url_psv_themes %s\n",
+                config.themes_url.c_str());
     if (!config.psm_games_url.empty() &&
         config.psm_games_url != default_psm_games_url)
         len += pkgi_snprintf(

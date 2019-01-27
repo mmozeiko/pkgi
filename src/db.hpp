@@ -80,6 +80,7 @@ enum Mode
 {
     ModeGames,
     ModeDlcs,
+    ModeThemes,
     ModePsmGames,
     ModePsxGames,
     ModePspGames,
