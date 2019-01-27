@@ -101,6 +101,7 @@ Type mode_to_type(Mode mode)
         return PsxGame;
     case ModePspGames:
         return PspGame;
+    case ModeDemos:
     case ModeThemes:
         throw formatEx<std::runtime_error>(
                 "unsupported mode {}", static_cast<int>(mode));
@@ -114,6 +115,7 @@ BgdlType mode_to_bgdl_type(Mode mode)
     switch (mode)
     {
     case ModeGames:
+    case ModeDemos:
         return BgdlTypeGame;
     case ModeDlcs:
         return BgdlTypeDlc;
@@ -158,6 +160,8 @@ std::string const& pkgi_get_url_from_mode(Mode mode)
         return config.games_url;
     case ModeDlcs:
         return config.dlcs_url;
+    case ModeDemos:
+        return config.demos_url;
     case ModeThemes:
         return config.themes_url;
     case ModePsmGames:
@@ -438,6 +442,7 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
             switch (mode)
             {
             case ModeGames:
+            case ModeDemos:
                 if (pkgi_is_installed(titleid))
                     item->presence = PresenceInstalled;
                 else if (downloader.is_in_queue(Game, item->content))
@@ -631,7 +636,7 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                     item,
                     comppack_db_games->get(item->titleid),
                     comppack_db_updates->get(item->titleid));
-        else if (mode == ModeThemes)
+        else if (mode == ModeThemes || mode == ModeDemos)
         {
             pkgi_start_download(downloader, *item);
         }
@@ -653,6 +658,7 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         config_temp = config;
         int allow_refresh =
                 !config.games_url.empty() << 0 | !config.dlcs_url.empty() << 1 |
+                !config.demos_url.empty() << 6 |
                 !config.themes_url.empty() << 5 |
                 !config.psx_games_url.empty() << 2 |
                 !config.psp_games_url.empty() << 3 |
@@ -992,7 +998,8 @@ void pkgi_start_download(Downloader& downloader, const DbItem& item)
         if (item.zrif.empty() ||
             pkgi_zrif_decode(item.zrif.c_str(), rif, message, sizeof(message)))
         {
-            if (mode == ModeGames || mode == ModeDlcs || mode == ModeThemes)
+            if (mode == ModeGames || mode == ModeDlcs || mode == ModeDemos ||
+                mode == ModeThemes)
             {
                 pkgi_start_bgdl(
                         mode_to_bgdl_type(mode),
@@ -1256,6 +1263,9 @@ int main()
                         break;
                     case MenuResultShowDlcs:
                         pkgi_set_mode(ModeDlcs);
+                        break;
+                    case MenuResultShowDemos:
+                        pkgi_set_mode(ModeDemos);
                         break;
                     case MenuResultShowThemes:
                         pkgi_set_mode(ModeThemes);

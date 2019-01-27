@@ -13,6 +13,7 @@ typedef enum
     MenuResultRefresh,
     MenuResultShowGames,
     MenuResultShowDlcs,
+    MenuResultShowDemos,
     MenuResultShowThemes,
     MenuResultShowPsxGames,
     MenuResultShowPspGames,
