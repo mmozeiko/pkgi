@@ -76,6 +76,7 @@ target_link_libraries(pkgj
   CONAN_PKG::cereal
   CONAN_PKG::libzip
   CONAN_PKG::imgui
+  CONAN_PKG::taihen
   png
   z
   m
