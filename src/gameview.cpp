@@ -91,15 +91,15 @@ void GameView::render()
 
     ImGui::PopTextWrapPos();
 
-    if (!_downloader->is_in_queue(Game, _item->content))
+    if (_patch_info_fetcher.get_status() == PatchInfoFetcher::Status::Found)
     {
-        if (ImGui::Button("Install game###installgame"))
+        if (ImGui::Button("Install game and patch###installgame"))
             start_download_package();
     }
     else
     {
-        if (ImGui::Button("Cancel game installation###installgame"))
-            cancel_download_package();
+        if (ImGui::Button("Install game###installgame"))
+            start_download_package();
     }
 
     switch (_patch_info_fetcher.get_status())
@@ -108,7 +108,7 @@ void GameView::render()
         ImGui::Button("Checking for patch...###installpatch");
         break;
     case PatchInfoFetcher::Status::NoUpdate:
-        ImGui::Button("No update found###installpatch");
+        ImGui::Button("No patch found###installpatch");
         break;
     case PatchInfoFetcher::Status::Found:
     {
