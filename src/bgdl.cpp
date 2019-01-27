@@ -304,6 +304,12 @@ void pkgi_start_bgdl(
         const std::string& url,
         const std::vector<uint8_t>& rif)
 {
+    if (pkgi_list_dir_contents("ux0:bgdl/t").size() >= 32)
+        throw std::runtime_error(
+                "There are too many pending installation on your device, "
+                "install them from LiveArea's notifications or delete them to "
+                "be able to download more.");
+
     static auto example_class = new_scedownload();
 
     const std::string license_path = "ux0:bgdl/temp.dat";
