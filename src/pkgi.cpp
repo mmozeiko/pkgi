@@ -977,6 +977,11 @@ void pkgi_start_download(Downloader& downloader, const DbItem& item)
                     item.zrif.empty() ? std::vector<uint8_t>{}
                                       : std::vector<uint8_t>(
                                                 rif, rif + PKGI_PSM_RIF_SIZE));
+            pkgi_dialog_message(
+                    fmt::format(
+                            "Installation of {} queued in LiveArea", item.name)
+                            .c_str());
+        }
         else
             downloader.add(DownloadItem{
                     mode_to_type(mode),
