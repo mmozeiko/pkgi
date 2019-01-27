@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.47
+
+What's new:
+
+- pkgj now uses LiveArea's downloader
+- Added support for theme installation
+- Added support for demo installation
+
 ## 0.46
 
 What's new:
