@@ -264,6 +264,10 @@ void TitleDatabase::update(Mode mode, Http* http, const std::string& update_url)
     if (db_size == 0)
         throw std::runtime_error(
                 "list is empty... check for newer pkgj version");
+    if (db_size != db_total)
+        throw std::runtime_error(
+                "TSV file is truncated, check your Internet connection and "
+                "retry");
 
     pkgi_close(item_file);
     item_file = nullptr;
