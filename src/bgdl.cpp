@@ -270,18 +270,13 @@ void scedownload_start_with_rif(
         throw formatEx<std::runtime_error>(
                 "SceDownload second change_state result failed: {:#08x}",
                 static_cast<uint32_t>(result));
-}
+
+    delete[] reinterpret_cast<char*>(params.init.addr_DC0);
+    delete[] static_cast<char*>(params.addr_2E0);
 }
 
-void pkgi_start_bgdl(
-        const int type,
-        const std::string& title,
-        const std::string& url,
-        const std::vector<uint8_t>& rif)
+std::unique_ptr<scedownload_class> new_scedownload()
 {
-    const std::string license_path = "ux0:bgdl/temp.dat";
-    pkgi_save(license_path, rif.data(), rif.size());
-
     char lib_path[] = "vs0:sys/external/libshellsvc.suprx";
 
     sceKernelLoadStartModule(lib_path, 0, NULL, 0, NULL, NULL);
@@ -297,11 +292,25 @@ void pkgi_start_bgdl(
             0xB282B430,
             (uintptr_t*)&SceIpmi_B282B430);
 
-    scedownload_class example_class;
-    init_download_class(&example_class);
+    auto example_class = std::make_unique<scedownload_class>();
+    init_download_class(example_class.get());
+    return example_class;
+}
+}
+
+void pkgi_start_bgdl(
+        const int type,
+        const std::string& title,
+        const std::string& url,
+        const std::vector<uint8_t>& rif)
+{
+    static auto example_class = new_scedownload();
+
+    const std::string license_path = "ux0:bgdl/temp.dat";
+    pkgi_save(license_path, rif.data(), rif.size());
 
     scedownload_start_with_rif(
-            &example_class,
+            example_class.get(),
             title.c_str(),
             url.c_str(),
             license_path.c_str(),
