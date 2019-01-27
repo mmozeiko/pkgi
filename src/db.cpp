@@ -25,13 +25,13 @@ std::string pkgi_mode_to_string(Mode mode)
         return str
         RET(Games, "Vita games");
         RET(Dlcs, "Vita DLCs");
+        RET(Themes, "Vita themes");
         RET(PsmGames, "PSM games");
         RET(PsxGames, "PSX games");
         RET(PspGames, "PSP games");
 #undef RET
-    default:
-        return "unknown mode";
     }
+    return "unknown mode";
 }
 
 TitleDatabase::TitleDatabase(const std::string& dbPath) : _dbPath(dbPath)
