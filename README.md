@@ -9,12 +9,13 @@ This homebrew allows to download & unpack pkg file directly on Vita together wit
 * **easy** way to see list of available downloads, including searching, filter & sorting.
 * **standalone**, no PC required, everything happens directly on Vita.
 * **automatic** download and unpack, just choose an item, and it will be installed, including bubble in live area.
+* **background downloads**, now supports native bgdl function, so you can do whatever you want on the console while content is downloading.
 * **queues** multiple downloads.
 * **supports** the TSV file format.
-* **installs** updates, DLCs, PSM, PSP and PSX games.
+* **installs** Game Updates, DLCs, Demos, Themes, PSM, PSP and PSX games.
 
 Current limitations:
-* **no background downloads** - if application is closed or Vita is put in sleep then download will stop.
+* **no automatic PSM promotion** - PSM titles require database update or rebuild in order to be promoted.
 
 # Download
 
@@ -47,7 +48,7 @@ pkgj can be configured through `ux0:pkgj/config.txt` or `ur0:pkgj/config.txt`.
 
 # Q&A
 
-1. Where to remove interrupted/failed downloads to free up the space?
+1. Where to remove interrupted/failed downloads to free up the space(Only PSV Updates/PSX/PSP games)?
 
   In `ux0:pkgj` folder - each download will be in separate folder by its title id. Simply delete the folder & resume file.
 
