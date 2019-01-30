@@ -15,6 +15,7 @@ This homebrew allows to download & unpack pkg file directly on Vita together wit
 * **installs** Game Updates, DLCs, Demos, Themes, PSM, PSP and PSX games.
 
 Current limitations:
+* **no background downloads for PSX/PSP titles** - if application is closed or Vita is put in sleep then download will stop.
 * **no automatic PSM promotion** - PSM titles require database update or rebuild in order to be promoted.
 
 # Download
