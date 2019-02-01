@@ -23,6 +23,7 @@ enum ContentType
 {
     CONTENT_TYPE_PSX_GAME = 6,
     CONTENT_TYPE_PSP_GAME = 7,
+    CONTENT_TYPE_PSP_GAME_ALT = 14,
     CONTENT_TYPE_PSP_MINI_GAME = 15,
     CONTENT_TYPE_PSV_GAME = 21, // or update
     CONTENT_TYPE_PSV_DLC = 22,
@@ -595,6 +596,7 @@ int Download::download_head(const uint8_t* rif)
             content_type = get32be(head.data() + offset + 8);
             if (content_type != CONTENT_TYPE_PSX_GAME &&
                 content_type != CONTENT_TYPE_PSP_GAME &&
+                content_type != CONTENT_TYPE_PSP_GAME_ALT &&
                 content_type != CONTENT_TYPE_PSP_MINI_GAME &&
                 content_type != CONTENT_TYPE_PSM_GAME &&
                 content_type != CONTENT_TYPE_PSM_GAME_ALT &&
@@ -923,6 +925,7 @@ int Download::download_files(void)
 
         if (content_type == CONTENT_TYPE_PSX_GAME ||
             content_type == CONTENT_TYPE_PSP_GAME ||
+            content_type == CONTENT_TYPE_PSP_GAME_ALT ||
             content_type == CONTENT_TYPE_PSP_MINI_GAME)
         {
             const std::string prefix = "USRDIR/CONTENT";
@@ -982,6 +985,7 @@ int Download::download_files(void)
             throw DownloadError("pkg file is too small or corrupted");
 
         if (content_type == CONTENT_TYPE_PSP_GAME ||
+            content_type == CONTENT_TYPE_PSP_GAME_ALT ||
             content_type == CONTENT_TYPE_PSP_MINI_GAME)
         {
             if (save_as_iso && item_name == "USRDIR/CONTENT/EBOOT.PBP")
@@ -1188,6 +1192,7 @@ int Download::pkgi_download(
             return 0;
         if (content_type != CONTENT_TYPE_PSX_GAME &&
             content_type != CONTENT_TYPE_PSP_GAME &&
+            content_type != CONTENT_TYPE_PSP_GAME_ALT &&
             content_type != CONTENT_TYPE_PSP_MINI_GAME &&
             content_type != CONTENT_TYPE_PSM_GAME &&
             content_type != CONTENT_TYPE_PSM_GAME_ALT)
@@ -1217,7 +1222,9 @@ int Download::pkgi_download(
                     return 0;
             }
         }
-        if (content_type == CONTENT_TYPE_PSP_GAME)
+        if (content_type == CONTENT_TYPE_PSP_GAME ||
+            content_type == CONTENT_TYPE_PSP_GAME_ALT ||
+            content_type == CONTENT_TYPE_PSP_MINI_GAME)
         {
             // we can leave them, but they're useless and they conflict when
             // installing DLCs
