@@ -85,9 +85,10 @@ enum Mode
     ModePsmGames,
     ModePsxGames,
     ModePspGames,
+    ModePspDlcs,
 };
 
-static constexpr auto ModeCount = 7;
+static constexpr auto ModeCount = 8;
 
 std::string pkgi_mode_to_string(Mode mode);
 

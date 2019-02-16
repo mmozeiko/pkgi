@@ -30,6 +30,7 @@ std::string pkgi_mode_to_string(Mode mode)
         RET(PsmGames, "PSM games");
         RET(PsxGames, "PSX games");
         RET(PspGames, "PSP games");
+        RET(PspDlcs, "PSP DLCs");
 #undef RET
     }
     return "unknown mode";
@@ -55,6 +56,8 @@ static const char* pkgi_mode_to_file_name(Mode mode)
         return "titles_psmgames.tsv";
     case ModePspGames:
         return "titles_pspgames.tsv";
+    case ModePspDlcs:
+        return "titles_pspdlcs.tsv";
     case ModePsxGames:
         return "titles_psxgames.tsv";
     }
@@ -228,6 +231,23 @@ int pkgi_get_column_number(Mode mode, Column column)
             MAP_COL(LastModification, 6);
             MAP_COL(Size, 9);
             MAP_COL(Digest, 10);
+            MAP_COL(FwVersion, -1);
+            MAP_COL(NameOrg, -1);
+            MAP_COL(Zrif, -1);
+            MAP_COL(AppVersion, -1);
+        default:
+            throw std::runtime_error("invalid column");
+        }
+    case ModePspDlcs:
+        switch (column)
+        {
+            MAP_COL(Region, 1);
+            MAP_COL(Name, 2);
+            MAP_COL(Url, 3);
+            MAP_COL(Content, 4);
+            MAP_COL(LastModification, 5);
+            MAP_COL(Size, 8);
+            MAP_COL(Digest, 9);
             MAP_COL(FwVersion, -1);
             MAP_COL(NameOrg, -1);
             MAP_COL(Zrif, -1);

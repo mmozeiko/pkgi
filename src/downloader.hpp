@@ -17,6 +17,7 @@ enum Type
     PsmGame,
     PsxGame,
     PspGame,
+    PspDlc,
     CompPackBase,
     CompPackPatch,
 };

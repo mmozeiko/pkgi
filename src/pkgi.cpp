@@ -101,6 +101,8 @@ Type mode_to_type(Mode mode)
         return PsxGame;
     case ModePspGames:
         return PspGame;
+    case ModePspDlcs:
+        return PspDlc;
     case ModeDemos:
     case ModeThemes:
         throw formatEx<std::runtime_error>(
@@ -168,6 +170,8 @@ std::string const& pkgi_get_url_from_mode(Mode mode)
         return config.psm_games_url;
     case ModePspGames:
         return config.psp_games_url;
+    case ModePspDlcs:
+        return config.psp_dlcs_url;
     case ModePsxGames:
         return config.psx_games_url;
     }
@@ -454,6 +458,13 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                 else if (downloader.is_in_queue(PsmGame, item->content))
                     item->presence = PresenceInstalling;
                 break;
+            case ModePspDlcs:
+                if (pkgi_psp_is_installed(
+                            pkgi_get_mode_partition(), item->content.c_str()))
+                    item->presence = PresenceGamePresent;
+                else if (downloader.is_in_queue(PspGame, item->content))
+                    item->presence = PresenceInstalling;
+                break;
             case ModePspGames:
                 if (pkgi_psp_is_installed(
                             pkgi_get_mode_partition(), item->content.c_str()))
@@ -662,6 +673,7 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
                 !config.themes_url.empty() << 5 |
                 !config.psx_games_url.empty() << 2 |
                 !config.psp_games_url.empty() << 3 |
+                !config.psp_dlcs_url.empty() << 7 |
                 (!config.psm_games_url.empty() && config.psm_readme_disclaimer)
                         << 4;
         pkgi_menu_start(search_active, &config, allow_refresh);
@@ -1278,6 +1290,9 @@ int main()
                         break;
                     case MenuResultShowPspGames:
                         pkgi_set_mode(ModePspGames);
+                        break;
+                    case MenuResultShowPspDlcs:
+                        pkgi_set_mode(ModePspDlcs);
                         break;
                     }
                 }

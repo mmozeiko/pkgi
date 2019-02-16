@@ -21,6 +21,7 @@ typedef struct Config
     std::string psm_games_url;
     std::string psx_games_url;
     std::string psp_games_url;
+    std::string psp_dlcs_url;
 
     std::string comppack_url;
 } Config;

@@ -35,6 +35,11 @@ static constexpr char default_psp_games_url[] = {
         0x79, 0x73, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x63, 0x6f,
         0x6d, 0x2f, 0x74, 0x73, 0x76, 0x2f, 0x50, 0x53, 0x50, 0x5f, 0x47,
         0x41, 0x4d, 0x45, 0x53, 0x2e, 0x74, 0x73, 0x76, 0x00};
+static constexpr char default_psp_dlcs_url[] = {
+        0x68, 0x74, 0x74, 0x70, 0x3a, 0x2f, 0x2f, 0x6e, 0x6f, 0x70, 0x61,
+        0x79, 0x73, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x63, 0x6f,
+        0x6d, 0x2f, 0x74, 0x73, 0x76, 0x2f, 0x50, 0x53, 0x50, 0x5f, 0x44,
+        0x4c, 0x43, 0x53, 0x2e, 0x74, 0x73, 0x76, 0x00};
 static constexpr char default_psm_games_url[] = {
         0x68, 0x74, 0x74, 0x70, 0x3a, 0x2f, 0x2f, 0x6e, 0x6f, 0x70, 0x61,
         0x79, 0x73, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x63, 0x6f,
@@ -173,6 +178,7 @@ Config pkgi_load_config()
         config.psm_games_url = default_psm_games_url;
         config.psx_games_url = default_psx_games_url;
         config.psp_games_url = default_psp_games_url;
+        config.psp_dlcs_url = default_psp_dlcs_url;
         config.comppack_url = default_comppack_url;
         config.sort = SortByName;
         config.order = SortAscending;
@@ -232,6 +238,8 @@ Config pkgi_load_config()
                 config.psx_games_url = value;
             else if (pkgi_stricmp(key, "url_psp_games") == 0)
                 config.psp_games_url = value;
+            else if (pkgi_stricmp(key, "url_psp_dlcs") == 0)
+                config.psp_dlcs_url = value;
             else if (pkgi_stricmp(key, "url_comppack") == 0)
                 config.comppack_url = value;
             else if (pkgi_stricmp(key, "sort") == 0)
@@ -309,6 +317,7 @@ void pkgi_save_config(const Config& config)
     SAVE_CONF("url_psm_games", psm_games_url, default_psm_games_url)
     SAVE_CONF("url_psx_games", psx_games_url, default_psx_games_url)
     SAVE_CONF("url_psp_games", psp_games_url, default_psp_games_url)
+    SAVE_CONF("url_psp_dlcs", psp_dlcs_url, default_psp_dlcs_url)
     SAVE_CONF("url_comppack", comppack_url, default_comppack_url)
 #undef SAVE_CONF
     if (!config.install_psp_psx_location.empty())

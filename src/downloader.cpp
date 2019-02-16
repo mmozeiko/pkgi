@@ -26,6 +26,8 @@ std::string type_to_string(Type type)
         return "PSX game";
     case Type::PspGame:
         return "PSP game";
+    case Type::PspDlc:
+        return "PSP DLC";
     case Type::CompPackBase:
         return "Base Comp Pack";
     case Type::CompPackPatch:
@@ -181,6 +183,9 @@ void Downloader::do_download_package(const DownloadItem& item)
                     item.partition.c_str(), item.content.c_str());
         else
             pkgi_install_pspgame(item.partition.c_str(), item.content.c_str());
+        break;
+    case PspDlc:
+        pkgi_install_pspdlc(item.partition.c_str(), item.content.c_str());
         break;
     case PsmGame:
         pkgi_install_psmgame(item.content.c_str());
