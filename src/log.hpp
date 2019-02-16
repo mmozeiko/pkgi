@@ -2,6 +2,8 @@
 
 #include <fmt/format.h>
 
+#include <stdexcept>
+
 #ifdef PKGI_ENABLE_LOGGING
 #define LOG(msg, ...)                 \
     do                                \
@@ -24,7 +26,7 @@
     } while (0)
 #endif
 
-template <typename E, typename... Args>
+template <typename E = std::runtime_error, typename... Args>
 [[nodiscard]] E formatEx(Args&&... args) {
     return E(fmt::format(std::forward<Args>(args)...));
 }
