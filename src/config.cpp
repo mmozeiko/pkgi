@@ -295,59 +295,22 @@ void pkgi_save_config(const Config& config)
 {
     char data[4096];
     int len = 0;
-    if (!config.games_url.empty() && config.games_url != default_psv_games_url)
-        len += pkgi_snprintf(
-                data + len,
-                sizeof(data) - len,
-                "url_games %s\n",
-                config.games_url.c_str());
-    if (!config.dlcs_url.empty() && config.dlcs_url != default_psv_dlcs_url)
-        len += pkgi_snprintf(
-                data + len,
-                sizeof(data) - len,
-                "url_dlcs %s\n",
-                config.dlcs_url.c_str());
-    if (!config.demos_url.empty() && config.demos_url != default_psv_demos_url)
-        len += pkgi_snprintf(
-                data + len,
-                sizeof(data) - len,
-                "url_psv_demos %s\n",
-                config.demos_url.c_str());
-    if (!config.themes_url.empty() &&
-        config.themes_url != default_psv_themes_url)
-        len += pkgi_snprintf(
-                data + len,
-                sizeof(data) - len,
-                "url_psv_themes %s\n",
-                config.themes_url.c_str());
-    if (!config.psm_games_url.empty() &&
-        config.psm_games_url != default_psm_games_url)
-        len += pkgi_snprintf(
-                data + len,
-                sizeof(data) - len,
-                "url_psm_games %s\n",
-                config.psm_games_url.c_str());
-    if (!config.psx_games_url.empty() &&
-        config.psx_games_url != default_psx_games_url)
-        len += pkgi_snprintf(
-                data + len,
-                sizeof(data) - len,
-                "url_psx_games %s\n",
-                config.psx_games_url.c_str());
-    if (!config.psp_games_url.empty() &&
-        config.psp_games_url != default_psp_games_url)
-        len += pkgi_snprintf(
-                data + len,
-                sizeof(data) - len,
-                "url_psp_games %s\n",
-                config.psp_games_url.c_str());
-    if (!config.comppack_url.empty() &&
-        config.comppack_url != default_comppack_url)
-        len += pkgi_snprintf(
-                data + len,
-                sizeof(data) - len,
-                "url_comppack %s\n",
-                config.comppack_url.c_str());
+#define SAVE_CONF(configstr, configname, defaultname)                   \
+    if (!config.configname.empty() && config.configname != defaultname) \
+        len += pkgi_snprintf(                                           \
+                data + len,                                             \
+                sizeof(data) - len,                                     \
+                configstr " %s\n",                                      \
+                config.configname.c_str());
+    SAVE_CONF("url_games", games_url, default_psv_games_url)
+    SAVE_CONF("url_dlcs", dlcs_url, default_psv_dlcs_url)
+    SAVE_CONF("url_psv_demos", demos_url, default_psv_demos_url)
+    SAVE_CONF("url_psv_themes", themes_url, default_psv_themes_url)
+    SAVE_CONF("url_psm_games", psm_games_url, default_psm_games_url)
+    SAVE_CONF("url_psx_games", psx_games_url, default_psx_games_url)
+    SAVE_CONF("url_psp_games", psp_games_url, default_psp_games_url)
+    SAVE_CONF("url_comppack", comppack_url, default_comppack_url)
+#undef SAVE_CONF
     if (!config.install_psp_psx_location.empty())
         len += pkgi_snprintf(
                 data + len,
