@@ -14,6 +14,7 @@
 #include <algorithm>
 
 #define PKGI_ERRNO_EEXIST (int)(0x80010000 + SCE_NET_EEXIST)
+#define PKGI_ERRNO_ENOENT (int)(0x80010000 + SCE_NET_ENOENT)
 
 void pkgi_mkdirs(const char* ppath)
 {
@@ -59,6 +60,22 @@ int64_t pkgi_get_size(const char* path)
         return -1;
     }
     return stat.st_size;
+}
+
+InodeType pkgi_get_inode_type(const std::string& path)
+{
+    SceIoStat stat;
+    int err = sceIoGetstat(path.data(), &stat);
+    if (err == PKGI_ERRNO_ENOENT)
+        return InodeType::NotExist;
+    else if (err)
+        throw formatEx(
+                "failed to stat {}: {:#08x}", path, static_cast<uint32_t>(err));
+    if (stat.st_mode & SCE_S_IFDIR)
+        return InodeType::Directory;
+    if (stat.st_mode & SCE_S_IFREG)
+        return InodeType::File;
+    throw formatEx("unknown inode type {}", path);
 }
 
 int pkgi_file_exists(const std::string& path)

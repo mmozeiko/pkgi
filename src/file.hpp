@@ -10,7 +10,15 @@ void pkgi_rm(const char* file);
 void pkgi_delete_dir(const std::string& path);
 int64_t pkgi_get_size(const char* path);
 
+enum class InodeType
+{
+    NotExist,
+    Directory,
+    File,
+};
+
 int pkgi_file_exists(const std::string& path);
+InodeType pkgi_get_inode_type(const std::string& path);
 void pkgi_rename(const std::string& from, const std::string& to);
 
 // creates file (if it exists, truncates size to 0)
