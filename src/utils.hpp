@@ -172,3 +172,11 @@ static inline std::string pkgi_tohex(const std::vector<uint8_t>& data)
         out += fmt::format("{:02x}", d);
     return out;
 }
+
+inline bool ends_with(std::string const& value, std::string const& ending)
+{
+    if (ending.size() > value.size())
+        return false;
+    return value.compare(value.size() - ending.size(), ending.size(), ending) ==
+           0;
+}
