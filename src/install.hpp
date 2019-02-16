@@ -25,3 +25,4 @@ void pkgi_install_comppack(
 void pkgi_install_psmgame(const char* contentid);
 void pkgi_install_pspgame(const char* partition, const char* contentid);
 void pkgi_install_pspgame_as_iso(const char* partition, const char* contentid);
+void pkgi_install_pspdlc(const char* partition, const char* contentid);

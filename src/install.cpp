@@ -191,6 +191,35 @@ void pkgi_install_pspgame(const char* partition, const char* contentid)
                 "failed to rename: {:#08x}", static_cast<uint32_t>(res)));
 }
 
+static void pkgi_move_merge(const std::string& from, const std::string& to)
+{
+    LOGF("Merging {} and {}", from, to);
+    const auto fromType = pkgi_get_inode_type(from);
+    const auto toType = pkgi_get_inode_type(to);
+    if (toType == InodeType::NotExist ||
+        (fromType == InodeType::File && toType == InodeType::File))
+        pkgi_rename(from, to);
+    else if (fromType == InodeType::File && toType == InodeType::Directory)
+        throw formatEx("cannot replace directory {} by file {}", to, from);
+    else if (fromType == InodeType::Directory && toType == InodeType::File)
+        throw formatEx("cannot replace directory {} by file {}", from, to);
+    else if (fromType == InodeType::Directory && toType == InodeType::Directory)
+    {
+        const auto fromContents = pkgi_list_dir_contents(from);
+        for (const auto& fromContent : fromContents)
+            pkgi_move_merge(
+                    fmt::format("{}/{}", from, fromContent),
+                    fmt::format("{}/{}", to, fromContent));
+    }
+    else
+        throw formatEx(
+                "cannot merge {} ({}) and {} ({})",
+                from,
+                (int)fromType,
+                to,
+                (int)toType);
+}
+
 void pkgi_install_pspgame_as_iso(const char* partition, const char* contentid)
 {
     const auto path = fmt::format("{}pkgj/{}", partition, contentid);
@@ -221,5 +250,19 @@ void pkgi_install_pspgame_as_iso(const char* partition, const char* contentid)
         pkgi_rename(
                 pspkey.c_str(), fmt::format("{}/PSP-KEY.EDAT", dest).c_str());
 
+    pkgi_delete_dir(path);
+}
+
+void pkgi_install_pspdlc(const char* partition, const char* contentid)
+{
+    LOG("Installing a PSP DLC");
+    const auto path = fmt::format("{}pkgj/{}", partition, contentid);
+    const auto dest =
+            fmt::format("{}pspemu/PSP/GAME/{:.9}", partition, contentid + 7);
+
+    pkgi_mkdirs(fmt::format("{}pspemu/PSP/GAME", partition).c_str());
+
+    LOG("installing psp dlc at %s to %s", path.c_str(), dest.c_str());
+    pkgi_move_merge(path, dest);
     pkgi_delete_dir(path);
 }
