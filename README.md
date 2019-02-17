@@ -12,7 +12,7 @@ This homebrew allows to download & unpack pkg file directly on Vita together wit
 * **background downloads**, now supports native bgdl function, so you can do whatever you want on the console while content is downloading.
 * **queues** multiple downloads.
 * **supports** the TSV file format.
-* **installs** Game Updates, DLCs, Demos, Themes, PSM, PSP and PSX games.
+* **installs** Game Updates, DLCs, Demos, Themes, PSM, PSP games, PSP DLCs, and PSX games.
 
 Current limitations:
 * **no background downloads for PSX/PSP titles** - if application is closed or Vita is put in sleep then download will stop.
@@ -41,6 +41,7 @@ pkgj can be configured through `ux0:pkgj/config.txt` or `ur0:pkgj/config.txt`.
 | `url_dlcs <URL>` | The URL of the PS Vita DLC list |
 | `url_psm_games <URL>` | The URL of the PS Mobile list (see Q&A) |
 | `url_psp_games <URL>` | The URL of the PSP game list |
+| `url_psp_dlcs <URL>` | The URL of the PSP DLC list |
 | `url_psx_games <URL>` | The URL of the PSX game list |
 | `url_comppack <URL>` | The URL of the PS Vita compatibility pack list |
 | `install_psp_as_pbp 1` | Install PSP games as EBOOT.EBP files instead of ISO files (see Q&A) |

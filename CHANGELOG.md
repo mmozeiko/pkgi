@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.48
+
+What's new:
+
+- Added support for PSP DLC installation thanks to @lusid1's work
+
 ## 0.47
 
 What's new:
