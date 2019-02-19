@@ -61,10 +61,11 @@ bool pkgi_psp_is_installed(const char* psppartition, const char* content)
                    fmt::format(
                            "{}pspemu/ISO/{:.9}.iso", psppartition, content + 7)
                            .c_str()) ||
-           pkgi_file_exists(
-                   fmt::format(
-                           "{}pspemu/PSP/GAME/{:.9}", psppartition, content + 7)
-                           .c_str());
+           pkgi_file_exists(fmt::format(
+                                    "{}pspemu/PSP/GAME/{:.9}/EBOOT.PBP",
+                                    psppartition,
+                                    content + 7)
+                                    .c_str());
 }
 
 bool pkgi_psx_is_installed(const char* psppartition, const char* content)
