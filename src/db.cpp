@@ -583,6 +583,10 @@ GameRegion pkgi_get_region(const std::string& titleid)
     case ID('N', 'P', 'J', 'H'):
     case ID('N', 'P', 'J', 'Q'):
     case ID('N', 'P', 'P', 'A'):
+    case ID('N', 'P', 'X', 'P'):
+    case ID('U', 'C', 'J', 'S'):
+    case ID('U', 'L', 'J', 'S'):
+    case ID('U', 'L', 'J', 'M'):
         return RegionJPN;
 
     case ID('P', 'C', 'S', 'E'):
