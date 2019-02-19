@@ -142,9 +142,12 @@ int64_t VitaHttp::read(uint8_t* buffer, uint64_t size)
 
 void VitaHttp::abort()
 {
-    const auto err = sceHttpAbortRequest(_http->req);
-    if (err)
-        LOGF("abort() failed: {:#08x}", static_cast<uint32_t>(err));
+    if (_http)
+    {
+        const auto err = sceHttpAbortRequest(_http->req);
+        if (err)
+            LOGF("abort() failed: {:#08x}", static_cast<uint32_t>(err));
+    }
 }
 
 int64_t VitaHttp::get_length()

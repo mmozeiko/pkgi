@@ -63,5 +63,6 @@ void PatchInfoFetcher::do_request()
         LOGF("Failed to fetch patch info: {}", e.what());
         std::lock_guard<Mutex> lock(_mutex);
         _status = Status::Error;
+        _http = nullptr;
     }
 }
