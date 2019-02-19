@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.49
+
+What's new:
+
+- Added support for some PSP games thanks to @edgeyboy
+
+Bug fixes:
+
+- Fixed detection of PSP game installation
+- Fixed unknown region for some titles
+
 ## 0.48
 
 What's new:
