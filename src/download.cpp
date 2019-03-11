@@ -988,11 +988,16 @@ int Download::download_files(void)
             content_type == CONTENT_TYPE_PSP_GAME_ALT ||
             content_type == CONTENT_TYPE_PSP_MINI_GAME)
         {
-            if (save_as_iso && item_name == "USRDIR/CONTENT/EBOOT.PBP")
-                download_file_content_to_iso(item_size);
+            if (save_as_iso)
+            {
+                if (item_name == "USRDIR/CONTENT/EBOOT.PBP")
+                    download_file_content_to_iso(item_size);
+            }
             else if (
-                    ends_with(item_name, ".EDAT") ||
-                    ends_with(item_name, ".edat"))
+                    item_name != "USRDIR/CONTENT/DOCUMENT.DAT" &&
+                    item_name != "USRDIR/CONTENT/DOCINFO.EDAT" &&
+                    (ends_with(item_name, ".EDAT") ||
+                     ends_with(item_name, ".edat")))
                 download_file_content_to_edat(item_size);
             else
                 download_file_content(encrypted_size);
