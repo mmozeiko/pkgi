@@ -1229,6 +1229,8 @@ int Download::pkgi_download(
             // we can leave them, but they're useless and they conflict when
             // installing DLCs
             pkgi_delete_dir(fmt::format("{}/sce_sys", root));
+            // if we remove sce_sys, we can't resume the download anymore
+            pkgi_rm(fmt::format("{}.resume", root).c_str());
         }
         return 1;
     }
