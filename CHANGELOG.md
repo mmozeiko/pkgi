@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.50
+
+Bug fixes:
+
+- Fixed PSP manual extraction
+
 ## 0.49
 
 What's new:
