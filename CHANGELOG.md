@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.51
+
+Bug fixes:
+
+- Fixed downloading of some PSP games as ISO files
+
 ## 0.50
 
 Bug fixes:
