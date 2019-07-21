@@ -4,6 +4,11 @@
 
 This homebrew allows to download & unpack pkg file directly on Vita together with your [NoNpDrm][] fake license.
 
+# This project is unmaintained
+
+This project is now unmaintained, there are still a few bugs. I won't be working
+on it anymore, if anyone wants to fork it, they are encouraged to do so.
+
 # Features
 
 * **easy** way to see list of available downloads, including searching, filter & sorting.
