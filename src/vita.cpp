@@ -834,9 +834,7 @@ std::string pkgi_get_system_version()
     return version;
 }
 
-bool pkgi_is_refood_present(void)
-{
+bool pkgi_is_module_present(const char* module_name) {
     SceUInt64 unk;
-    return (_vshKernelSearchModuleByName("ref00d", &unk) >= 0)
-        || (_vshKernelSearchModuleByName("0syscall6", &unk) >= 0);
+    return _vshKernelSearchModuleByName(module_name, &unk) >= 0;
 }
