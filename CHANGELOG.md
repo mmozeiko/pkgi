@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.52
+
+Bug fixes:
+
+- Removed offline proxy gate in default comppack_url in favor of iTLS-Enso.
+- Refined HTTPS related error message to inform user to use iTLS-Enso to fix the issue.
+- (TODO) Refined diagnostics to detect either ref00d or 0syscall6 presence.
+
 ## 0.51
 
 Bug fixes:
