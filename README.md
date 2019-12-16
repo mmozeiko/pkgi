@@ -38,7 +38,7 @@ Press left or right button to move page up or down.
 
 # Configuration
 
-pkgj can be configured through `ux0:pkgj/config.txt` or `ur0:pkgj/config.txt`.
+pkgj is shipped with valid default URLs. If you wish to change some settings, they can be configured through `ux0:pkgj/config.txt` or `ur0:pkgj/config.txt`.
 
 | Option | Description |
 | --- | --- |
@@ -57,7 +57,8 @@ pkgj can be configured through `ux0:pkgj/config.txt` or `ur0:pkgj/config.txt`.
 
 1. Where to remove interrupted/failed downloads to free up the space(Only PSV Updates/PSX/PSP games)?
 
-  In `ux0:pkgj` folder - each download will be in separate folder by its title id. Simply delete the folder & resume file.
+  In case of PSV content: Simply remove queued download in your livearea. If that doesn't work for any reason, you can always delete folder within `ux0:bgdl/t/` - each download will be in separate folder by the order in which they were queued.
+ For everything else: `ux0:pkgj` folder - each download will be in separate folder by its title id. Simply delete the folder & resume file.
 
 2. Download speed is too slow!
 
@@ -114,6 +115,11 @@ pkgj can be configured through `ux0:pkgj/config.txt` or `ur0:pkgj/config.txt`.
 8. I'VE ADDED THE PSM URL TO THE CONFIG AND THERES NO MENU OPTION!!
 
   Please read this Q&A carefully
+  
+9. I'm getting HttpError: sceHttpSendRequest failed error when trying to refresh!
+
+  Vita consoles on firmwares 3.60-3.65 do not support TLS 1.2 that some website force on users.
+  In order to fix the issue simply install [iTLS-Enso](https://github.com/SKGleba/iTLS-Enso).
 
 # Building
 
