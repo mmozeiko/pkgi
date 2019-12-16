@@ -270,7 +270,7 @@ std::string GameView::get_min_system_version()
 void GameView::refresh()
 {
     LOGF("refreshing gameview");
-    _refood_present = pkgi_file_exists("ur0:tai/keys.bin");
+    _refood_present = pkgi_is_refood_present();
     _game_version = pkgi_get_game_version(_item->titleid);
     _comppack_versions = pkgi_get_comppack_versions(_item->titleid);
 }

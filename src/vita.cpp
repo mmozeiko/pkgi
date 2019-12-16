@@ -48,6 +48,7 @@ extern "C"
 extern "C"
 {
     int _newlib_heap_size_user = 128 * 1024 * 1024;
+    extern SceUID _vshKernelSearchModuleByName(const char *name, SceUInt64 *unk);
 }
 
 static vita2d_pgf* g_font;
@@ -831,4 +832,11 @@ std::string pkgi_get_system_version()
         return std::string(info.versionString);
     }();
     return version;
+}
+
+bool pkgi_is_refood_present(void)
+{
+    SceUInt64 unk;
+    return (_vshKernelSearchModuleByName("ref00d", &unk) >= 0)
+        || (_vshKernelSearchModuleByName("0syscall6", &unk) >= 0);
 }
