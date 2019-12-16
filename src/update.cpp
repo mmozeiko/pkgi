@@ -72,6 +72,13 @@ void update_thread()
 {
     try
     {
+        if (!pkgi_is_module_present("NoNpDrm"))
+            pkgi_dialog_error("NoNpDrm not found. Games cannot be installed or played.");
+
+        while (pkgi_dialog_is_open()) {
+            pkgi_sleep(20);
+        }
+
         LOGF("checking latest pkgi version at {}", PKGJ_UPDATE_URL_VERSION);
 
         VitaHttp http;
