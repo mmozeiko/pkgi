@@ -41,6 +41,7 @@ private:
     std::optional<CompPackDatabase::Item> _patch_comppack;
 
     bool _refood_present;
+    bool _0syscall6_present;
     std::string _game_version;
     CompPackVersion _comppack_versions;
 

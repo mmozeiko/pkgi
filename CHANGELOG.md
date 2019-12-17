@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.52
+
+What's new:
+
+- Added NoNpDrm check on boot. If NoNpDrm plugin is not properly loaded, user will be notified, which should limit user caused issues.
+- Reworked diagnostics to properly detect reF00D plugin and added support for 0syscall6.
+- Refined HTTPS related error message to inform user to use iTLS-Enso to fix HTTPS related issues.
+
+Bug fixes:
+
+- Removed (offline) proxy gate in default comppack_url in favor of iTLS-Enso.
+- Fixed 'compitibility' typos.
+
 ## 0.51
 
 Bug fixes:

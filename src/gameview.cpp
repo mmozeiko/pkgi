@@ -194,14 +194,17 @@ void GameView::printDiagnostic()
     {
         if (!_comppack_versions.present)
         {
-            if (!_refood_present)
-                printError(
-                        "- Your firmware is too old to play this game, you "
-                        "must install the compatibility pack or reF00D");
-            else
+            if (_refood_present)
                 ImGui::Text(
                         "- This game will work thanks to reF00D, install the "
                         "compatibility packs for faster game boot times");
+            else if (_0syscall6_present)
+                ImGui::Text(
+                        "- This game will work thanks to 0syscall6");
+            else
+                printError(
+                        "- Your firmware is too old to play this game, you "
+                        "must install the compatibility pack, reF00D, or 0syscall6");
         }
     }
     else
@@ -224,9 +227,9 @@ void GameView::printDiagnostic()
 
     if (_comppack_versions.base.empty() && !_comppack_versions.patch.empty())
         printError(
-                "- You have installed an update compitibility pack without "
+                "- You have installed an update compatibility pack without "
                 "installing the base pack, install the base pack first and "
-                "reinstall the update compitibility pack.");
+                "reinstall the update compatibility pack.");
 
     std::string comppack_version;
     if (!_comppack_versions.patch.empty())
@@ -239,7 +242,7 @@ void GameView::printDiagnostic()
         printError(
                 "- The version of the game does not match the installed "
                 "compatibility pack. If you have updated the game, also "
-                "install the update compitibility pack.");
+                "install the update compatibility pack.");
 
     if (_item->presence == PresenceInstalled &&
         comppack_version > _game_version)
@@ -270,7 +273,8 @@ std::string GameView::get_min_system_version()
 void GameView::refresh()
 {
     LOGF("refreshing gameview");
-    _refood_present = pkgi_file_exists("ur0:tai/keys.bin");
+    _refood_present = pkgi_is_module_present("ref00d");
+    _0syscall6_present = pkgi_is_module_present("0syscall6");
     _game_version = pkgi_get_game_version(_item->titleid);
     _comppack_versions = pkgi_get_comppack_versions(_item->titleid);
 }
