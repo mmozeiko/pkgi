@@ -4,10 +4,9 @@
 
 This homebrew allows to download & unpack pkg file directly on Vita together with your [NoNpDrm][] fake license.
 
-# This project is unmaintained
+# This project is now a community project
 
-This project is now unmaintained, there are still a few bugs. I won't be working
-on it anymore, if anyone wants to fork it, they are encouraged to do so.
+This project is now a community project, meaning there is no main dev to work on it, any pull requests are welcome.
 
 # Features
 
@@ -57,8 +56,8 @@ pkgj is shipped with valid default URLs. If you wish to change some settings, th
 
 1. Where to remove interrupted/failed downloads to free up the space(Only PSV Updates/PSX/PSP games)?
 
-  In case of PSV content: Simply remove queued download in your livearea. If that doesn't work for any reason, you can always delete folder within `ux0:bgdl/t/` - each download will be in separate folder by the order in which they were queued.
- For everything else: `ux0:pkgj` folder - each download will be in separate folder by its title id. Simply delete the folder & resume file.
+  In case of PSV content: Simply remove queued download in your livearea. If that doesn't work for any reason, you can always delete folder within `ux0:bgdl/t/` - each download will be in separate folder by the order in which they were queued.  
+ For everything else: `ux0:pkgj` folder - each download will be in separate folder by its title id. Simply delete the folder & resume file.  
 
 2. Download speed is too slow!
 
@@ -118,7 +117,7 @@ pkgj is shipped with valid default URLs. If you wish to change some settings, th
   
 9. I'm getting HttpError: sceHttpSendRequest failed error when trying to refresh!
 
-  Vita consoles on firmwares 3.60-3.65 do not support TLS 1.2 that some website force on users.
+  Vita consoles on firmwares 3.60-3.65 do not support TLS 1.2 that some website force on users.  
   In order to fix the issue simply install [iTLS-Enso](https://github.com/SKGleba/iTLS-Enso).
 
 # Building
