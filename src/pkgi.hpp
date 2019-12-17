@@ -118,3 +118,5 @@ int pkgi_text_height(const char* text);
 class Downloader;
 struct DbItem;
 void pkgi_start_download(Downloader& downloader, const DbItem& item);
+
+bool pkgi_is_module_present(const char* module_name);
