@@ -10,6 +10,7 @@ This project is now a community project, meaning there is no main dev to work on
 
 # Features
 
+* **works on** all PS Vita models, including PSTV.
 * **easy** way to see list of available downloads, including searching, filter & sorting.
 * **standalone**, no PC required, everything happens directly on Vita.
 * **automatic** download and unpack, just choose an item, and it will be installed, including bubble in live area.
@@ -119,6 +120,10 @@ pkgj is shipped with valid default URLs. If you wish to change some settings, th
 
   Vita consoles on firmwares 3.60-3.65 do not support TLS 1.2 that some website force on users.  
   In order to fix the issue simply install [iTLS-Enso](https://github.com/SKGleba/iTLS-Enso).
+  
+10. Can't download Updates or DLCs on my PSTV
+
+  This error is caused by AntiBlackList. To fix it, completely undo then uninstall AntiBlackList and install [DolcePolice](https://forum.devchroma.nl/index.php/topic,58.0.html) plugin instead. 
 
 # Building
 
