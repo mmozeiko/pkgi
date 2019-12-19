@@ -123,7 +123,7 @@ pkgj is shipped with valid default URLs. If you wish to change some settings, th
   
 10. Can't download Updates or DLCs on my PSTV
 
-  This error is caused by AntiBlackList. To fix it, completely undo then uninstall AntiBlackList and install [DolcePolice](https://forum.devchroma.nl/index.php/topic,58.0.html) plugin instead. 
+  This error is caused by AntiBlackList. To fix it, completely undo then uninstall AntiBlackList and install [DolcePolce](https://forum.devchroma.nl/index.php/topic,58.0.html) plugin instead. 
 
 # Building
 
