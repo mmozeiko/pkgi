@@ -43,7 +43,9 @@ pkgj is shipped with valid default URLs. If you wish to change some settings, th
 | Option | Description |
 | --- | --- |
 | `url_games <URL>` | The URL of the PS Vita game list |
+| `url_psv_demos <URL>` | The URL of the PS Vita demo list |
 | `url_dlcs <URL>` | The URL of the PS Vita DLC list |
+| `url_psv_themes <URL>` | The URL of the PS Vita Theme list |
 | `url_psm_games <URL>` | The URL of the PS Mobile list (see Q&A) |
 | `url_psp_games <URL>` | The URL of the PSP game list |
 | `url_psp_dlcs <URL>` | The URL of the PSP DLC list |
