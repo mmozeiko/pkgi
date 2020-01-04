@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 // values compatible with psp2/ctrl.h header
+#define PKGI_BUTTON_INTERCEPTED 0x00010000
 #define PKGI_BUTTON_SELECT 0x00000001
 #define PKGI_BUTTON_START 0x00000008
 

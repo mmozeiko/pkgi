@@ -536,14 +536,17 @@ int pkgi_update(pkgi_input* input)
     uint32_t previous = input->down;
 
     input->down = pad.buttons;
-    if (pad.lx < ANALOG_CENTER - ANALOG_THRESHOLD)
-        input->down |= PKGI_BUTTON_LEFT;
-    if (pad.lx > ANALOG_CENTER + ANALOG_THRESHOLD)
-        input->down |= PKGI_BUTTON_RIGHT;
-    if (pad.ly < ANALOG_CENTER - ANALOG_THRESHOLD)
-        input->down |= PKGI_BUTTON_UP;
-    if (pad.ly > ANALOG_CENTER + ANALOG_THRESHOLD)
-        input->down |= PKGI_BUTTON_DOWN;
+    if (!(input->down & PKGI_BUTTON_INTERCEPTED))
+    {
+        if (pad.lx < ANALOG_CENTER - ANALOG_THRESHOLD)
+            input->down |= PKGI_BUTTON_LEFT;
+        if (pad.lx > ANALOG_CENTER + ANALOG_THRESHOLD)
+            input->down |= PKGI_BUTTON_RIGHT;
+        if (pad.ly < ANALOG_CENTER - ANALOG_THRESHOLD)
+            input->down |= PKGI_BUTTON_UP;
+        if (pad.ly > ANALOG_CENTER + ANALOG_THRESHOLD)
+            input->down |= PKGI_BUTTON_DOWN;
+    }
 
     input->pressed = input->down & ~previous;
     input->active = input->pressed;
