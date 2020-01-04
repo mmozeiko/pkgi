@@ -7,7 +7,7 @@ git:
 
 os: linux
 language: cpp
-dist: trusty
+dist: bionic
 sudo: false
 
 addons:
