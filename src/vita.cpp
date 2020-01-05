@@ -149,6 +149,36 @@ int pkgi_memequ(const void* a, const void* b, uint32_t size)
     return memcmp(a, b, size) == 0;
 }
 
+int pkgi_is_korean_char(const unsigned int c) {
+    unsigned short ch = c;
+    // hangul compatibility jamo block
+    if (0x3130 <= ch && ch <= 0x318f) {
+        return 1;
+    }
+    // hangul syllables block
+    if (0xac00 <= ch && ch <= 0xd7af) {
+        return 1;
+    }
+    // korean won sign
+    if (ch == 0xffe6) {
+        return 1;
+    }
+    return 0;
+}
+
+int pkgi_is_latin_char(const unsigned int c) {
+    unsigned short ch = c;
+    // basic latin block + latin-1 supplement block
+    if (ch <= 0x00ff) {
+        return 1;
+    }
+    // cyrillic block
+    if (0x0400 <= ch && ch <= 0x04ff) {
+        return 1;
+    }
+    return 0;
+}
+
 static void pkgi_start_debug_log(void)
 {
 #ifdef PKGI_ENABLE_LOGGING
@@ -520,7 +550,12 @@ void pkgi_start(void)
     }
 
     vita2d_init_advanced(4 * 1024 * 1024);
-    g_font = vita2d_load_default_pgf();
+    vita2d_system_pgf_config pgf_confs[3] = {
+        {SCE_FONT_LANGUAGE_KOREAN,  pkgi_is_korean_char},
+        {SCE_FONT_LANGUAGE_LATIN,   pkgi_is_latin_char},
+        {SCE_FONT_LANGUAGE_DEFAULT, NULL},
+    };
+    g_font = vita2d_load_system_pgf(3, pgf_confs);
 
     g_time = sceKernelGetProcessTimeWide();
 
