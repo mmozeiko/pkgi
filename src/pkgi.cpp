@@ -250,9 +250,11 @@ void pkgi_refresh_thread(void)
 
 const char* pkgi_get_mode_partition()
 {
-    return mode == ModePspGames || mode == ModePsxGames
-                   ? config.install_psp_psx_location.c_str()
-                   : "ux0:";
+    return mode == ModePspGames
+        || mode == ModePspDlcs
+        || mode == ModePsxGames
+    ? config.install_psp_psx_location.c_str()
+    : "ux0:";
 }
 
 void pkgi_refresh_installed_packages()
