@@ -1,6 +1,6 @@
-Hardware: [PSV or PSTV]  
-Version of firmware: [insert version]  
-Version of PKGj: [insert version]  
+Hardware: [PSV or PSTV]
+Version of firmware: [insert version]
+Version of PKGj: [insert version]
 
 ## Steps to reproduce the issue
 
