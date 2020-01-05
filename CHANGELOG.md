@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.53
+
+What's new:
+
+- Compat pack lists are no longer downloaded if either reF00D or 0syscall6 are installed. This prevents a TLS 1.2 error for users of reF00D or 0syscall6 on firmware <=3.65 without ITLS-enso.
+- Support Korean font.
+
+Bug fixes:
+
+- Stop input processing when IME dialog (search dialog) is active.
+- Show all menu items when search is active.
+- Install PSP DLC to configured partition.
+
 ## 0.52
 
 What's new:
