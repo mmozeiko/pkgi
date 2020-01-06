@@ -167,9 +167,6 @@ void GameView::render()
         }
     }
 
-    if (ImGui::Button("Close"))
-        _closed = true;
-
     ImGui::End();
 }
 

@@ -32,6 +32,11 @@ public:
         return _closed;
     }
 
+    void close()
+    {
+        _closed = true;
+    }
+
 private:
     const Config* _config;
     Downloader* _downloader;

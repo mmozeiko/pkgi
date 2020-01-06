@@ -895,7 +895,13 @@ void pkgi_do_tail(Downloader& downloader)
     int right = rightw + PKGI_MAIN_TEXT_PADDING;
 
     std::string bottom_text;
-    if (pkgi_menu_is_open())
+    if (gameview || pkgi_dialog_is_open()) {
+        bottom_text = fmt::format(
+                "{} select {} close",
+                pkgi_get_ok_str(),
+                pkgi_get_cancel_str());
+    }
+    else if (pkgi_menu_is_open())
     {
         bottom_text = fmt::format(
                 "{} select  " PKGI_UTF8_T " close  {} cancel",
@@ -1156,6 +1162,9 @@ int main()
                     io.NavInputs[ImGuiNavInput_DpadRight] = 1.0f;
                 if (input.pressed & pkgi_ok_button())
                     io.NavInputs[ImGuiNavInput_Activate] = 1.0f;
+                if (input.pressed & pkgi_cancel_button() && gameview)
+                    gameview->close();
+
                 input.active = 0;
                 input.pressed = 0;
             }
