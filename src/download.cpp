@@ -945,12 +945,22 @@ int Download::download_files(void)
                 continue;
             }
         }
-        else if (
-                content_type == CONTENT_TYPE_PSM_GAME ||
-                content_type == CONTENT_TYPE_PSM_GAME_ALT)
+        else if (content_type == CONTENT_TYPE_PSM_GAME
+                || content_type == CONTENT_TYPE_PSM_GAME_ALT)
         {
-            // skip "content/" prefix
-            item_path = fmt::format("{}/RO/{}", root, item_name.c_str() + 8);
+            // skip "contents/" prefix
+            std::string pre = "contents/";
+            if (item_name.compare(0, pre.size(), pre) == 0)
+                item_name = item_name.substr(pre.size());
+            else
+                item_name = item_name.substr(pre.size() - 1);
+
+            // put runtime dir outside of RO
+            pre = "runtime";
+            if (item_name.compare(0, pre.size(), pre) == 0)
+                item_path = fmt::format("{}/{}", root, item_name);
+            else
+                item_path = fmt::format("{}/RO/{}", root, item_name);
         }
         else
             item_path = fmt::format("{}/{}", root, item_name);
