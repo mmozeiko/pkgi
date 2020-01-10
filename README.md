@@ -58,42 +58,36 @@ pkgj is shipped with valid default URLs. If you wish to change some settings, th
 
 1. Where to remove interrupted/failed downloads to free up the space(Only PSV Updates/PSX/PSP games)?
 
-  In case of PSV content: Simply remove queued download in your livearea. If that doesn't work for any reason, you can always delete folder within `ux0:bgdl/t/` - each download will be in separate folder by the order in which they were queued.
- For everything else: `ux0:pkgj` folder - each download will be in separate folder by its title id. Simply delete the folder & resume file.
+    In case of PSV content: Simply remove queued download in your livearea. If that doesn't work for any reason, you can always delete folder within `ux0:bgdl/t/` - each download will be in separate folder by the order in which they were queued.
+
+    For everything else: `ux0:pkgj` folder - each download will be in separate folder by its title id. Simply delete the folder & resume file.
 
 2. Download speed is too slow!
 
-  Typically you should see speeds ~1-2 MB/s. This is normal for Vita hardware. Of course it also depends on WiFi router you
-  have and WiFi signal strength. But sometimes speed will drop down to only few hundred KB/s. This happens for pkg files that
-  contains many small files or many folders. Creating a new file or a new folder takes extra time which slows down the download.
+    Typically you should see speeds ~1-2 MB/s. This is normal for Vita hardware. Of course it also depends on WiFi router you have and WiFi signal strength. But sometimes speed will drop down to only few hundred KB/s. This happens for pkg files that contains many small files or many folders. Creating a new file or a new folder takes extra time which slows down the download.
 
 3. I want to install PSP games as EBOOT file.
 
-  Installing PSP games as EBOOT files is possible. It allows to install games
-  faster and make them take less space. However, you will need to install
-  the [npdrm_free][] plugin to make them work.
+    Installing PSP games as EBOOT files is possible. It allows to install games faster and make them take less space. However, you will need to install the [npdrm_free][] plugin to make them work.
 
-  To install PSP games as EBOOT files, just add the following line to your
-  config:
-
+    To install PSP games as EBOOT files, just add the following line to your config:
+    ```
     install_psp_as_pbp 1
+    ```
 
-  If you want to switch back to the other mode, simply remove the line. Writing
-  0 is not sufficient.
+    If you want to switch back to the other mode, simply remove the line. Writing 0 is not sufficient.
 
 4. I can't play PSP games, it says "The game could not be started (80010087)".
 
-  You need to install the [npdrm_free][] plugin in VSH, or install games as ISO.
+    You need to install the [npdrm_free][] plugin in VSH, or install games as ISO.
 
 5. The PSM Games don't work.
 
-  If you followed the instructions for [NoPsmDrm][], you can try to activate
-  your account for psm games using
-  [NoPsmDrm Fixer](https://github.com/Yoti/psv_npdrmfix).
+    If you followed the instructions for [NoPsmDrm][], you can try to activate your account for psm games using [NoPsmDrm Fixer](https://github.com/Yoti/psv_npdrmfix).
 
 6. Can't download Updates or DLCs on my PSTV
 
-  This error is caused by AntiBlackList. To fix it, completely undo then uninstall AntiBlackList and install [DolcePolce](https://forum.devchroma.nl/index.php/topic,58.0.html) plugin instead.
+    This error is caused by AntiBlackList. To fix it, completely undo then uninstall AntiBlackList and install [DolcePolce](https://forum.devchroma.nl/index.php/topic,58.0.html) plugin instead.
 
 # Building
 
