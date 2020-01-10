@@ -115,8 +115,7 @@ void VitaHttp::start(const std::string& url, uint64_t offset)
                 "sceHttpSendRequest failed: {:#08x}\n{}",
                 static_cast<uint32_t>(err),
                 static_cast<uint32_t>(err) == 0x80431075
-                        ? "HTTPS TLS 1.2 URLs are not supported on your "
-                          "device.\nPlease install iTLS-Enso to fix this error."
+                        ? "SSL error"
                         : "");
 
     http->used = 1;

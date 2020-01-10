@@ -91,12 +91,7 @@ pkgj is shipped with valid default URLs. If you wish to change some settings, th
   your account for psm games using
   [NoPsmDrm Fixer](https://github.com/Yoti/psv_npdrmfix).
 
-6. I'm getting HttpError: sceHttpSendRequest failed error when trying to refresh!
-
-  Vita consoles on firmwares 3.60-3.65 do not support TLS 1.2 that some website force on users.
-  In order to fix the issue simply install [iTLS-Enso](https://github.com/SKGleba/iTLS-Enso).
-
-7. Can't download Updates or DLCs on my PSTV
+6. Can't download Updates or DLCs on my PSTV
 
   This error is caused by AntiBlackList. To fix it, completely undo then uninstall AntiBlackList and install [DolcePolce](https://forum.devchroma.nl/index.php/topic,58.0.html) plugin instead.
 
