@@ -4,10 +4,6 @@
 
 This homebrew allows to download & unpack pkg file directly on Vita together with your [NoNpDrm][] or [NoPsmDrm][] fake license.
 
-# This project is now a community project
-
-This project is now a community project, meaning there is no main dev to work on it, any pull requests are welcome.
-
 # Features
 
 * **works on** all PS Vita models, including PSTV.
