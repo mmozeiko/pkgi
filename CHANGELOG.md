@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.54
+
+**Errors when refreshing:** Delete your config and completely uninstall [ITLS-enso](https://github.com/SKGleba/iTLS-Enso#faq).
+
+**PSTV users:** Completely uninstall AntiBlacklist/Whitelist and install [DolcePolce](https://github.com/KuromeSan/DolcePolce).
+
+What's new:
+
+- PSM games can now be installed automatically without rebuilding database. (credits: SilicaAndPina)
+- PSM runtime can be installed directly in PKGJ without Henkaku DNS.
+- Cover images for games. (credits: dragonflylee)
+- Exit from gameview with the cancel button. (credits: dragonflylee)
+- Compat packs default URL changed and always enabled.
+- Enhanced HTTP error messages.
+
+Bug fixes:
+
+- Fix PSM Unity extraction path.
+- Fix all TLS errors with default URLs.
+
 ## 0.53
 
 What's new:
