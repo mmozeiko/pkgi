@@ -111,12 +111,36 @@ void VitaHttp::start(const std::string& url, uint64_t offset)
     }
 
     if ((err = sceHttpSendRequest(req, NULL, 0)) < 0)
-        throw formatEx<HttpError>(
-                "sceHttpSendRequest failed: {:#08x}\n{}",
-                static_cast<uint32_t>(err),
-                static_cast<uint32_t>(err) == 0x80431075
-                        ? "SSL error"
-                        : "");
+    {
+        std::string err_msg;
+        switch (err)
+        {
+            case 0x80431063:
+                err_msg = "Network error";
+                break;
+            case 0x80431068:
+                err_msg = "Network timeout";
+                break;
+            case 0x80431082:
+                err_msg = "Request blocked";
+                break;
+            case 0x80436007:
+                err_msg = "Host not found";
+                break;
+            case 0x80431084:
+                err_msg = "Proxy error";
+                break;
+            case 0x80431075:
+                err_msg = "SSL error";
+                break;
+            default:
+                err_msg = "";
+        }
+
+        throw formatEx<HttpError>("sceHttpSendRequest failed: {:#08x}\n{}",
+            static_cast<uint32_t>(err),
+            err_msg);
+    }
 
     http->used = 1;
     http->tmpl = tmpl;
