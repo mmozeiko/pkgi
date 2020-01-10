@@ -164,16 +164,32 @@ CompPackVersion pkgi_get_comppack_versions(const std::string& titleid)
 
 void pkgi_install_psmgame(const char* contentid)
 {
-    pkgi_mkdirs("ux0:psm");
+    const std::string base = "ux0:temp/game";
+    pkgi_mkdirs(base.c_str());
     const auto titleid = fmt::format("{:.9}", contentid + 7);
     const auto src = fmt::format("ux0:pkgj/{}", contentid);
-    const auto dest = fmt::format("ux0:psm/{}", titleid);
+    const auto dest = fmt::format("{}/{}", base, titleid);
 
-    LOGF("installing psm game from {} to {}", src, dest);
-    const auto res = sceIoRename(src.c_str(), dest.c_str());
+    LOGF("moving psm game from {} to {}", src, dest);
+    int res = sceIoRename(src.c_str(), dest.c_str());
     if (res < 0)
         throw formatEx<std::runtime_error>(
                 "failed to rename: {:#08x}", static_cast<uint32_t>(res));
+
+    LOGF("promoting psm game at {}", dest);
+    ScePromoterUtilityImportParams promote_args;
+    memset(&promote_args, 0, sizeof(promote_args));
+
+    strncpy(promote_args.path, base.c_str(), sizeof(promote_args.path)-1);
+    strncpy(promote_args.titleid, titleid.c_str(), sizeof(promote_args.titleid)-1);
+    promote_args.type = SCE_PKG_TYPE_PSM;
+    promote_args.attribute = 0x1;
+
+    res = scePromoterUtilityPromoteImport(&promote_args);
+    if (res < 0)
+        throw formatEx<std::runtime_error>(
+            "scePromoterUtilityPromoteImport failed: {:#08x}",
+            static_cast<uint32_t>(res));
 }
 
 void pkgi_install_pspgame(const char* partition, const char* contentid)
