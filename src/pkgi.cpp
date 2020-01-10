@@ -202,10 +202,7 @@ void pkgi_refresh_thread(void)
             auto const http = std::make_unique<VitaHttp>();
             db->update(mode, http.get(), url);
         }
-
-        bool is_food_patched = pkgi_is_module_present("ref00d") | pkgi_is_module_present("0syscall6");
-
-        if (!config.comppack_url.empty() && !is_food_patched)
+        if (!config.comppack_url.empty())
         {
             {
                 std::lock_guard<Mutex> lock(refresh_mutex);

@@ -71,7 +71,7 @@ void GameView::render()
     {
         ImGui::Text("Installed compatibility pack: unknown version");
     }
-    else if (!_refood_present && !_0syscall6_present)
+    else
     {
         ImGui::Text(fmt::format(
                             "Installed base compatibility pack: {}",
