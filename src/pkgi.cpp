@@ -673,14 +673,14 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
 
         config_temp = config;
         int allow_refresh =
-                !config.games_url.empty() << 0 | !config.dlcs_url.empty() << 1 |
+                !config.games_url.empty() << 0 |
+                !config.dlcs_url.empty() << 1 |
                 !config.demos_url.empty() << 6 |
                 !config.themes_url.empty() << 5 |
                 !config.psx_games_url.empty() << 2 |
                 !config.psp_games_url.empty() << 3 |
                 !config.psp_dlcs_url.empty() << 7 |
-                (!config.psm_games_url.empty() && config.psm_readme_disclaimer)
-                        << 4;
+                !config.psm_games_url.empty() << 4;
         pkgi_menu_start(search_active, &config, allow_refresh);
     }
 }

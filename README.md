@@ -2,7 +2,7 @@
 
 [![Travis CI Build Status][img_travis]][pkgj_travis] [![Downloads][img_downloads]][pkgj_downloads] [![Release][img_latest]][pkgj_latest] [![License][img_license]][pkgj_license]
 
-This homebrew allows to download & unpack pkg file directly on Vita together with your [NoNpDrm][] fake license.
+This homebrew allows to download & unpack pkg file directly on Vita together with your [NoNpDrm][] or [NoPsmDrm][] fake license.
 
 # This project is now a community project
 
@@ -20,8 +20,7 @@ This project is now a community project, meaning there is no main dev to work on
 * **installs** Game Updates, DLCs, Demos, Themes, PSM, PSP games, PSP DLCs, and PSX games.
 
 Current limitations:
-* **no background downloads for PSX/PSP titles** - if application is closed or Vita is put in sleep then download will stop.
-* **no automatic PSM promotion** - PSM titles require database update or rebuild in order to be promoted.
+* **no background downloads for PSX/PSP/PSM titles** - if application is closed or Vita is put in sleep then download will stop.
 
 # Download
 
@@ -86,44 +85,18 @@ pkgj is shipped with valid default URLs. If you wish to change some settings, th
 
   You need to install the [npdrm_free][] plugin in VSH, or install games as ISO.
 
-5. I want to play PSM Games!
-
-  You need to install the [NoPsmDrm][] plugin and follow the setup instructions.
-  After installing a PSM game, you'll need to refresh your livearea. You can do
-  that by booting into the recovery menu and selecting `Rebuild Database`.
-  This will also reset your livearea layout. To enable psm downloads and
-  prove that you read this readme, add "psm_disclaimer_yes_i_read_the_readme"
-  and the name of the needed plugin to the config file.
-
-6. The PSM Games don't work.
+5. The PSM Games don't work.
 
   If you followed the instructions for [NoPsmDrm][], you can try to activate
   your account for psm games using
   [NoPsmDrm Fixer](https://github.com/Yoti/psv_npdrmfix).
 
-7. I don't want to loose my livearea layout/This is too much effort, there
-   should be a better way.
-
-  Warning: This method may **format** your memory card, if you're not careful.
-
-  Well yes, there is. You can trigger a database refresh by removing `ux0:id.dat`
-  and rebooting.
-
-  But: When using a Slim or a PS TV and an official memory card, you'll be asked if you
-  "want to transfer the data on the internal memory card to the removable memory card".
-  If you press "Yes" here, your memory card will be **formatted**. Just press
-  "No". In case you're using a Fat, SD2VITA or USB storage, there's no risk.
-
-8. I'VE ADDED THE PSM URL TO THE CONFIG AND THERES NO MENU OPTION!!
-
-  Please read this Q&A carefully
-
-9. I'm getting HttpError: sceHttpSendRequest failed error when trying to refresh!
+6. I'm getting HttpError: sceHttpSendRequest failed error when trying to refresh!
 
   Vita consoles on firmwares 3.60-3.65 do not support TLS 1.2 that some website force on users.
   In order to fix the issue simply install [iTLS-Enso](https://github.com/SKGleba/iTLS-Enso).
 
-10. Can't download Updates or DLCs on my PSTV
+7. Can't download Updates or DLCs on my PSTV
 
   This error is caused by AntiBlackList. To fix it, completely undo then uninstall AntiBlackList and install [DolcePolce](https://forum.devchroma.nl/index.php/topic,58.0.html) plugin instead.
 

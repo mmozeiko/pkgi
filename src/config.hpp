@@ -12,7 +12,6 @@ typedef struct Config
     int no_version_check;
     int install_psp_as_pbp;
     std::string install_psp_psx_location;
-    bool psm_readme_disclaimer;
 
     std::string games_url;
     std::string dlcs_url;
