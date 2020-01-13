@@ -78,7 +78,7 @@ InodeType pkgi_get_inode_type(const std::string& path)
     throw formatEx("unknown inode type {}", path);
 }
 
-int pkgi_file_exists(const std::string& path)
+bool pkgi_file_exists(const std::string& path)
 {
     SceIoStat stat;
     return sceIoGetstat(path.c_str(), &stat) >= 0;

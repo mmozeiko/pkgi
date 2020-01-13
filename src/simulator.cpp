@@ -95,7 +95,7 @@ int pkgi_is_unsafe_mode(void)
     return 1;
 }
 
-int pkgi_file_exists(const std::string& path)
+bool pkgi_file_exists(const std::string& path)
 {
     struct stat s;
     return stat(path.c_str(), &s) == 0;

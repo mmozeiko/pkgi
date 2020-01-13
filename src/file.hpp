@@ -17,7 +17,7 @@ enum class InodeType
     File,
 };
 
-int pkgi_file_exists(const std::string& path);
+bool pkgi_file_exists(const std::string& path);
 InodeType pkgi_get_inode_type(const std::string& path);
 void pkgi_rename(const std::string& from, const std::string& to);
 
