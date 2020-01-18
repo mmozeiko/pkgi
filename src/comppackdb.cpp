@@ -106,7 +106,7 @@ void CompPackDatabase::parse_entries(std::string& db_data)
 
     BOOST_SCOPE_EXIT_ALL(&)
     {
-        if (!std::uncaught_exception())
+        if (std::uncaught_exceptions() == 0)
             SQLITE_EXEC(_sqliteDb, "END", "can't end transaction");
         else
         {

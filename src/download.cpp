@@ -1156,6 +1156,9 @@ int Download::adjust_psm_files(void)
 
     LOG("creating RW/System/content_id");
     char content_data[0x30];
+    if (strlen(download_content) >= sizeof(content_data))
+        return 0;
+
     strncpy(content_data, download_content, sizeof(content_data));
     const auto content_id = fmt::format("{}/RW/System/content_id", root);
     pkgi_save(content_id.c_str(), content_data, 0x30);
