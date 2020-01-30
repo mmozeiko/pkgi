@@ -2,6 +2,7 @@
 
 #include "db.hpp"
 #include "pkgi.hpp"
+#include "file.hpp"
 #include "vitahttp.hpp"
 
 #include <fmt/format.h>
@@ -55,10 +56,12 @@ std::string get_image_url(DbItem* item)
 
 ImageFetcher::ImageFetcher(DbItem* item)
     : _mutex("image_fetcher_mutex")
+    , _path(fmt::format("ux0:pkgj/cover/{}.jpg", item->titleid))
     , _url(get_image_url(item))
     , _texture(nullptr)
     , _thread("image_fetcher", [this] { do_request(); })
 {
+    pkgi_mkdirs("ux0:pkgj/cover");
 }
 
 ImageFetcher::~ImageFetcher()
@@ -72,12 +75,6 @@ ImageFetcher::~ImageFetcher()
     if (http)
         http->abort();
     _thread.join();
-}
-
-ImageFetcher::Status ImageFetcher::get_status()
-{
-    std::lock_guard<Mutex> lock(_mutex);
-    return _status;
 }
 
 vita2d_texture* ImageFetcher::get_texture()
@@ -111,6 +108,12 @@ void ImageFetcher::do_request()
 {
     try
     {
+        if (pkgi_file_exists(_path.c_str()))
+        {
+            std::lock_guard<Mutex> lock(_mutex);
+            _texture = vita2d_load_JPEG_file(_path.c_str());
+            if (_texture) return;
+        }
         {
             std::lock_guard<Mutex> lock(_mutex);
             if (_abort)
@@ -120,23 +123,21 @@ void ImageFetcher::do_request()
         const auto image = download_data(_http.get(), _url);
         {
             std::lock_guard<Mutex> lock(_mutex);
-            if (!image || image->empty())
-                _status = Status::NoUpdate;
-            else if (
-                    (_texture = vita2d_load_JPEG_buffer(
-                             image->data(), image->size())) != nullptr)
-                _status = Status::Found;
-            else
-                _status = Status::Error;
-
+            if (image && !image->empty())
+                _texture = vita2d_load_JPEG_buffer(image->data(), image->size());
             _http = nullptr;
+        }
+        if (image && !image->empty())
+        {
+            auto image_file = pkgi_create(_path.c_str());
+            pkgi_write(image_file, image->data(), image->size());
+            pkgi_close(image_file);
         }
     }
     catch (const std::exception& e)
     {
         LOGF("Failed to fetch patch info: {}", e.what());
         std::lock_guard<Mutex> lock(_mutex);
-        _status = Status::Error;
         _http = nullptr;
     }
 }

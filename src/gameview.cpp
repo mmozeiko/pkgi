@@ -51,8 +51,8 @@ void GameView::render()
                     ImGuiWindowFlags_NoSavedSettings |
                     ImGuiWindowFlags_NoInputs);
 
-    ImGui::PushTextWrapPos(_image_fetcher.get_status() == ImageFetcher::Status::Found ?
-        GameViewWidth - 300.f : 0.f);
+    ImGui::PushTextWrapPos(_image_fetcher.get_texture() == nullptr ?
+        0.f : GameViewWidth - 300.f);
     ImGui::Text(fmt::format("Firmware version: {}", pkgi_get_system_version())
                         .c_str());
     ImGui::Text(
@@ -169,10 +169,10 @@ void GameView::render()
         }
     }
 
+    auto tex = _image_fetcher.get_texture();
     // Display game image
-    if (_image_fetcher.get_status() == ImageFetcher::Status::Found)
+    if (tex != nullptr)
     {
-        auto tex = _image_fetcher.get_texture();
         int tex_w = vita2d_texture_get_width(tex);
         int tex_h = vita2d_texture_get_height(tex);
         float tex_x = ImGui::GetWindowContentRegionMax().x - tex_w;
