@@ -81,7 +81,6 @@ target_link_libraries(pkgj
   CONAN_PKG::cereal
   CONAN_PKG::libzip
   CONAN_PKG::imgui
-  CONAN_PKG::taihen
   png
   jpeg
   z
@@ -102,6 +101,7 @@ target_link_libraries(pkgj
   SceSsl_stub
   SceSysmodule_stub
   SceVshBridge_stub
+  taihen_stub
 )
 
 set_target_properties(pkgj PROPERTIES

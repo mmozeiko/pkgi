@@ -9,7 +9,6 @@ class PkgjConan(ConanFile):
         if self.settings.os == "PSVita":
             self.requires("vitasqlite/0.0.1@blastrock/pkgj")
             self.requires("imgui/1.62@blastrock/pkgj")
-            self.requires("taihen/0.11@blastrock/pkgj")
         else:
             self.requires("sqlite3/3.21.0@bincrafters/stable")
             self.requires("boost_algorithm/1.66.0@bincrafters/stable")
