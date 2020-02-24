@@ -8,14 +8,13 @@ git:
 os: linux
 language: cpp
 dist: bionic
-sudo: false
 
 addons:
   apt:
-    sources:
-      - ubuntu-toolchain-r-test
     packages:
       - python3-pip
+      - python3-setuptools
+      - python3-virtualenv
       - ninja-build
       - g++-7
 
