@@ -184,6 +184,8 @@ void pkgi_refresh_thread(void)
     LOG("starting update");
     try
     {
+        auto mode_count = ModeCount + (config.comppack_url.empty() ? 0 : 2);
+
         ScopeProcessLock lock;
         for (int i = 0; i < ModeCount; ++i)
         {
@@ -197,7 +199,7 @@ void pkgi_refresh_thread(void)
                         "Refreshing {} [{}/{}]",
                         pkgi_mode_to_string(mode),
                         i + 1,
-                        ModeCount + 2);
+                        mode_count);
             }
             auto const http = std::make_unique<VitaHttp>();
             db->update(mode, http.get(), url);
@@ -208,8 +210,8 @@ void pkgi_refresh_thread(void)
                 std::lock_guard<Mutex> lock(refresh_mutex);
                 current_action = fmt::format(
                         "Refreshing games compatibility packs [{}/{}]",
-                        ModeCount + 2 - 1,
-                        ModeCount + 2);
+                        mode_count - 1,
+                        mode_count);
             }
             {
                 auto const http = std::make_unique<VitaHttp>();
@@ -220,8 +222,8 @@ void pkgi_refresh_thread(void)
                 std::lock_guard<Mutex> lock(refresh_mutex);
                 current_action = fmt::format(
                         "Refreshing updates compatibility packs [{}/{}]",
-                        ModeCount + 2,
-                        ModeCount + 2);
+                        mode_count,
+                        mode_count);
             }
             {
                 auto const http = std::make_unique<VitaHttp>();
