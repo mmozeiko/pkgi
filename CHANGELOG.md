@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.55
+
+What's new:
+
+- Compatibility packs are disabled by default.
+- Remove legacy patch installation method.
+- Support PSP Neogeo games. (credits: Yoti)
+
 ## 0.54
 
 **Errors when refreshing:** Delete your config and completely uninstall [ITLS-enso](https://github.com/SKGleba/iTLS-Enso#faq).
