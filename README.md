@@ -85,6 +85,10 @@ pkgj is shipped with valid default URLs. If you wish to change some settings, th
 
     This error is caused by AntiBlackList. To fix it, completely undo then uninstall AntiBlackList and install [DolcePolce](https://forum.devchroma.nl/index.php/topic,58.0.html) plugin instead.
 
+7. How do I use compatibility packs?
+
+    Compatiblity packs are deprecated and disabled by default. It is recommended to use [reF00D](https://github.com/dots-tb/reF00D) or [0syscall6](https://github.com/SKGleba/0syscall6). If you would still like to use compatiblity packs, set `url_comppack` to `https://gitlab.com/nopaystation_repos/nps_compati_packs/raw/master/` in the config file. Firmwares 3.65 or lower require a workaround for TLS. The compatibility pack list has not been updated since Oct 2019.
+
 # Building
 
 pkgj uses conan and cmake to build. The setup is a bit tedious, so the

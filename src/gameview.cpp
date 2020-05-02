@@ -176,22 +176,20 @@ void GameView::printDiagnostic()
         {
             if (_refood_present)
                 ImGui::Text(
-                        "- This game will work thanks to reF00D, install the "
-                        "compatibility packs for faster game boot times");
+                        "- This game will work thanks to reF00D");
             else if (_0syscall6_present)
                 ImGui::Text(
                         "- This game will work thanks to 0syscall6");
             else
                 printError(
                         "- Your firmware is too old to play this game, you "
-                        "must install the compatibility pack, reF00D, or 0syscall6");
+                        "must install reF00D or 0syscall6");
         }
     }
     else
     {
         ImGui::Text(
-                "- Your firmware is recent enough, no need for compatibility "
-                "packs");
+                "- Your firmware is recent enough");
     }
 
     if (_comppack_versions.present && _comppack_versions.base.empty() &&
