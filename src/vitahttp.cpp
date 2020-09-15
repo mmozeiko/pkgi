@@ -113,7 +113,7 @@ void VitaHttp::start(const std::string& url, uint64_t offset)
     if ((err = sceHttpSendRequest(req, NULL, 0)) < 0)
     {
         std::string err_msg;
-        switch (err)
+        switch (static_cast<uint32_t>(err))
         {
             case 0x80431063:
                 err_msg = "Network error";
