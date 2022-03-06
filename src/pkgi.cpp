@@ -234,7 +234,7 @@ void pkgi_refresh_thread(void)
         }
         first_item = 0;
         selected_item = 0;
-        configure_db(db.get(), NULL, &config);
+        configure_db(db.get(), search_active ? search_text : NULL, &config);
     }
     catch (const std::exception& e)
     {
@@ -964,7 +964,7 @@ void pkgi_reload()
 {
     try
     {
-        configure_db(db.get(), NULL, &config);
+        configure_db(db.get(), search_active ? search_text : NULL, &config);
     }
     catch (const std::exception& e)
     {
