@@ -21,6 +21,7 @@ static constexpr auto ISO_SECTOR_SIZE = 2048;
 
 enum ContentType
 {
+    CONTENT_TYPE_PS3_GAME = 1, // also PS1 for PS3
     CONTENT_TYPE_PSX_GAME = 6,
     CONTENT_TYPE_PSP_GAME = 7,
     CONTENT_TYPE_PSP_GAME_ALT = 14,
@@ -33,6 +34,7 @@ enum ContentType
 };
 
 // clang-format off
+static const uint8_t pkg_ps3_key[] = { 0x2e, 0x7b, 0x71, 0xd7, 0xc9, 0xc9, 0xa1, 0x4e, 0xa3, 0x22, 0x1f, 0x18, 0x88, 0x28, 0xb8, 0xf8 };
 static const uint8_t pkg_psp_key[] = { 0x07, 0xf2, 0xc6, 0x82, 0x90, 0xb5, 0x0d, 0x2c, 0x33, 0x81, 0x8d, 0x70, 0x9b, 0x60, 0xe6, 0x2b };
 static const uint8_t pkg_vita_2[] = { 0xe3, 0x1a, 0x70, 0xc9, 0xce, 0x1d, 0xd7, 0x2b, 0xf3, 0xc0, 0x62, 0x29, 0x63, 0xf2, 0xec, 0xcb };
 static const uint8_t pkg_vita_3[] = { 0x42, 0x3a, 0xca, 0x3a, 0x2b, 0xd5, 0x64, 0x9f, 0x96, 0x86, 0xab, 0xad, 0x6f, 0xd8, 0x80, 0x1f };
@@ -513,8 +515,8 @@ int Download::download_head(const uint8_t* rif)
     head.resize(PKG_HEADER_SIZE + PKG_HEADER_EXT_SIZE);
     download_data(head.data(), head.size(), 0, 1);
 
-    if (get32be(head.data()) != 0x7f504b47 ||
-        get32be(head.data() + PKG_HEADER_SIZE) != 0x7F657874)
+    if (get32be(head.data()) != 0x7F504B47 ||
+        get32be(head.data() + PKG_HEADER_SIZE) != 0x7F657874) // this check breaks pkg type1
     {
         throw DownloadError("wrong pkg header");
     }
@@ -1002,7 +1004,7 @@ int Download::download_files(void)
             content_type == CONTENT_TYPE_PSP_MINI_GAME ||
             content_type == CONTENT_TYPE_PSP_NEOGEO_GAME)
         {
-            if (save_as_iso)
+            if (save_as_iso) // also check for DLC, it will break as ISO
             {
                 if (item_name == "USRDIR/CONTENT/EBOOT.PBP")
                     download_file_content_to_iso(item_size);
