@@ -58,9 +58,9 @@ static const MenuEntry menu_entries[] = {
 
         {MenuShow, "Show games", 1},
         {MenuShow, "Show DLCs", 2},
-        {MenuShow, "Show Demos", 64},
-        {MenuShow, "Show Themes", 32},
-        {MenuShow, "Show PSX games", 4},
+        {MenuShow, "Show demos", 64},
+        {MenuShow, "Show themes", 32},
+        {MenuShow, "Show PS1 games", 4},
         {MenuShow, "Show PSP games", 8},
         {MenuShow, "Show PSP DLCs", 128},
         {MenuShow, "Show PSM games", 16},
