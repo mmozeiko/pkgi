@@ -539,6 +539,9 @@ void pkgi_do_main(Downloader& downloader, pkgi_input* input)
         case RegionJPN:
             region = "JPN";
             break;
+        case RegionINT:
+            region = "INT";
+            break;
         case RegionUSA:
             region = "USA";
             break;
