@@ -98,7 +98,7 @@ void update_thread()
 
             pkgi_dialog_question(
                     fmt::format(
-                            "New pkgj version {} is available!\nDo you want to "
+                            "New PKGj version {} is available!\nDo you want to "
                             "download it?",
                             last_version)
                             .c_str(),

@@ -1072,7 +1072,7 @@ int main()
     {
         if (!pkgi_is_unsafe_mode())
             throw std::runtime_error(
-                    "pkgj requires unsafe mode to be enabled in Henkaku "
+                    "PKGj requires unsafe mode to be enabled in HENkaku "
                     "settings!");
 
         Downloader downloader;
