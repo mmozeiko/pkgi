@@ -547,66 +547,56 @@ GameRegion pkgi_get_region(const std::string& titleid)
             ((uint8_t)(d) << 24) | ((uint8_t)(c) << 16) | \
             ((uint8_t)(b) << 8) | ((uint8_t)(a)))
 
-    switch (first)
-    {
-    case ID('V', 'C', 'A', 'S'):
-    case ID('P', 'C', 'S', 'H'):
-    case ID('V', 'L', 'A', 'S'):
-    case ID('P', 'C', 'S', 'D'):
-    case ID('N', 'P', 'H', 'I'):
-    case ID('N', 'P', 'H', 'J'):
-    case ID('N', 'P', 'H', 'G'):
-    case ID('N', 'P', 'H', 'H'):
-    case ID('N', 'P', 'H', 'Z'):
-    case ID('N', 'P', 'Q', 'A'):
-    case ID('U', 'C', 'A', 'S'):
+// https://github.com/Yoti/pkg2zip/blob/master/pkg2zip.c#L241
+    switch (first) {
+        case ID('N', 'P', 'H', 'I'): // PS1
+        case ID('N', 'P', 'H', 'J'): // PS1
+        case ID('P', 'C', 'S', 'D'): // PSV
+        case ID('P', 'C', 'S', 'H'): // PSV
+        case ID('U', 'C', 'A', 'S'): // PSP
+        case ID('U', 'L', 'A', 'S'): // PSP
+        case ID('U', 'C', 'K', 'S'): // PSP KOR
+        case ID('U', 'L', 'K', 'S'): // PSP KOR
+        case ID('N', 'P', 'Q', 'A'): // PSM
         return RegionASA;
 
-    case ID('P', 'C', 'S', 'F'):
-    case ID('P', 'C', 'S', 'B'):
-    case ID('N', 'P', 'E', 'E'):
-    case ID('N', 'P', 'E', 'F'):
-    case ID('N', 'P', 'E', 'G'):
-    case ID('N', 'P', 'E', 'H'):
-    case ID('N', 'P', 'E', 'X'):
-    case ID('N', 'P', 'E', 'Z'):
-    case ID('N', 'P', 'O', 'A'):
-    case ID('U', 'C', 'E', 'S'):
-    case ID('U', 'L', 'E', 'S'):
+        case ID('N', 'P', 'E', 'E'): // PS1
+        case ID('N', 'P', 'E', 'F'): // PS1
+        case ID('P', 'C', 'S', 'B'): // PSV
+        case ID('P', 'C', 'S', 'F'): // PSV
+        case ID('U', 'C', 'E', 'S'): // PSP
+        case ID('U', 'L', 'E', 'S'): // PSP
+        case ID('N', 'P', 'O', 'A'): // PSM
         return RegionEUR;
 
-    case ID('P', 'C', 'S', 'C'):
-    case ID('V', 'C', 'J', 'S'):
-    case ID('P', 'C', 'S', 'G'):
-    case ID('V', 'L', 'J', 'S'):
-    case ID('V', 'L', 'J', 'M'):
-    case ID('N', 'P', 'J', 'I'):
-    case ID('N', 'P', 'J', 'J'):
-    case ID('N', 'P', 'J', 'G'):
-    case ID('N', 'P', 'J', 'H'):
-    case ID('N', 'P', 'J', 'Q'):
-    case ID('N', 'P', 'P', 'A'):
-    case ID('N', 'P', 'X', 'P'):
-    case ID('U', 'C', 'J', 'S'):
-    case ID('U', 'L', 'J', 'S'):
-    case ID('U', 'L', 'J', 'M'):
+        case ID('N', 'P', 'J', 'I'): // PS1
+        case ID('N', 'P', 'J', 'J'): // PS1
+        case ID('P', 'C', 'S', 'C'): // PSV
+        case ID('P', 'C', 'S', 'G'): // PSV
+        case ID('U', 'C', 'J', 'M'): // PSP
+        case ID('U', 'L', 'J', 'M'): // PSP
+        case ID('U', 'C', 'J', 'S'): // PSP
+        case ID('U', 'L', 'J', 'S'): // PSP
+        case ID('U', 'C', 'J', 'B'): // PSP
+        case ID('N', 'P', 'P', 'A'): // PSM
         return RegionJPN;
 
-    case ID('P', 'C', 'S', 'E'):
-    case ID('P', 'C', 'S', 'A'):
-    case ID('N', 'P', 'U', 'F'):
-    case ID('N', 'P', 'U', 'I'):
-    case ID('N', 'P', 'U', 'J'):
-    case ID('N', 'P', 'U', 'G'):
-    case ID('N', 'P', 'U', 'H'):
-    case ID('N', 'P', 'U', 'X'):
-    case ID('N', 'P', 'U', 'Z'):
-    case ID('N', 'P', 'N', 'A'):
-    case ID('U', 'C', 'U', 'S'):
-    case ID('U', 'L', 'U', 'S'):
+        case ID('N', 'P', 'U', 'F'): // PS1
+        case ID('N', 'P', 'U', 'I'): // PS1
+        case ID('N', 'P', 'U', 'J'): // PS1
+        case ID('P', 'C', 'S', 'A'): // PSV
+        case ID('P', 'C', 'S', 'E'): // PSV
+        case ID('U', 'C', 'U', 'S'): // PSP
+        case ID('U', 'L', 'U', 'S'): // PSP
+        case ID('N', 'P', 'U', 'H'): // PSP
+        case ID('N', 'P', 'N', 'A'): // PSM
         return RegionUSA;
 
-    default:
+        case ID('P', 'C', 'S', 'I'): // PSV
+        case ID('N', 'P', 'X', 'S'): // PSV
+        return RegionINT;
+
+        default:
         return RegionUnknown;
     }
 #undef ID
