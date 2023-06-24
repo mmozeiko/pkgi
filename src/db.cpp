@@ -23,12 +23,12 @@ std::string pkgi_mode_to_string(Mode mode)
 #define RET(mode, str) \
     case Mode##mode:   \
         return str
-        RET(Games, "Vita games");
-        RET(Dlcs, "Vita DLCs");
-        RET(Demos, "Vita demos");
-        RET(Themes, "Vita themes");
+        RET(Games, "PSV games");
+        RET(Dlcs, "PSV DLCs");
+        RET(Demos, "PSV demos");
+        RET(Themes, "PSV themes");
         RET(PsmGames, "PSM games");
-        RET(PsxGames, "PSX games");
+        RET(PsxGames, "PS1 games");
         RET(PspGames, "PSP games");
         RET(PspDlcs, "PSP DLCs");
 #undef RET
@@ -535,8 +535,7 @@ DbItem* TitleDatabase::get_by_content(const char* content)
     return NULL;
 }
 
-GameRegion pkgi_get_region(const std::string& titleid)
-{
+GameRegion pkgi_get_region(const std::string& titleid) {
     if (titleid.size() < 4)
         return RegionUnknown;
 
@@ -555,6 +554,9 @@ GameRegion pkgi_get_region(const std::string& titleid)
         case ID('P', 'C', 'S', 'H'): // PSV
         case ID('U', 'C', 'A', 'S'): // PSP
         case ID('U', 'L', 'A', 'S'): // PSP
+        case ID('N', 'P', 'H', 'G'): // PSP
+        case ID('N', 'P', 'H', 'H'): // PSP
+        case ID('N', 'P', 'H', 'Z'): // PSP
         case ID('U', 'C', 'K', 'S'): // PSP KOR
         case ID('U', 'L', 'K', 'S'): // PSP KOR
         case ID('N', 'P', 'Q', 'A'): // PSM
@@ -566,6 +568,10 @@ GameRegion pkgi_get_region(const std::string& titleid)
         case ID('P', 'C', 'S', 'F'): // PSV
         case ID('U', 'C', 'E', 'S'): // PSP
         case ID('U', 'L', 'E', 'S'): // PSP
+        case ID('N', 'P', 'E', 'G'): // PSP
+        case ID('N', 'P', 'E', 'H'): // PSP
+        case ID('N', 'P', 'E', 'X'): // PSP
+        case ID('N', 'P', 'E', 'Z'): // PSP
         case ID('N', 'P', 'O', 'A'): // PSM
         return RegionEUR;
 
@@ -578,6 +584,9 @@ GameRegion pkgi_get_region(const std::string& titleid)
         case ID('U', 'C', 'J', 'S'): // PSP
         case ID('U', 'L', 'J', 'S'): // PSP
         case ID('U', 'C', 'J', 'B'): // PSP
+        case ID('N', 'P', 'J', 'G'): // PSP
+        case ID('N', 'P', 'J', 'H'): // PSP
+        case ID('N', 'P', 'J', 'J'): // PSP
         case ID('N', 'P', 'P', 'A'): // PSM
         return RegionJPN;
 
@@ -588,7 +597,11 @@ GameRegion pkgi_get_region(const std::string& titleid)
         case ID('P', 'C', 'S', 'E'): // PSV
         case ID('U', 'C', 'U', 'S'): // PSP
         case ID('U', 'L', 'U', 'S'): // PSP
+        case ID('N', 'P', 'U', 'F'): // PSP
+        case ID('N', 'P', 'U', 'G'): // PSP
         case ID('N', 'P', 'U', 'H'): // PSP
+        case ID('N', 'P', 'U', 'X'): // PSP
+        case ID('N', 'P', 'U', 'Z'): // PSP
         case ID('N', 'P', 'N', 'A'): // PSM
         return RegionUSA;
 
