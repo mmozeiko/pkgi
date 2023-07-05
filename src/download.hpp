@@ -13,6 +13,7 @@
 #include "sha256.hpp"
 
 #define PKGI_RIF_SIZE 512
+#define PKGI_PSP_RIF_SIZE 0x98
 #define PKGI_PSM_RIF_SIZE 1024
 #define PKG_HEADER_SIZE 192
 #define PKG_HEADER_EXT_SIZE 64

@@ -28,6 +28,8 @@ extern "C"
 #include <memory>
 #include <set>
 
+#include <psp2common/npdrm.h>
+
 #include <cstddef>
 #include <cstring>
 
@@ -116,6 +118,10 @@ BgdlType mode_to_bgdl_type(Mode mode)
 {
     switch (mode)
     {
+	case ModePspGames:
+	case ModePsxGames:
+	case ModePspDlcs:
+		return BgdlTypePsp;
     case ModeGames:
     case ModeDemos:
         return BgdlTypeGame;
@@ -1003,6 +1009,16 @@ void pkgi_open_db()
 }
 }
 
+void pkgi_create_psp_rif(std::string contentid, uint8_t* rif) {
+	SceNpDrmLicense license;
+    memset(&license, 0x00, sizeof(SceNpDrmLicense));
+    license.account_id = 0x0123456789ABCDEFLL;
+    memset(license.ecdsa_signature, 0xFF, 0x28);
+    strncpy(license.content_id, contentid.c_str(), 0x30);
+	
+	memcpy(rif, &license, PKGI_PSP_RIF_SIZE);
+}
+
 void pkgi_start_download(Downloader& downloader, const DbItem& item)
 {
     LOGF("[{}] {} - starting to install", item.content, item.name);
@@ -1012,21 +1028,20 @@ void pkgi_start_download(Downloader& downloader, const DbItem& item)
         // Just use the maximum size to be safe
         uint8_t rif[PKGI_PSM_RIF_SIZE];
         char message[256];
-        if (item.zrif.empty() ||
-            pkgi_zrif_decode(item.zrif.c_str(), rif, message, sizeof(message)))
+        if (item.zrif.empty() || pkgi_zrif_decode(item.zrif.c_str(), rif, message, sizeof(message)))
         {
             if (mode == ModeGames || mode == ModeDlcs || mode == ModeDemos ||
-                mode == ModeThemes)
+                mode == ModeThemes || ( MODE_IS_PSPEMU(mode) && pkgi_is_module_present("NoPspEmuDrm_kern") ))
             {
+				
+				if(MODE_IS_PSPEMU(mode)) pkgi_create_psp_rif(item.content, rif);
+				
                 pkgi_start_bgdl(
                         mode_to_bgdl_type(mode),
                         item.partition,
                         item.name,
                         item.url,
-                        item.zrif.empty()
-                                ? std::vector<uint8_t>{}
-                                : std::vector<uint8_t>(
-                                          rif, rif + PKGI_PSM_RIF_SIZE));
+                        std::vector<uint8_t>(rif, rif + PKGI_PSM_RIF_SIZE));
                 pkgi_dialog_message(
                         fmt::format(
                                 "Installation of {} queued in LiveArea",

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <fmt/format.h>
-
+#include <vector>
 #include <array>
 #include <cstdint>
 

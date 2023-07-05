@@ -213,7 +213,7 @@ std::vector<uint8_t> pkgi_load(const std::string& path)
 void pkgi_save(const std::string& path, const void* data, uint32_t size)
 {
     SceUID fd = sceIoOpen(
-            path.c_str(), SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+            path.c_str(), SCE_O_WRONLY | SCE_O_CREAT /* | SCE_O_TRUNC */, 0777);
     if (fd < 0)
         throw std::runtime_error(fmt::format(
                 "sceIoOpen({}) failed:\n{:#08x}",

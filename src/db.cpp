@@ -370,7 +370,7 @@ bool lower(const DbItem& a, const DbItem& b, DbSort sort, DbSortOrder order)
     else if (sort == SortByDate)
         cmp = a.date.compare(b.date);
     else
-        throw std::runtime_error(fmt::format("unknown sort order {}", sort));
+        throw std::runtime_error(fmt::format("unknown sort order {}", (int)sort));
 
     if (cmp == 0)
         cmp = a.titleid.compare(b.titleid);
@@ -576,7 +576,7 @@ GameRegion pkgi_get_region(const std::string& titleid) {
         return RegionEUR;
 
         case ID('N', 'P', 'J', 'I'): // PS1
-        case ID('N', 'P', 'J', 'J'): // PS1
+        //case ID('N', 'P', 'J', 'J'): // PS1
         case ID('P', 'C', 'S', 'C'): // PSV
         case ID('P', 'C', 'S', 'G'): // PSV
         case ID('U', 'C', 'J', 'M'): // PSP
@@ -590,7 +590,7 @@ GameRegion pkgi_get_region(const std::string& titleid) {
         case ID('N', 'P', 'P', 'A'): // PSM
         return RegionJPN;
 
-        case ID('N', 'P', 'U', 'F'): // PS1
+        //case ID('N', 'P', 'U', 'F'): // PS1
         case ID('N', 'P', 'U', 'I'): // PS1
         case ID('N', 'P', 'U', 'J'): // PS1
         case ID('P', 'C', 'S', 'A'): // PSV

@@ -1,5 +1,5 @@
 #include "bgdl.hpp"
-
+#include "download.hpp"
 #include "file.hpp"
 #include "log.hpp"
 
@@ -320,10 +320,15 @@ void pkgi_start_bgdl(
                 "be able to download more.");
 
     static auto example_class = new_scedownload();
-
+    
+	
     const std::string license_path = fmt::format("{}bgdl/temp.dat", partition);
-    pkgi_save(license_path, rif.data(), rif.size());
-
+	
+	int rif_size = PKGI_RIF_SIZE;
+	if(type == BgdlTypePsp) rif_size = PKGI_PSP_RIF_SIZE;
+	
+	pkgi_save(license_path, rif.data(), rif_size);
+	
     scedownload_start_with_rif(
             example_class.get(),
             partition.c_str(),

@@ -48,7 +48,7 @@ extern "C"
 extern "C"
 {
     int _newlib_heap_size_user = 128 * 1024 * 1024;
-    extern SceUID _vshKernelSearchModuleByName(const char *name, SceUInt64 *unk);
+    //extern SceUID _vshKernelSearchModuleByName(const char *name, SceUInt64 *unk);
 }
 
 static vita2d_pgf* g_font;
@@ -219,13 +219,14 @@ static void pkgi_load_sce_paf()
             0x00000000,
     };
 
-    uint32_t result = 0xDEADBEEF;
+    int32_t result = 0xDEADBEEF;
 
-    uint32_t buffer[4] = {};
-    buffer[1] = (uint32_t)&result;
+	 
+    SceSysmoduleOpt opt = {0};
+    opt.result = &result;
 
     sceSysmoduleLoadModuleInternalWithArg(
-            SCE_SYSMODULE_INTERNAL_PAF, sizeof(args), args, buffer);
+            SCE_SYSMODULE_INTERNAL_PAF, sizeof(args), args, &opt);
 }
 
 int pkgi_is_unsafe_mode(void)
@@ -873,6 +874,6 @@ std::string pkgi_get_system_version()
 }
 
 bool pkgi_is_module_present(const char* module_name) {
-    SceUInt64 unk;
-    return _vshKernelSearchModuleByName(module_name, &unk) >= 0;
+    SceSysmoduleOpt opt;
+    return _vshKernelSearchModuleByName(module_name, &opt) >= 0;
 }

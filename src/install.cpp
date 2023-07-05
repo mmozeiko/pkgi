@@ -43,6 +43,7 @@ std::string pkgi_get_game_version(const std::string& partition, const std::strin
     return "";
 }
 
+
 bool pkgi_dlc_is_installed(const char* partition, const char* content)
 {
     return pkgi_file_exists(

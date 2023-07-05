@@ -1111,6 +1111,7 @@ int Download::create_stat()
     return 1;
 }
 
+
 int Download::create_rif(const uint8_t* rif)
 {
     LOG("creating work.bin");
