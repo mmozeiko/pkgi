@@ -321,14 +321,14 @@ void pkgi_start_bgdl(
 
     static auto example_class = new_scedownload();
     
-	
+    
     const std::string license_path = fmt::format("{}bgdl/temp.dat", partition);
-	
-	int rif_size = PKGI_RIF_SIZE;
-	if(type == BgdlTypePsp) rif_size = PKGI_PSP_RIF_SIZE;
-	
-	pkgi_save(license_path, rif.data(), rif_size);
-	
+    
+    int rif_size = PKGI_RIF_SIZE;
+    if(type == BgdlTypePsp) rif_size = PKGI_PSP_RIF_SIZE;
+    
+    pkgi_save(license_path, rif.data(), rif_size);
+    
     scedownload_start_with_rif(
             example_class.get(),
             partition.c_str(),

@@ -118,10 +118,10 @@ BgdlType mode_to_bgdl_type(Mode mode)
 {
     switch (mode)
     {
-	case ModePspGames:
-	case ModePsxGames:
-	case ModePspDlcs:
-		return BgdlTypePsp;
+    case ModePspGames:
+    case ModePsxGames:
+    case ModePspDlcs:
+        return BgdlTypePsp;
     case ModeGames:
     case ModeDemos:
         return BgdlTypeGame;
@@ -1010,13 +1010,13 @@ void pkgi_open_db()
 }
 
 void pkgi_create_psp_rif(std::string contentid, uint8_t* rif) {
-	SceNpDrmLicense license;
+    SceNpDrmLicense license;
     memset(&license, 0x00, sizeof(SceNpDrmLicense));
     license.account_id = 0x0123456789ABCDEFLL;
     memset(license.ecdsa_signature, 0xFF, 0x28);
     strncpy(license.content_id, contentid.c_str(), 0x30);
-	
-	memcpy(rif, &license, PKGI_PSP_RIF_SIZE);
+    
+    memcpy(rif, &license, PKGI_PSP_RIF_SIZE);
 }
 
 void pkgi_start_download(Downloader& downloader, const DbItem& item)
@@ -1033,9 +1033,9 @@ void pkgi_start_download(Downloader& downloader, const DbItem& item)
             if (mode == ModeGames || mode == ModeDlcs || mode == ModeDemos ||
                 mode == ModeThemes || ( MODE_IS_PSPEMU(mode) && pkgi_is_module_present("NoPspEmuDrm_kern") ))
             {
-				
-				if(MODE_IS_PSPEMU(mode)) pkgi_create_psp_rif(item.content, rif);
-				
+                
+                if(MODE_IS_PSPEMU(mode)) pkgi_create_psp_rif(item.content, rif);
+                
                 pkgi_start_bgdl(
                         mode_to_bgdl_type(mode),
                         item.partition,

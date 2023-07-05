@@ -221,7 +221,7 @@ static void pkgi_load_sce_paf()
 
     int32_t result = 0xDEADBEEF;
 
-	 
+     
     SceSysmoduleOpt opt = {0};
     opt.result = &result;
 
